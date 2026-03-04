@@ -82,6 +82,7 @@ function render(): void {
     case "journal":   app.innerHTML = renderJournal();     break;
     case "day":       app.innerHTML = renderDayPage();     break;
     case "stats":     app.innerHTML = renderStats();       break;
+    case "demos":     app.innerHTML = renderDemos();       break;
     case "blog":      app.innerHTML = renderBlogArchive(); break;
     case "blog-post": app.innerHTML = renderBlogPost();    break;
     case "blog-new":  app.innerHTML = renderBlogEditor();  break;
@@ -316,10 +317,18 @@ function renderDayPage(): string {
 
   const html = `
     <div class="day-page-simple phase-${dayData.phase}">
+      <!-- Breadcrumbs -->
+      <nav class="breadcrumbs">
+        <a href="#" data-action="go-home">Home</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="#" data-action="go-home">Phase ${dayData.phase}</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Day ${dayNum}</span>
+      </nav>
+
       <!-- Compact Header -->
       <header class="day-header-simple">
         <nav class="day-nav-simple">
-          <a href="#" class="back-link" data-action="go-home">&#8592; Roadmap</a>
           <div class="day-nav-arrows">
             ${prevDay ? `<a href="#" class="nav-arrow-btn" data-action="go-to-day" data-day="${prevDay.day}" title="Day ${prevDay.day}">&#8592;</a>` : '<span class="nav-arrow-btn disabled">&#8592;</span>'}
             <span class="day-indicator">Day ${dayNum} of 30</span>
@@ -437,14 +446,31 @@ function renderLearnContentSimple(learn: Learn, d: Day): string {
       ${learn.resources?.length ? `
         <section class="resources-section">
           <h2>Resources</h2>
-          <div class="resources-list">
-            ${learn.resources.map(r => `
-              <a href="${r.url}" target="_blank" class="resource-link-simple">
-                <span class="resource-type-tag">${r.type || 'link'}</span>
-                <span class="resource-title-simple">${r.title}</span>
-                <span class="arrow">&#8599;</span>
-              </a>
-            `).join('')}
+          <div class="resources-list-simple">
+            ${learn.resources.map(r => {
+              const hasSummary = !!r.summaryPath;
+              const resourceId = `resource-simple-${d.day}-${encodeURIComponent(r.url).slice(0, 20)}`;
+              return `
+              <div class="resource-item-simple ${hasSummary ? 'has-summary' : ''}" data-resource-id="${resourceId}">
+                <div class="resource-row-simple">
+                  ${hasSummary ? `
+                    <button type="button" class="resource-expand-btn-simple" data-action="toggle-resource-summary" data-resource-id="${resourceId}" data-path="${r.summaryPath}" title="Show/hide summary">
+                      <span class="expand-icon">+</span>
+                    </button>
+                  ` : ''}
+                  <a href="${r.url}" target="_blank" class="resource-link-simple">
+                    <span class="resource-type-tag">${r.type || 'link'}</span>
+                    <span class="resource-title-simple">${r.title}</span>
+                    <span class="arrow">&#8599;</span>
+                  </a>
+                </div>
+                ${hasSummary ? `
+                  <div class="resource-summary-dropdown" id="${resourceId}-summary">
+                    <div class="summary-content"></div>
+                  </div>
+                ` : ''}
+              </div>
+            `}).join('')}
           </div>
         </section>
       ` : ''}
@@ -840,23 +866,37 @@ function renderResourcesV2(resources: Learn['resources'], day: number): string {
       <div class="resources-grid">
         ${resources.map(r => {
           const isCompleted = isResourceCompleted(day, r.url);
+          const hasSummary = !!r.summaryPath;
+        const resourceId = `resource-${day}-${encodeURIComponent(r.url).slice(0, 20)}`;
         return `
-          <div class="resource-card ${isCompleted ? 'completed' : ''}">
-            <button type="button" class="resource-check" data-action="toggle-resource" data-day="${day}" data-url="${r.url}" data-title="${r.title}">
-              ${isCompleted ? '&#10003;' : ''}
-            </button>
-            <a href="${r.url}" target="_blank" class="resource-link-v2">
-              <div class="resource-type-icon">${getResourceTypeIcon(r.type)}</div>
-              <div class="resource-info-v2">
-                <span class="resource-title-v2">${r.title}</span>
-                ${r.description ? `<span class="resource-desc-v2">${r.description}</span>` : ''}
+          <div class="resource-card ${isCompleted ? 'completed' : ''} ${hasSummary ? 'has-summary' : ''}" data-resource-id="${resourceId}">
+            <div class="resource-row">
+              <button type="button" class="resource-check" data-action="toggle-resource" data-day="${day}" data-url="${r.url}" data-title="${r.title}">
+                ${isCompleted ? '&#10003;' : ''}
+              </button>
+              ${hasSummary ? `
+                <button type="button" class="resource-expand-btn" data-action="toggle-resource-summary" data-resource-id="${resourceId}" data-path="${r.summaryPath}" title="Show/hide summary">
+                  <span class="expand-icon">+</span>
+                </button>
+              ` : ''}
+              <a href="${r.url}" target="_blank" class="resource-link-v2">
+                <div class="resource-type-icon">${getResourceTypeIcon(r.type)}</div>
+                <div class="resource-info-v2">
+                  <span class="resource-title-v2">${r.title}</span>
+                  ${r.description ? `<span class="resource-desc-v2">${r.description}</span>` : ''}
+                </div>
+                <div class="resource-meta-v2">
+                  <span class="resource-type-label" data-type="${r.type || 'link'}">${r.type || 'link'}</span>
+                  ${r.duration ? `<span class="resource-duration-v2">${r.duration}</span>` : ''}
+                </div>
+                <span class="resource-external-arrow">&#8599;</span>
+              </a>
+            </div>
+            ${hasSummary ? `
+              <div class="resource-summary-dropdown" id="${resourceId}-summary">
+                <div class="summary-content"></div>
               </div>
-              <div class="resource-meta-v2">
-                <span class="resource-type-label" data-type="${r.type || 'link'}">${r.type || 'link'}</span>
-                ${r.duration ? `<span class="resource-duration-v2">${r.duration}</span>` : ''}
-              </div>
-              <span class="resource-arrow-v2">&#8599;</span>
-            </a>
+            ` : ''}
           </div>
         `;
         }).join('')}
@@ -1155,18 +1195,41 @@ function getResourceTypeIcon(type: string | undefined): string {
 function formatLearnMarkdown(text: string | undefined): string {
   if (!text) return '';
 
-  let html = text
+  // First, extract and replace code blocks with placeholders
+  const codeBlocks: string[] = [];
+  let processedText = text.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+    const index = codeBlocks.length;
+    const language = lang || 'text';
+    codeBlocks.push(`<pre class="code-block-inline"><code class="language-${language}">${escapeHtml(code.trim())}</code></pre>`);
+    return `__CODE_BLOCK_${index}__`;
+  });
+
+  // Process paragraphs and inline formatting
+  let html = processedText
     .split(/\n\n+/)
     .map(para => para.trim())
     .filter(para => para.length > 0)
-    .map(para => `<p>${para}</p>`)
+    .map(para => {
+      // Don't wrap code block placeholders in <p> tags
+      if (para.startsWith('__CODE_BLOCK_')) {
+        return para;
+      }
+      return `<p>${para}</p>`;
+    })
     .join('\n')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/`(.*?)`/g, '<code>$1</code>')
     .replace(/<p>(.*?)<\/p>/gs, (match, content) => {
+      // Don't process code block placeholders
+      if (content.startsWith('__CODE_BLOCK_')) return match;
       return `<p>${content.replace(/\n/g, ' ')}</p>`;
     });
+
+  // Restore code blocks
+  codeBlocks.forEach((block, i) => {
+    html = html.replace(`__CODE_BLOCK_${i}__`, block);
+  });
 
   return html;
 }
@@ -1345,6 +1408,78 @@ function bindLessonTabs(): void {
       }
     });
   });
+}
+
+// ── Demos Page ─────────────────────────────────────
+function renderDemos(): string {
+  const daysWithDemos = DAYS.filter(d => d.demoUrl);
+  const daysWithoutDemos = DAYS.filter(d => !d.demoUrl);
+
+  // Group upcoming demos by phase
+  const upcomingByPhase: Record<number, typeof DAYS> = {};
+  daysWithoutDemos.forEach(d => {
+    if (!upcomingByPhase[d.phase]) upcomingByPhase[d.phase] = [];
+    upcomingByPhase[d.phase].push(d);
+  });
+
+  let html = `
+    <div class="demos-page">
+      <div class="demos-header anim-fade-up" style="--i:0">
+        <h1>Interactive Demos</h1>
+        <p class="demos-subtitle">Hands-on playgrounds to explore each day's concepts</p>
+        <div class="demos-progress">
+          <span class="demos-progress-bar" style="--progress: ${(daysWithDemos.length / 30) * 100}%"></span>
+          <span class="demos-progress-text">${daysWithDemos.length} of 30 demos available</span>
+        </div>
+      </div>
+
+      ${daysWithDemos.length > 0 ? `
+        <section class="demos-available anim-fade-up" style="--i:1">
+          <h2>Available Now</h2>
+          <div class="demos-featured-grid">
+            ${daysWithDemos.map(day => `
+              <a href="${day.demoUrl}" target="_blank" class="demo-featured-card phase-${day.phase}">
+                <div class="demo-featured-badge">Day ${day.day}</div>
+                <h3>${day.title}</h3>
+                <p class="demo-featured-concept">${day.concept || ''}</p>
+                <span class="demo-featured-cta">
+                  <span>&#9654;</span> Launch Demo
+                </span>
+              </a>
+            `).join('')}
+          </div>
+        </section>
+      ` : ''}
+
+      <section class="demos-upcoming anim-fade-up" style="--i:2">
+        <h2>Coming Soon</h2>
+        <div class="demos-upcoming-list">
+          ${PHASES.map(phase => {
+            const phaseDays = upcomingByPhase[phase.id] || [];
+            if (phaseDays.length === 0) return '';
+            return `
+              <div class="demos-phase-group">
+                <div class="demos-phase-header phase-${phase.id}">
+                  <span class="demos-phase-num">Phase ${phase.id}</span>
+                  <span class="demos-phase-title">${phase.title}</span>
+                </div>
+                <div class="demos-phase-days">
+                  ${phaseDays.map(d => `
+                    <div class="demos-upcoming-day">
+                      <span class="demos-day-num">Day ${d.day}</span>
+                      <span class="demos-day-title">${d.title}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </section>
+    </div>
+  `;
+
+  return html;
 }
 
 // ── Stats Page ─────────────────────────────────────
@@ -2050,6 +2185,47 @@ function bindEvents(): void {
       const day = parseInt(el.dataset.day || '0');
       const resourceId = el.dataset.resourceId;
       navigate("resource", { day, resourceId });
+    });
+  });
+
+  // Toggle resource summary dropdown
+  document.querySelectorAll<HTMLElement>("[data-action='toggle-resource-summary']").forEach(el => {
+    el.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const resourceId = el.dataset.resourceId;
+      const path = el.dataset.path;
+      if (!resourceId || !path) return;
+
+      const dropdown = document.getElementById(`${resourceId}-summary`);
+      const expandIcon = el.querySelector('.expand-icon');
+      if (!dropdown) return;
+
+      const isExpanded = dropdown.classList.contains('expanded');
+
+      if (isExpanded) {
+        // Collapse
+        dropdown.classList.remove('expanded');
+        if (expandIcon) expandIcon.textContent = '+';
+      } else {
+        // Expand
+        dropdown.classList.add('expanded');
+        if (expandIcon) expandIcon.textContent = '−';
+
+        const contentEl = dropdown.querySelector('.summary-content');
+        if (contentEl && !contentEl.innerHTML.trim()) {
+          // Load content if not already loaded
+          contentEl.innerHTML = '<div class="summary-loading">Loading...</div>';
+
+          const content = await fetchLocalResource(path);
+          if (content) {
+            contentEl.innerHTML = renderMarkdownFull(content);
+          } else {
+            contentEl.innerHTML = '<p class="summary-error">Summary not available.</p>';
+          }
+        }
+      }
     });
   });
 

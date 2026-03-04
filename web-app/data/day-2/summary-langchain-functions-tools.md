@@ -1,0 +1,15 @@
+# Functions, Tools and Agents with LangChain
+
+This DeepLearning.AI course teaches you how to build LLM applications that can use tools and maintain conversations. It covers the progression from basic function calling through LangChain Expression Language to full conversational agents with memory.
+
+The course begins with OpenAI function calling fundamentals. The key concept is that the model doesn't execute functions—it tells you what to call and with what arguments. You define functions with a name, description, and JSON Schema for parameters. The model can be set to automatically decide when to use functions, be forced to always use them, or be forced to use a specific one. Your code handles the execution loop: get the function call from the model, execute the actual function, pass the result back, and get the final response.
+
+LangChain Expression Language (LCEL) provides a clean way to compose LLM pipelines. Using the pipe operator, you chain together prompts, models, and output parsers into reusable workflows. The beauty of LCEL is that it gives you async, batch processing, and streaming support out of the box without additional code. You can add fallbacks so that if one chain fails, another takes over. The `bind()` method attaches parameters like function definitions to a model so they're always included.
+
+Pydantic integration makes defining schemas much cleaner than writing raw JSON. You define Python classes with type hints and Field descriptions, then LangChain converts them to OpenAI function format automatically. The class docstring becomes the function description, and field descriptions guide the model's behavior. This keeps your schema definitions in sync with your code and provides IDE autocomplete.
+
+Tagging and extraction are two core patterns. Tagging classifies text into categories—you define a schema with fields like sentiment and language, then extract those values from any input text. Extraction pulls multiple entities from text, like extracting all people mentioned with their names and ages. For long documents, you split the text into chunks, run extraction on each chunk, then flatten the results.
+
+The tools and routing lesson shows how to create LangChain tools using the `@tool` decorator. Tools are functions with descriptions and typed arguments that the model can choose to call. When you have multiple tools, the model routes to the appropriate one based on the user's request. The output parser determines whether the model wants to call a tool or return a final response.
+
+Conversational agents tie everything together with the agent loop. The model receives user input, decides whether to call a tool or respond directly, and if it calls a tool, the result goes into a scratchpad for the next iteration. This loop continues until the model returns a final response. Adding memory through ConversationBufferMemory lets the agent remember previous turns, enabling multi-turn conversations where context carries forward. The AgentExecutor wrapper handles error cases, retries, and logging automatically.

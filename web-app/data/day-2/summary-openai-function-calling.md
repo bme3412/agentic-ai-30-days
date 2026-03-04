@@ -1,0 +1,15 @@
+# OpenAI Function Calling
+
+Function calling is OpenAI's mechanism for letting models request the execution of functions you define. The key insight is that the model never actually executes anything—it simply returns a structured request describing what function to call and with what arguments. Your code then decides whether to execute the function, handles the execution, and passes the result back to the model for a final response.
+
+The typical flow works in five steps. First, you send a request to the model that includes your tool definitions alongside the user's message. The model analyzes the request and, if appropriate, returns one or more tool calls specifying which functions it wants to invoke and with what parameters. Your code then executes those functions using real implementations you've written. After execution, you send the results back to the model in a special message format. Finally, the model incorporates those results and generates its final response to the user—or requests additional tool calls if needed.
+
+When defining a function tool, you provide a JSON object with several key fields. The `type` field is always set to "function". The `name` field gives the function a clear identifier like "get_weather" or "send_email". The `description` field explains when and how to use the function—this is critical because it guides the model's decision-making. The `parameters` field contains a JSON Schema that defines the input arguments the function accepts, including their types and any constraints. Setting `strict: true` is highly recommended because it guarantees the model's output will comply with your schema exactly.
+
+You can control when the model uses tools through the `tool_choice` parameter. The default value "auto" lets the model decide whether to call a tool or respond directly. Setting it to "required" forces the model to call at least one tool. Setting it to "none" prevents any tool calls. You can also specify a particular function by name to force that exact function to be called.
+
+Modern models support parallel tool calls, meaning the model can request multiple function executions in a single response. Your code should iterate through all the tool calls, execute each one, and return all results before asking the model to continue. If you need exactly zero or one tool call, you can disable this with `parallel_tool_calls=False`.
+
+For best results, write clear descriptions that explain when and why to use each function. Include detailed parameter documentation with format examples. Use enums to constrain values where possible. Keep your function count reasonable—aim for fewer than 20 functions for best accuracy. Apply what's called the "intern test": if an intern couldn't correctly use the function given only the information you provided, add more detail to your descriptions.
+
+Function definitions are injected into the system message and count against both context limits and input token billing. To minimize token usage, limit the number of functions you expose, keep descriptions concise but complete, and consider fine-tuning if you need many functions.

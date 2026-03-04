@@ -16,6 +16,7 @@ export interface Resource {
   duration?: string;
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
   description?: string;
+  summaryPath?: string;  // Path to a markdown summary file (e.g., "data/day-2/openai-function-calling.md")
 }
 
 export interface LocalResource {
@@ -297,6 +298,7 @@ export type Route =
   | 'journal'
   | 'day'
   | 'stats'
+  | 'demos'
   | 'blog'
   | 'blog-post'
   | 'blog-new'

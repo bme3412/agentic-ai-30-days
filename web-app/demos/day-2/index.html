@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 2: Structured Outputs & Function Calling</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="../../#day/2" class="back-link">&larr; Back to Day 2</a>
+      <h1>Structured Outputs & Function Calling</h1>
+      <p class="subtitle">Interactive playground for understanding structured LLM outputs</p>
+    </header>
+
+    <!-- Tab Navigation -->
+    <nav class="demo-tabs">
+      <button class="tab-btn active" data-tab="extract">
+        <span class="tab-icon">&#128196;</span>
+        Extract Data
+      </button>
+      <button class="tab-btn" data-tab="function">
+        <span class="tab-icon">&#9881;</span>
+        Function Calling
+      </button>
+      <button class="tab-btn" data-tab="schema">
+        <span class="tab-icon">&#128203;</span>
+        Schema Playground
+      </button>
+    </nav>
+
+    <!-- Panel 1: Extract Structured Data -->
+    <section id="extract-panel" class="demo-panel active">
+      <div class="panel-header">
+        <h2>Extract Structured Data</h2>
+        <p>See how LLMs extract typed data from unstructured text using a defined schema.</p>
+      </div>
+
+      <div class="extract-layout">
+        <div class="extract-input-area">
+          <div class="input-section">
+            <label>Unstructured Text</label>
+            <textarea id="extract-input" rows="4" placeholder="Enter text to extract data from...">Contact Sarah Johnson at sarah.j@company.com. She's 28 years old and works as a Product Manager in the Engineering department.</textarea>
+          </div>
+
+          <div class="schema-section">
+            <label>Schema (what to extract)</label>
+            <div class="schema-preview">
+              <div class="schema-field">
+                <span class="field-name">name</span>
+                <span class="field-type">string</span>
+              </div>
+              <div class="schema-field">
+                <span class="field-name">email</span>
+                <span class="field-type">string</span>
+              </div>
+              <div class="schema-field">
+                <span class="field-name">age</span>
+                <span class="field-type">integer</span>
+              </div>
+              <div class="schema-field">
+                <span class="field-name">role</span>
+                <span class="field-type">string</span>
+              </div>
+              <div class="schema-field">
+                <span class="field-name">department</span>
+                <span class="field-type">string | null</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="sample-buttons">
+            <span class="sample-label">Try samples:</span>
+            <button class="sample-btn" data-sample="person">Person</button>
+            <button class="sample-btn" data-sample="invoice">Invoice</button>
+            <button class="sample-btn" data-sample="event">Event</button>
+          </div>
+
+          <button class="btn btn-primary" id="extract-btn">
+            <span>&#10024;</span> Extract Data
+          </button>
+        </div>
+
+        <div class="extract-output-area">
+          <div class="output-header">
+            <span class="output-label">Extracted JSON</span>
+            <span class="output-badge" id="extract-status">Ready</span>
+          </div>
+          <pre class="output-json" id="extract-output">{
+  "name": null,
+  "email": null,
+  "age": null,
+  "role": null,
+  "department": null
+}</pre>
+          <div class="validation-results" id="validation-results"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel 2: Function Calling Flow -->
+    <section id="function-panel" class="demo-panel">
+      <div class="panel-header">
+        <h2>Function Calling Flow</h2>
+        <p>Watch how an LLM decides to call tools and processes the results.</p>
+      </div>
+
+      <div class="function-layout">
+        <div class="function-input-area">
+          <div class="input-section">
+            <label>User Query</label>
+            <input type="text" id="function-query" placeholder="Ask something that needs a tool..." value="What's the weather in Tokyo?">
+          </div>
+
+          <div class="tools-section">
+            <label>Available Tools</label>
+            <div class="tools-list">
+              <div class="tool-card">
+                <div class="tool-name">get_weather</div>
+                <div class="tool-desc">Get current weather for a location</div>
+                <div class="tool-params">location: string, unit?: "celsius" | "fahrenheit"</div>
+              </div>
+              <div class="tool-card">
+                <div class="tool-name">search_web</div>
+                <div class="tool-desc">Search the web for information</div>
+                <div class="tool-params">query: string, max_results?: number</div>
+              </div>
+              <div class="tool-card">
+                <div class="tool-name">calculate</div>
+                <div class="tool-desc">Perform mathematical calculations</div>
+                <div class="tool-params">expression: string</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sample-buttons">
+            <span class="sample-label">Try queries:</span>
+            <button class="query-btn" data-query="weather">Weather</button>
+            <button class="query-btn" data-query="search">Search</button>
+            <button class="query-btn" data-query="calc">Calculate</button>
+          </div>
+
+          <button class="btn btn-primary" id="function-btn">
+            <span>&#9654;</span> Run Function Call
+          </button>
+        </div>
+
+        <div class="function-flow-area">
+          <div class="flow-diagram">
+            <div class="flow-step" data-step="1">
+              <div class="step-number">1</div>
+              <div class="step-title">User Query</div>
+              <div class="step-content" id="flow-step-1">Waiting...</div>
+            </div>
+            <div class="flow-arrow">&darr;</div>
+            <div class="flow-step" data-step="2">
+              <div class="step-number">2</div>
+              <div class="step-title">Model Decides</div>
+              <div class="step-content" id="flow-step-2">Waiting...</div>
+            </div>
+            <div class="flow-arrow">&darr;</div>
+            <div class="flow-step" data-step="3">
+              <div class="step-number">3</div>
+              <div class="step-title">Tool Request</div>
+              <div class="step-content" id="flow-step-3">Waiting...</div>
+            </div>
+            <div class="flow-arrow">&darr;</div>
+            <div class="flow-step" data-step="4">
+              <div class="step-number">4</div>
+              <div class="step-title">Execute Tool</div>
+              <div class="step-content" id="flow-step-4">Waiting...</div>
+            </div>
+            <div class="flow-arrow">&darr;</div>
+            <div class="flow-step" data-step="5">
+              <div class="step-number">5</div>
+              <div class="step-title">Final Response</div>
+              <div class="step-content" id="flow-step-5">Waiting...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel 3: Schema Playground -->
+    <section id="schema-panel" class="demo-panel">
+      <div class="panel-header">
+        <h2>Schema Playground</h2>
+        <p>Edit JSON schemas and test validation in real-time.</p>
+      </div>
+
+      <div class="schema-layout">
+        <div class="schema-editor-area">
+          <div class="editor-header">
+            <label>JSON Schema</label>
+            <div class="template-buttons">
+              <button class="template-btn active" data-template="person">Person</button>
+              <button class="template-btn" data-template="task">Task</button>
+              <button class="template-btn" data-template="order">Order</button>
+            </div>
+          </div>
+          <textarea id="schema-editor" rows="16">{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Full name of the person"
+    },
+    "age": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 150
+    },
+    "email": {
+      "type": ["string", "null"],
+      "description": "Email address (optional)"
+    }
+  },
+  "required": ["name", "age"]
+}</textarea>
+        </div>
+
+        <div class="schema-test-area">
+          <div class="test-header">
+            <label>Test Data</label>
+            <div class="strict-toggle">
+              <input type="checkbox" id="strict-mode" checked>
+              <label for="strict-mode">Strict Mode</label>
+            </div>
+          </div>
+          <textarea id="test-data" rows="8">{
+  "name": "John Doe",
+  "age": 30,
+  "email": null
+}</textarea>
+          <button class="btn btn-primary" id="validate-btn">
+            <span>&#10003;</span> Validate
+          </button>
+
+          <div class="validation-output" id="schema-validation-output">
+            <div class="validation-placeholder">
+              Click "Validate" to check if your test data matches the schema
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="demo-footer">
+      <p>This demo uses simulated responses to demonstrate concepts. No API key required.</p>
+    </footer>
+  </div>
+
+  <script src="demo.js"></script>
+</body>
+</html>
