@@ -1,4 +1,34 @@
-const PHASES = [
+import type {
+  Phase,
+  Day,
+  JournalEntry,
+  BlogPost,
+  BlogData,
+  BlogFilterOptions,
+  Achievement,
+  GamificationData,
+  Streak,
+  DayActivity,
+  GamificationStats,
+  ReadingProgressData,
+  CompletedResource,
+  SectionProgressData,
+  SectionItem,
+  SectionProgressCounts,
+  DayOverallProgress,
+  DayCompletion,
+  DayCompletionRequirement,
+  DayCompletionCheck,
+  MarkDayCompleteResult,
+  LocalResource,
+  MicroPost,
+} from './types';
+
+// ══════════════════════════════════════════════════════════════
+// PHASE & DAY DATA
+// ══════════════════════════════════════════════════════════════
+
+export const PHASES: Phase[] = [
   { id: 1, title: "Foundations of Agentic AI", subtitle: "Core concepts, design patterns, and building your first agent.", badge: "p1" },
   { id: 2, title: "Agent Frameworks", subtitle: "Mastering LangGraph, CrewAI, AutoGen, OpenAI SDK, and PydanticAI.", badge: "p2" },
   { id: 3, title: "Agentic RAG & Memory", subtitle: "Building retrieval-augmented agents with long-term memory and knowledge graphs.", badge: "p3" },
@@ -7,7 +37,7 @@ const PHASES = [
   { id: 6, title: "Production & Evaluation", subtitle: "Observability, testing, guardrails, and deploying agents at scale.", badge: "p6" },
 ];
 
-const DAYS = [
+export const DAYS: Day[] = [
   // Phase 1: Foundations of Agentic AI (Days 1-5)
   { day: 1,  phase: 1, title: "Agentic AI: Core Concepts & Design Patterns",    partner: "DeepLearning.AI",                    tags: ["agentic-patterns", "foundations", "design"],
     concept: "The Observe-Think-Act-Reflect loop that powers autonomous AI agents",
@@ -105,7 +135,6 @@ This foundational lesson introduces the core design pattern that underlies all a
         { title: "Anthropic's Building Effective Agents", url: "https://www.anthropic.com/research/building-effective-agents", type: "article" },
         { title: "LangChain: What is an Agent?", url: "https://python.langchain.com/docs/concepts/agents/", type: "docs" }
       ],
-      // Local resources are markdown files in /data/day-N/ that can be viewed in-app
       localResources: [
         {
           id: "autogen-notes",
@@ -465,10 +494,13 @@ Return JSON: {{"is_complete": bool, "quality_score": 1-10, "improvements": []}}"
     concept: "Safety constraints and production deployment patterns" },
 ];
 
-// Journal entries stored in localStorage with this key
+// ══════════════════════════════════════════════════════════════
+// JOURNAL STORAGE
+// ══════════════════════════════════════════════════════════════
+
 const STORAGE_KEY = "genai30_journal";
 
-function loadJournal() {
+export function loadJournal(): Record<number, JournalEntry> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : {};
@@ -477,20 +509,20 @@ function loadJournal() {
   }
 }
 
-function saveJournal(entries) {
+export function saveJournal(entries: Record<number, JournalEntry>): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
 }
 
-function getEntry(day) {
+export function getEntry(day: number): JournalEntry | null {
   return loadJournal()[day] || null;
 }
 
-function saveEntry(day, entry) {
+export function saveEntry(day: number, entry: Partial<JournalEntry>): void {
   const all = loadJournal();
   const wasCompleted = all[day]?.status === "completed";
   const isNowCompleted = entry.status === "completed";
 
-  all[day] = { ...entry, day, updatedAt: new Date().toISOString() };
+  all[day] = { ...entry, day, updatedAt: new Date().toISOString() } as JournalEntry;
   saveJournal(all);
 
   // Record activity for gamification when completing an entry
@@ -499,22 +531,22 @@ function saveEntry(day, entry) {
   }
 }
 
-function deleteEntry(day) {
+export function deleteEntry(day: number): void {
   const all = loadJournal();
   delete all[day];
   saveJournal(all);
 }
 
-function getAllEntries() {
+export function getAllEntries(): JournalEntry[] {
   const all = loadJournal();
   return Object.values(all).sort((a, b) => a.day - b.day);
 }
 
-function getCompletedDays() {
+export function getCompletedDays(): Set<number> {
   return new Set(getAllEntries().filter(e => e.status === "completed").map(e => e.day));
 }
 
-function getInProgressDays() {
+export function getInProgressDays(): Set<number> {
   return new Set(getAllEntries().filter(e => e.status === "in-progress").map(e => e.day));
 }
 
@@ -524,7 +556,7 @@ function getInProgressDays() {
 
 const BLOG_STORAGE_KEY = "genai30_blog";
 
-function loadBlogData() {
+export function loadBlogData(): BlogData {
   try {
     const raw = localStorage.getItem(BLOG_STORAGE_KEY);
     return raw ? JSON.parse(raw) : { posts: {}, tags: [], metadata: {} };
@@ -533,11 +565,11 @@ function loadBlogData() {
   }
 }
 
-function saveBlogData(data) {
+export function saveBlogData(data: BlogData): void {
   localStorage.setItem(BLOG_STORAGE_KEY, JSON.stringify(data));
 }
 
-function generateSlug(title) {
+export function generateSlug(title: string): string {
   return title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
@@ -545,14 +577,21 @@ function generateSlug(title) {
     .substring(0, 60);
 }
 
-function generateExcerpt(body, maxLength = 160) {
+export function generateExcerpt(body: string, maxLength = 160): string {
   const plain = body.replace(/[#*_`\[\]]/g, '').trim();
   return plain.length > maxLength
     ? plain.substring(0, maxLength).trim() + '...'
     : plain;
 }
 
-function createBlogPost(post) {
+export function createBlogPost(post: {
+  title: string;
+  body: string;
+  excerpt?: string;
+  tags?: string[];
+  linkedDay?: number | null;
+  status?: 'draft' | 'published';
+}): BlogPost {
   const data = loadBlogData();
   const id = `post-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   const slug = generateSlug(post.title);
@@ -584,7 +623,7 @@ function createBlogPost(post) {
   return data.posts[id];
 }
 
-function updateBlogPost(id, updates) {
+export function updateBlogPost(id: string, updates: Partial<BlogPost>): BlogPost | null {
   const data = loadBlogData();
   if (!data.posts[id]) return null;
 
@@ -622,22 +661,22 @@ function updateBlogPost(id, updates) {
   return data.posts[id];
 }
 
-function deleteBlogPost(id) {
+export function deleteBlogPost(id: string): void {
   const data = loadBlogData();
   delete data.posts[id];
   saveBlogData(data);
 }
 
-function getBlogPost(id) {
+export function getBlogPost(id: string): BlogPost | null {
   return loadBlogData().posts[id] || null;
 }
 
-function getBlogPostBySlug(slug) {
+export function getBlogPostBySlug(slug: string): BlogPost | null {
   const posts = Object.values(loadBlogData().posts);
   return posts.find(p => p.slug === slug) || null;
 }
 
-function getAllBlogPosts(options = {}) {
+export function getAllBlogPosts(options: BlogFilterOptions = {}): BlogPost[] {
   const data = loadBlogData();
   let posts = Object.values(data.posts);
 
@@ -648,7 +687,8 @@ function getAllBlogPosts(options = {}) {
 
   // Filter by tag
   if (options.tag) {
-    posts = posts.filter(p => p.tags.includes(options.tag));
+    const tag = options.tag;
+    posts = posts.filter(p => p.tags.includes(tag));
   }
 
   // Filter by linked day
@@ -657,12 +697,12 @@ function getAllBlogPosts(options = {}) {
   }
 
   // Sort by date (newest first)
-  posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return posts;
 }
 
-function getAllBlogTags() {
+export function getAllBlogTags(): string[] {
   return loadBlogData().tags;
 }
 
@@ -670,7 +710,7 @@ function getAllBlogTags() {
 // MICRO-POSTS (Quick Updates on Journal Entries)
 // ══════════════════════════════════════════════════════════════
 
-function saveMicroPost(day, content, mood = null) {
+export function saveMicroPost(day: number, content: string, mood: string | null = null): void {
   const all = loadJournal();
   if (!all[day]) {
     all[day] = { day, status: "pending", updatedAt: new Date().toISOString() };
@@ -687,20 +727,20 @@ function saveMicroPost(day, content, mood = null) {
   recordActivity("microPost");
 }
 
-function getMicroPost(day) {
+export function getMicroPost(day: number): MicroPost | null {
   const entry = getEntry(day);
   return entry?.microPost || null;
 }
 
-function getAllMicroPosts() {
+export function getAllMicroPosts(): (MicroPost & { day: number })[] {
   const entries = getAllEntries();
   return entries
     .filter(e => e.microPost)
-    .map(e => ({ day: e.day, ...e.microPost }))
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    .map(e => ({ day: e.day, ...e.microPost! }))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-function getDaysWithMicroPosts() {
+export function getDaysWithMicroPosts(): Set<number> {
   return new Set(getAllMicroPosts().map(mp => mp.day));
 }
 
@@ -710,7 +750,7 @@ function getDaysWithMicroPosts() {
 
 const GAMIFICATION_KEY = "genai30_gamification";
 
-const ACHIEVEMENTS = [
+export const ACHIEVEMENTS: Achievement[] = [
   // Milestones
   { id: "first-entry", name: "First Steps", description: "Write your first journal entry", icon: "rocket", category: "milestones" },
   { id: "first-blog", name: "Blogger", description: "Publish your first blog post", icon: "pencil", category: "milestones" },
@@ -730,7 +770,7 @@ const ACHIEVEMENTS = [
   { id: "thought-leader", name: "Thought Leader", description: "Publish 5 blog posts", icon: "lightbulb", category: "content" },
 ];
 
-function loadGamificationData() {
+export function loadGamificationData(): GamificationData {
   try {
     const raw = localStorage.getItem(GAMIFICATION_KEY);
     return raw ? JSON.parse(raw) : getDefaultGamificationData();
@@ -739,7 +779,7 @@ function loadGamificationData() {
   }
 }
 
-function getDefaultGamificationData() {
+function getDefaultGamificationData(): GamificationData {
   return {
     streak: { current: 0, longest: 0, lastActivityDate: null, startDate: null },
     activityLog: {},
@@ -748,17 +788,17 @@ function getDefaultGamificationData() {
   };
 }
 
-function saveGamificationData(data) {
+export function saveGamificationData(data: GamificationData): void {
   localStorage.setItem(GAMIFICATION_KEY, JSON.stringify(data));
 }
 
-function getYesterday(dateStr) {
+function getYesterday(dateStr: string): string {
   const date = new Date(dateStr);
   date.setDate(date.getDate() - 1);
   return date.toISOString().split('T')[0];
 }
 
-function updateStreak(data, today) {
+function updateStreak(data: GamificationData, today: string): void {
   const yesterday = getYesterday(today);
 
   if (!data.streak.lastActivityDate) {
@@ -784,7 +824,7 @@ function updateStreak(data, today) {
   data.streak.lastActivityDate = today;
 }
 
-function recalculateStats(data) {
+function recalculateStats(data: GamificationData): void {
   const entries = getAllEntries();
   const blogPosts = getAllBlogPosts({ status: "published" });
 
@@ -798,7 +838,7 @@ function recalculateStats(data) {
   );
 }
 
-function checkAchievements(data) {
+function checkAchievements(data: GamificationData): void {
   const stats = data.stats;
   const streak = data.streak;
 
@@ -849,7 +889,7 @@ function checkAchievements(data) {
   });
 }
 
-function recordActivity(type) {
+export function recordActivity(type: "journalEntry" | "blogPost" | "microPost" | "resourceCompleted" | "sectionCompleted"): void {
   const data = loadGamificationData();
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
@@ -875,15 +915,15 @@ function recordActivity(type) {
   saveGamificationData(data);
 }
 
-function getStreak() {
+export function getStreak(): Streak {
   return loadGamificationData().streak;
 }
 
-function getActivityLog() {
+export function getActivityLog(): Record<string, DayActivity> {
   return loadGamificationData().activityLog;
 }
 
-function getAchievements() {
+export function getAchievements(): (Achievement & { unlocked: boolean; unlockedAt: string | null })[] {
   const data = loadGamificationData();
   return ACHIEVEMENTS.map(a => ({
     ...a,
@@ -892,11 +932,11 @@ function getAchievements() {
   }));
 }
 
-function getGamificationStats() {
+export function getGamificationStats(): GamificationStats {
   return loadGamificationData().stats;
 }
 
-function isStreakAtRisk() {
+export function isStreakAtRisk(): boolean {
   const data = loadGamificationData();
   const today = new Date().toISOString().split('T')[0];
   const yesterday = getYesterday(today);
@@ -906,7 +946,7 @@ function isStreakAtRisk() {
          !data.activityLog[today];
 }
 
-function getNewlyUnlockedAchievements() {
+export function getNewlyUnlockedAchievements(): Achievement[] {
   // Returns achievements unlocked in the last check (useful for notifications)
   const data = loadGamificationData();
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
@@ -923,7 +963,7 @@ function getNewlyUnlockedAchievements() {
 
 const READING_PROGRESS_KEY = "genai30_reading_progress";
 
-function loadReadingProgress() {
+export function loadReadingProgress(): ReadingProgressData {
   try {
     const data = localStorage.getItem(READING_PROGRESS_KEY);
     return data ? JSON.parse(data) : { completed: {} };
@@ -933,7 +973,7 @@ function loadReadingProgress() {
   }
 }
 
-function saveReadingProgress(data) {
+export function saveReadingProgress(data: ReadingProgressData): void {
   try {
     localStorage.setItem(READING_PROGRESS_KEY, JSON.stringify(data));
   } catch (e) {
@@ -941,12 +981,12 @@ function saveReadingProgress(data) {
   }
 }
 
-function generateResourceId(day, resourceUrl) {
+export function generateResourceId(day: number, resourceUrl: string): string {
   // Create a unique ID for each resource based on day and URL
   return `day${day}_${btoa(resourceUrl).slice(0, 20)}`;
 }
 
-function toggleResourceCompletion(day, resourceUrl, resourceTitle) {
+export function toggleResourceCompletion(day: number, resourceUrl: string, resourceTitle: string): boolean {
   const data = loadReadingProgress();
   const resourceId = generateResourceId(day, resourceUrl);
 
@@ -968,14 +1008,14 @@ function toggleResourceCompletion(day, resourceUrl, resourceTitle) {
   return !data.completed[resourceId]; // Return whether it was just un-completed
 }
 
-function isResourceCompleted(day, resourceUrl) {
+export function isResourceCompleted(day: number, resourceUrl: string): boolean {
   const data = loadReadingProgress();
   const resourceId = generateResourceId(day, resourceUrl);
   return !!data.completed[resourceId];
 }
 
 // For local resources (markdown files in /data/day-N/)
-function toggleLocalResourceCompletion(day, resourceId, resourceTitle) {
+export function toggleLocalResourceCompletion(day: number, resourceId: string, resourceTitle: string): boolean {
   const data = loadReadingProgress();
   const fullId = `local_${day}_${resourceId}`;
 
@@ -996,27 +1036,27 @@ function toggleLocalResourceCompletion(day, resourceId, resourceTitle) {
   return !data.completed[fullId];
 }
 
-function isLocalResourceCompleted(day, resourceId) {
+export function isLocalResourceCompleted(day: number, resourceId: string): boolean {
   const data = loadReadingProgress();
   const fullId = `local_${day}_${resourceId}`;
   return !!data.completed[fullId];
 }
 
-function getCompletedLocalResourcesForDay(day) {
+export function getCompletedLocalResourcesForDay(day: number): CompletedResource[] {
   const data = loadReadingProgress();
   return Object.entries(data.completed)
-    .filter(([id, info]) => info.day === day && info.isLocal === true)
-    .map(([id, info]) => info);
+    .filter(([, info]) => info.day === day && info.isLocal === true)
+    .map(([, info]) => info);
 }
 
-function getCompletedResourcesForDay(day) {
+export function getCompletedResourcesForDay(day: number): CompletedResource[] {
   const data = loadReadingProgress();
   return Object.entries(data.completed)
-    .filter(([id, info]) => info.day === day)
-    .map(([id, info]) => info);
+    .filter(([, info]) => info.day === day)
+    .map(([, info]) => info);
 }
 
-function getAllCompletedResources() {
+export function getAllCompletedResources(): (CompletedResource & { id: string })[] {
   const data = loadReadingProgress();
   return Object.entries(data.completed).map(([id, info]) => ({
     id,
@@ -1024,10 +1064,14 @@ function getAllCompletedResources() {
   }));
 }
 
-function getReadingProgressStats() {
+export function getReadingProgressStats(): {
+  totalCompleted: number;
+  byDay: Record<number, number>;
+  recentlyCompleted: CompletedResource[];
+} {
   const data = loadReadingProgress();
   const completed = Object.values(data.completed);
-  const byDay = {};
+  const byDay: Record<number, number> = {};
 
   completed.forEach(r => {
     byDay[r.day] = (byDay[r.day] || 0) + 1;
@@ -1037,7 +1081,7 @@ function getReadingProgressStats() {
     totalCompleted: completed.length,
     byDay: byDay,
     recentlyCompleted: completed
-      .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
+      .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
       .slice(0, 5)
   };
 }
@@ -1048,7 +1092,7 @@ function getReadingProgressStats() {
 
 const SECTION_PROGRESS_KEY = "genai30_section_progress";
 
-function loadSectionProgress() {
+export function loadSectionProgress(): SectionProgressData {
   try {
     const data = localStorage.getItem(SECTION_PROGRESS_KEY);
     return data ? JSON.parse(data) : { items: {} };
@@ -1058,7 +1102,7 @@ function loadSectionProgress() {
   }
 }
 
-function saveSectionProgress(data) {
+export function saveSectionProgress(data: SectionProgressData): void {
   try {
     localStorage.setItem(SECTION_PROGRESS_KEY, JSON.stringify(data));
   } catch (e) {
@@ -1066,12 +1110,12 @@ function saveSectionProgress(data) {
   }
 }
 
-function generateSectionItemId(day, type, index) {
+export function generateSectionItemId(day: number, type: string, index: number): string {
   // type: 'concept', 'exercise', 'takeaway', 'overview'
   return `day${day}_${type}_${index}`;
 }
 
-function toggleSectionItem(day, type, index, title = '') {
+export function toggleSectionItem(day: number, type: SectionItem['type'], index: number, title = ''): boolean {
   const data = loadSectionProgress();
   const itemId = generateSectionItemId(day, type, index);
 
@@ -1093,20 +1137,20 @@ function toggleSectionItem(day, type, index, title = '') {
   return !!data.items[itemId];
 }
 
-function isSectionItemCompleted(day, type, index) {
+export function isSectionItemCompleted(day: number, type: string, index: number): boolean {
   const data = loadSectionProgress();
   const itemId = generateSectionItemId(day, type, index);
   return !!data.items[itemId];
 }
 
-function getSectionProgressForDay(day, type = null) {
+export function getSectionProgressForDay(day: number, type: string | null = null): SectionItem[] {
   const data = loadSectionProgress();
   return Object.entries(data.items)
-    .filter(([id, info]) => info.day === day && (type === null || info.type === type))
-    .map(([id, info]) => info);
+    .filter(([, info]) => info.day === day && (type === null || info.type === type))
+    .map(([, info]) => info);
 }
 
-function getSectionProgressCounts(day, type, total) {
+export function getSectionProgressCounts(day: number, type: string, total: number): SectionProgressCounts {
   const completed = getSectionProgressForDay(day, type).length;
   return {
     completed,
@@ -1115,7 +1159,7 @@ function getSectionProgressCounts(day, type, total) {
   };
 }
 
-function getDayOverallProgress(day) {
+export function getDayOverallProgress(day: number): DayOverallProgress {
   // Get all completed items for a day across all types
   const data = loadSectionProgress();
   const readingData = loadReadingProgress();
@@ -1136,7 +1180,7 @@ function getDayOverallProgress(day) {
 // LOCAL RESOURCES (Markdown files in /data/day-N/)
 // ═══════════════════════════════════════════════════════════════
 
-function getLocalResourcesForDay(day) {
+export function getLocalResourcesForDay(day: number): LocalResource[] {
   const dayData = DAYS.find(d => d.day === day);
   if (!dayData) return [];
 
@@ -1147,12 +1191,12 @@ function getLocalResourcesForDay(day) {
   return [...lessonResources, ...learnResources];
 }
 
-function getLocalResource(day, resourceId) {
+export function getLocalResource(day: number, resourceId: string): LocalResource | null {
   const resources = getLocalResourcesForDay(day);
   return resources.find(r => r.id === resourceId) || null;
 }
 
-async function fetchLocalResource(filePath) {
+export async function fetchLocalResource(filePath: string): Promise<string | null> {
   try {
     const response = await fetch(filePath);
     if (!response.ok) {
@@ -1171,7 +1215,7 @@ async function fetchLocalResource(filePath) {
 
 const DAY_COMPLETION_KEY = "genai30_day_completions";
 
-function loadDayCompletions() {
+export function loadDayCompletions(): Record<number, DayCompletion> {
   try {
     const raw = localStorage.getItem(DAY_COMPLETION_KEY);
     return raw ? JSON.parse(raw) : {};
@@ -1180,7 +1224,7 @@ function loadDayCompletions() {
   }
 }
 
-function saveDayCompletions(data) {
+export function saveDayCompletions(data: Record<number, DayCompletion>): void {
   localStorage.setItem(DAY_COMPLETION_KEY, JSON.stringify(data));
 }
 
@@ -1190,11 +1234,11 @@ function saveDayCompletions(data) {
  * - Has a blog post linked to this day
  * - Demo completed (if day has a demo)
  */
-function checkDayCompletionRequirements(day) {
+export function checkDayCompletionRequirements(day: number): DayCompletionCheck {
   const dayData = DAYS.find(d => d.day === day);
   if (!dayData) return { canComplete: false, requirements: [] };
 
-  const requirements = [];
+  const requirements: DayCompletionRequirement[] = [];
   let allMet = true;
 
   // 1. Check local resources (study materials)
@@ -1256,12 +1300,12 @@ function checkDayCompletionRequirements(day) {
   };
 }
 
-function isDemoCompleted(day) {
+export function isDemoCompleted(day: number): boolean {
   const data = loadDayCompletions();
   return data[day]?.demoCompleted === true;
 }
 
-function markDemoCompleted(day) {
+export function markDemoCompleted(day: number): void {
   const data = loadDayCompletions();
   if (!data[day]) {
     data[day] = {};
@@ -1271,7 +1315,7 @@ function markDemoCompleted(day) {
   saveDayCompletions(data);
 }
 
-function markDayComplete(day) {
+export function markDayComplete(day: number): MarkDayCompleteResult {
   const { canComplete, requirements } = checkDayCompletionRequirements(day);
 
   if (!canComplete) {
@@ -1291,7 +1335,7 @@ function markDayComplete(day) {
   saveDayCompletions(data);
 
   // Also update journal entry status
-  const entry = getEntry(day) || { body: "", status: "pending" };
+  const entry = getEntry(day) || { body: "", status: "pending" as const };
   entry.status = "completed";
   saveEntry(day, entry);
 
@@ -1301,17 +1345,154 @@ function markDayComplete(day) {
   };
 }
 
-function getDayCompletion(day) {
+export function getDayCompletion(day: number): DayCompletion | null {
   const data = loadDayCompletions();
   return data[day] || null;
 }
 
-function isDayCompleted(day) {
+export function isDayCompleted(day: number): boolean {
   const data = loadDayCompletions();
   return data[day]?.completed === true;
 }
 
-function getCompletedDaysCount() {
+export function getCompletedDaysCount(): number {
   const data = loadDayCompletions();
   return Object.values(data).filter(d => d.completed).length;
+}
+
+// Reading completion with date tracking
+const READING_KEY = "30days-reading-complete";
+
+interface ReadingCompletion {
+  completed: boolean;
+  completedAt: string | null;
+  blogPostId: string | null;
+}
+
+function loadReadingData(): Record<number, ReadingCompletion> {
+  const raw = localStorage.getItem(READING_KEY);
+  return raw ? JSON.parse(raw) : {};
+}
+
+function saveReadingData(data: Record<number, ReadingCompletion>): void {
+  localStorage.setItem(READING_KEY, JSON.stringify(data));
+}
+
+export function isReadingComplete(day: number): boolean {
+  return loadReadingData()[day]?.completed === true;
+}
+
+export function getReadingCompletion(day: number): ReadingCompletion | null {
+  return loadReadingData()[day] || null;
+}
+
+export function getCompletedReadingsCount(): number {
+  const data = loadReadingData();
+  return Object.values(data).filter(r => r.completed).length;
+}
+
+export function getCompletedReadingDays(): Set<number> {
+  const data = loadReadingData();
+  const days = new Set<number>();
+  for (const [day, completion] of Object.entries(data)) {
+    if (completion.completed) {
+      days.add(parseInt(day));
+    }
+  }
+  return days;
+}
+
+export function toggleReadingComplete(day: number): boolean {
+  const data = loadReadingData();
+  const current = data[day] || { completed: false, completedAt: null, blogPostId: null };
+
+  if (!current.completed) {
+    // Marking as complete
+    current.completed = true;
+    current.completedAt = new Date().toISOString();
+  } else {
+    // Unmarking
+    current.completed = false;
+    current.completedAt = null;
+  }
+
+  data[day] = current;
+  saveReadingData(data);
+  return current.completed;
+}
+
+export function setReadingBlogPostId(day: number, blogPostId: string): void {
+  const data = loadReadingData();
+  if (data[day]) {
+    data[day].blogPostId = blogPostId;
+    saveReadingData(data);
+  }
+}
+
+export function clearDayProgress(day: number): void {
+  // Clear reading completion
+  const readingData = loadReadingData();
+  const blogPostId = readingData[day]?.blogPostId;
+  delete readingData[day];
+  saveReadingData(readingData);
+
+  // Delete associated blog post if exists
+  if (blogPostId) {
+    deleteBlogPost(blogPostId);
+  }
+}
+
+export function generateAutoLogEntry(day: number): BlogPost | null {
+  const dayData = DAYS.find(d => d.day === day);
+  if (!dayData) return null;
+
+  const learn = dayData.learn;
+  const phase = PHASES.find(p => p.id === dayData.phase);
+
+  // Build a concise, colloquial "greatest hits" style entry
+  let body = '';
+
+  // One-liner hook
+  if (learn?.overview?.summary) {
+    body += `**TL;DR:** ${learn.overview.summary}\n\n`;
+  }
+
+  // Pick just the top 2-3 concepts as highlights
+  if (learn?.concepts?.length) {
+    body += `**Key insights:**\n`;
+    const topConcepts = learn.concepts.slice(0, 3);
+    topConcepts.forEach(c => {
+      // Just the title, maybe first sentence of description
+      const firstSentence = c.description.split('.')[0];
+      body += `- **${c.title}** — ${firstSentence}.\n`;
+    });
+    body += '\n';
+  }
+
+  // Just the takeaways as bullet points (max 4)
+  if (learn?.keyTakeaways?.length) {
+    body += `**What stuck with me:**\n`;
+    const topTakeaways = learn.keyTakeaways.slice(0, 4);
+    topTakeaways.forEach(t => {
+      body += `- ${t}\n`;
+    });
+  }
+
+  // Create the blog post with a simpler title
+  const title = `Day ${day}: ${dayData.title}`;
+  const tags = [...(dayData.tags || [])].slice(0, 3); // max 3 tags
+
+  const post = createBlogPost({
+    title,
+    body: body.trim() || `Finished Day ${day} — ${dayData.title}`,
+    excerpt: learn?.overview?.summary?.slice(0, 120) + '...' || `Notes from Day ${day}`,
+    tags,
+    linkedDay: day,
+    status: 'published'
+  });
+
+  // Link the blog post to the reading completion
+  setReadingBlogPostId(day, post.id);
+
+  return post;
 }

@@ -1,14 +1,60 @@
-// ── Router ─────────────────────────────────────────
-let currentRoute = "home";
-let routeParams = {};
+import type { Route, RouteParams, Day, JournalEntry, BlogPost, Learn, Lesson, Achievement, DayActivity } from './types';
+import {
+  PHASES,
+  DAYS,
+  getEntry,
+  saveEntry,
+  getAllEntries,
+  getCompletedDays,
+  getInProgressDays,
+  getMicroPost,
+  getAllBlogPosts,
+  getBlogPost,
+  getAllBlogTags,
+  createBlogPost,
+  updateBlogPost,
+  deleteBlogPost,
+  getStreak,
+  getAchievements,
+  getActivityLog,
+  isStreakAtRisk,
+  isResourceCompleted,
+  isLocalResourceCompleted,
+  toggleResourceCompletion,
+  toggleLocalResourceCompletion,
+  isSectionItemCompleted,
+  toggleSectionItem,
+  getSectionProgressCounts,
+  getSectionProgressForDay,
+  getCompletedResourcesForDay,
+  getLocalResourcesForDay,
+  getLocalResource,
+  fetchLocalResource,
+  isDemoCompleted,
+  markDemoCompleted,
+  getDayCompletion,
+  checkDayCompletionRequirements,
+  markDayComplete,
+  isReadingComplete,
+  toggleReadingComplete,
+  generateAutoLogEntry,
+  getReadingCompletion,
+  clearDayProgress,
+  getCompletedReadingsCount,
+  getCompletedReadingDays,
+} from './data';
 
-function navigate(route, params = {}) {
+// ── Router ─────────────────────────────────────────
+let currentRoute: Route = "home";
+let routeParams: RouteParams = {};
+
+function navigate(route: Route, params: RouteParams = {}): void {
   currentRoute = route;
   routeParams = params;
   render();
   window.scrollTo({ top: 0, behavior: "smooth" });
-  document.querySelectorAll(".nav-links a").forEach(a => {
-    const r = a.dataset.route;
+  document.querySelectorAll<HTMLAnchorElement>(".nav-links a").forEach(a => {
+    const r = a.dataset.route as Route | undefined;
     // Handle blog sub-routes
     const isBlogRoute = route.startsWith("blog");
     a.classList.toggle("active",
@@ -19,16 +65,18 @@ function navigate(route, params = {}) {
   });
 }
 
-document.querySelectorAll("[data-route]").forEach(el => {
+document.querySelectorAll<HTMLElement>("[data-route]").forEach(el => {
   el.addEventListener("click", e => {
     e.preventDefault();
-    navigate(el.dataset.route);
+    navigate(el.dataset.route as Route);
   });
 });
 
 // ── Render Dispatcher ──────────────────────────────
-function render() {
+function render(): void {
   const app = document.getElementById("app");
+  if (!app) return;
+
   switch (currentRoute) {
     case "home":      app.innerHTML = renderHome();        break;
     case "journal":   app.innerHTML = renderJournal();     break;
@@ -45,8 +93,8 @@ function render() {
 }
 
 // ── Home / Roadmap ─────────────────────────────────
-function renderHome() {
-  const completed = getCompletedDays();
+function renderHome(): string {
+  const completed = getCompletedReadingDays();
   const inProgress = getInProgressDays();
 
   let html = `
@@ -57,8 +105,8 @@ function renderHome() {
       <div class="progress-strip">
         <div class="progress-dots">
           ${Array.from({ length: 30 }, (_, i) => {
-            const d = i + 1;
-            const cls = completed.has(d) ? "done" : inProgress.has(d) ? "active" : "";
+            const dayNum = i + 1;
+            const cls = completed.has(dayNum) ? "done" : inProgress.has(dayNum) ? "active" : "";
             return `<div class="progress-dot ${cls}"></div>`;
           }).join("")}
         </div>
@@ -78,7 +126,7 @@ function renderHome() {
         </div>
         <p class="phase-subtitle">${phase.subtitle}</p>
         <div class="days-grid">
-          ${phaseDays.map((d, di) => {
+          ${phaseDays.map((d) => {
             cardIndex++;
             return renderDayCard(d, completed, inProgress, cardIndex);
           }).join("")}
@@ -91,19 +139,19 @@ function renderHome() {
 }
 
 // Track which days are expanded inline
-let expandedDays = new Set();
-let learnExpandedDays = new Set();
+const expandedDays = new Set<number>();
+const learnExpandedDays = new Set<number>();
 
-function renderDayCard(d, completed, inProgress, idx) {
+function renderDayCard(d: Day, completed: Set<number>, inProgress: Set<number>, idx: number): string {
   const isCompleted = completed.has(d.day);
   const status = isCompleted ? "completed" : inProgress.has(d.day) ? "in-progress" : "pending";
   const statusLabel = isCompleted ? "published" : status === "in-progress" ? "active" : "pending";
   const isExpanded = expandedDays.has(d.day);
   const isLearnExpanded = learnExpandedDays.has(d.day);
-  const hasLearnContent = d.learn || d.lesson; // Support both learn and lesson
+  const hasLearnContent = d.learn || d.lesson;
   const cardClass = `day-card phase-${d.phase}${isCompleted ? " completed" : ""}${isExpanded ? " expanded" : ""}`;
   const hasDemo = d.demoUrl ? " has-demo" : "";
-  const action = "go-to-day"; // Always navigate to day page
+  const action = "go-to-day";
 
   // Check for micro-post and linked blog posts
   const microPost = getMicroPost(d.day);
@@ -161,8 +209,8 @@ function renderDayCard(d, completed, inProgress, idx) {
   return html;
 }
 
-function renderInlineContent(d) {
-  const entry = getEntry(d.day) || {};
+function renderInlineContent(d: Day): string {
+  const entry = getEntry(d.day) || {} as JournalEntry;
   const lessons = entry.lessons ? entry.lessons.split("\n").filter(Boolean) : [];
   const takeaways = entry.keyTakeaways ? entry.keyTakeaways.split("\n").filter(Boolean) : [];
 
@@ -212,26 +260,53 @@ function renderInlineContent(d) {
   `;
 }
 
+// ── Reading Checkbox with Completion Info ───────────
+function renderReadingCheckbox(dayNum: number): string {
+  const completion = getReadingCompletion(dayNum);
+  const isComplete = completion?.completed === true;
+
+  let labelText = 'Mark as read';
+  let completionInfo = '';
+  let clearButton = '';
+
+  if (isComplete && completion?.completedAt) {
+    const date = new Date(completion.completedAt);
+    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    labelText = 'Completed';
+    completionInfo = `<span class="completion-date">${dateStr}</span>`;
+    clearButton = `<button class="clear-day-btn" data-action="clear-day" data-day="${dayNum}" title="Clear progress">&times;</button>`;
+  }
+
+  return `
+    <div class="reading-complete-row">
+      <label class="reading-complete-label ${isComplete ? 'checked' : ''}">
+        <input type="checkbox"
+               data-action="toggle-reading"
+               data-day="${dayNum}"
+               ${isComplete ? 'checked' : ''}>
+        <span class="checkmark"></span>
+        <span class="label-text">${labelText}</span>
+        ${completionInfo}
+      </label>
+      ${clearButton}
+    </div>
+  `;
+}
+
 // ── Day Page (Full Page View) ───────────────────────
-function renderDayPage() {
+function renderDayPage(): string {
   const dayNum = routeParams.day;
+  if (!dayNum) {
+    return renderNotFound("Day not found");
+  }
+
   const dayData = DAYS.find(d => d.day === dayNum);
 
   if (!dayData) {
-    return `
-      <div class="day-page">
-        <div class="empty-state anim-fade-up">
-          <div class="empty-icon">&#128533;</div>
-          <h3>Day not found</h3>
-          <button class="btn btn-secondary" data-action="go-home">Back to Roadmap</button>
-        </div>
-      </div>
-    `;
+    return renderNotFound("Day not found");
   }
 
-  const entry = getEntry(dayNum) || { status: "pending", body: "", lessons: "", keyTakeaways: "" };
   const phase = PHASES.find(p => p.id === dayData.phase);
-  const linkedBlogPosts = getAllBlogPosts({ linkedDay: dayNum, status: "published" });
   const hasLearnContent = dayData.learn || dayData.lesson;
   const learn = hasLearnContent ? (dayData.learn || convertLessonToLearn(dayData.lesson)) : null;
 
@@ -239,156 +314,55 @@ function renderDayPage() {
   const prevDay = dayNum > 1 ? DAYS.find(d => d.day === dayNum - 1) : null;
   const nextDay = dayNum < 30 ? DAYS.find(d => d.day === dayNum + 1) : null;
 
-  // Build section nav items
-  const sections = [];
-  if (learn) {
-    sections.push({ id: 'overview', label: 'Overview', icon: '&#128196;' });
-    if (learn.concepts?.length) sections.push({ id: 'concepts', label: 'Concepts', icon: '&#128161;' });
-    if (learn.codeExamples?.length) sections.push({ id: 'code', label: 'Code', icon: '&#128187;' });
-    if (learn.resources?.length) sections.push({ id: 'resources', label: 'Resources', icon: '&#128279;' });
-  }
-
-  let html = `
-    <div class="day-page-v2 phase-${dayData.phase}">
-      <!-- Top Header -->
-      <header class="day-header-v2">
-        <nav class="day-breadcrumb-v2">
-          <a href="#" data-action="go-home">&#8592; Roadmap</a>
-          <span class="breadcrumb-sep">/</span>
-          <span class="phase-badge-sm ${phase.badge}">Phase ${dayData.phase}</span>
-        </nav>
-        <div class="day-title-row">
-          <div class="day-number-lg">Day ${String(dayNum).padStart(2, "0")}</div>
-          <div class="day-title-info">
-            <h1>${dayData.title}</h1>
-            ${dayData.demoUrl ? `
-              <div class="day-subtitle">
-                <a href="${dayData.demoUrl}" target="_blank" class="demo-link">
-                  <span>&#9654;</span> Try Demo
-                </a>
-                ${isDemoCompleted(dayNum) ? `
-                  <span class="demo-completed-badge">&#10003; Demo Done</span>
-                ` : `
-                  <button class="btn-mark-demo" data-action="mark-demo-complete" data-day="${dayNum}">
-                    Mark Demo Complete
-                  </button>
-                `}
-              </div>
-            ` : ""}
+  const html = `
+    <div class="day-page-simple phase-${dayData.phase}">
+      <!-- Compact Header -->
+      <header class="day-header-simple">
+        <nav class="day-nav-simple">
+          <a href="#" class="back-link" data-action="go-home">&#8592; Roadmap</a>
+          <div class="day-nav-arrows">
+            ${prevDay ? `<a href="#" class="nav-arrow-btn" data-action="go-to-day" data-day="${prevDay.day}" title="Day ${prevDay.day}">&#8592;</a>` : '<span class="nav-arrow-btn disabled">&#8592;</span>'}
+            <span class="day-indicator">Day ${dayNum} of 30</span>
+            ${nextDay ? `<a href="#" class="nav-arrow-btn" data-action="go-to-day" data-day="${nextDay.day}" title="Day ${nextDay.day}">&#8594;</a>` : '<span class="nav-arrow-btn disabled">&#8594;</span>'}
           </div>
+        </nav>
+        <div class="day-title-simple">
+          <span class="phase-tag ${phase?.badge || ''}">Phase ${dayData.phase}</span>
+          <h1>${dayData.title}</h1>
+          ${dayData.demoUrl ? `
+            <a href="${dayData.demoUrl}" target="_blank" class="demo-btn">
+              <span>&#9654;</span> Try Demo
+            </a>
+          ` : ''}
         </div>
-        ${dayData.concept ? `<p class="day-concept-v2">${dayData.concept}</p>` : ""}
       </header>
 
-      <!-- Three Column Layout -->
-      <div class="day-layout-v2">
-        <!-- Left Sidebar: Navigation -->
-        <aside class="day-nav-sidebar">
-          <div class="nav-sidebar-inner">
-            <div class="nav-section-label">Contents</div>
-            <nav class="section-nav">
-              ${sections.map((s, i) => `
-                <a href="#section-${s.id}" class="section-nav-item ${i === 0 ? 'active' : ''}" data-section="${s.id}">
-                  <span class="nav-icon">${s.icon}</span>
-                  <span class="nav-label">${s.label}</span>
-                </a>
-              `).join('')}
-            </nav>
-
-            <div class="nav-section-label" style="margin-top: 24px;">Progress</div>
-            ${renderDayProgress(dayNum, learn)}
-
-            ${renderDayCompletionSection(dayNum)}
-
-            <div class="nav-day-links">
-              ${prevDay ? `<a href="#" class="nav-day-link" data-action="go-to-day" data-day="${prevDay.day}">&#8592; Day ${prevDay.day}</a>` : ''}
-              ${nextDay ? `<a href="#" class="nav-day-link" data-action="go-to-day" data-day="${nextDay.day}">Day ${nextDay.day} &#8594;</a>` : ''}
-            </div>
+      <!-- Main Content (Single Column, Readable) -->
+      <main class="day-content-simple">
+        ${hasLearnContent && learn ? renderLearnContentSimple(learn, dayData) : `
+          <div class="coming-soon-simple">
+            <h3>Content Coming Soon</h3>
+            <p>Educational materials for "${dayData.title}" are being prepared.</p>
           </div>
-        </aside>
+        `}
 
-        <!-- Main Content -->
-        <main class="day-main-content">
-          ${hasLearnContent && learn ? renderLearnContentV2(learn, dayData) : `
-            <div class="coming-soon-block">
-              <div class="coming-soon-icon">&#128679;</div>
-              <h3>Content Coming Soon</h3>
-              <p>Educational materials for "${dayData.title}" are being prepared.</p>
-              <div class="coming-soon-topics">
-                <strong>Topics:</strong>
-                ${dayData.concept ? `<span>${dayData.concept}</span>` : ''}
-                ${dayData.tags.map(t => `<span>${formatTagForDisplay(t)}</span>`).join('')}
-              </div>
-            </div>
-          `}
-        </main>
+        <!-- Reading Complete Checkbox -->
+        ${renderReadingCheckbox(dayNum)}
+      </main>
 
-        <!-- Right Sidebar: Journal (Sticky) -->
-        <aside class="day-journal-sidebar">
-          <div class="journal-sidebar-inner">
-            <div class="journal-header-v2">
-              <h3>&#128221; My Notes</h3>
-              <button class="btn-save-journal" data-action="save-journal" data-day="${dayNum}" title="Save notes">
-                Save
-              </button>
-            </div>
-            <textarea
-              class="journal-textarea"
-              id="journal-textarea-${dayNum}"
-              data-day="${dayNum}"
-              placeholder="Paste or type your notes here...
-
-• Key insights
-• Code snippets
-• Questions
-• Ideas to explore"
-            >${escapeHtml(entry.body || '')}</textarea>
-
-            <div class="journal-meta-v2">
-              ${entry.updatedAt ? `<span>Last saved: ${formatDate(entry.updatedAt)}</span>` : '<span>Not saved yet</span>'}
-            </div>
-
-            ${linkedBlogPosts.length ? `
-              <div class="journal-related">
-                <h4>Related Posts</h4>
-                ${linkedBlogPosts.map(post => `
-                  <a href="#" class="related-post-link" data-action="view-blog" data-id="${post.id}">
-                    ${escapeHtml(post.title)}
-                  </a>
-                `).join('')}
-              </div>
-            ` : ''}
-
-            <button class="btn btn-secondary btn-full" data-action="write-blog-for-day" data-day="${dayNum}" style="margin-top: 16px;">
-              &#128240; Write Blog Post
-            </button>
-          </div>
-        </aside>
-      </div>
-
-      <!-- Bottom Navigation -->
-      <nav class="day-bottom-nav">
+      <!-- Simple Bottom Navigation -->
+      <nav class="day-footer-nav">
         ${prevDay ? `
-          <a href="#" class="bottom-nav-link prev" data-action="go-to-day" data-day="${prevDay.day}">
-            <span class="nav-arrow">&#8592;</span>
-            <div class="nav-text">
-              <span class="nav-label">Previous</span>
-              <span class="nav-title">Day ${prevDay.day}: ${prevDay.title}</span>
-            </div>
+          <a href="#" class="footer-nav-link" data-action="go-to-day" data-day="${prevDay.day}">
+            <span>&#8592;</span> Day ${prevDay.day}
           </a>
-        ` : '<div class="bottom-nav-link placeholder"></div>'}
-        <a href="#" class="bottom-nav-home" data-action="go-home">
-          &#9776; All Days
-        </a>
+        ` : '<span></span>'}
+        <a href="#" class="footer-nav-home" data-action="go-home">All Days</a>
         ${nextDay ? `
-          <a href="#" class="bottom-nav-link next" data-action="go-to-day" data-day="${nextDay.day}">
-            <div class="nav-text">
-              <span class="nav-label">Next</span>
-              <span class="nav-title">Day ${nextDay.day}: ${nextDay.title}</span>
-            </div>
-            <span class="nav-arrow">&#8594;</span>
+          <a href="#" class="footer-nav-link" data-action="go-to-day" data-day="${nextDay.day}">
+            Day ${nextDay.day} <span>&#8594;</span>
           </a>
-        ` : '<div class="bottom-nav-link placeholder"></div>'}
+        ` : '<span></span>'}
       </nav>
     </div>
   `;
@@ -396,9 +370,103 @@ function renderDayPage() {
   return html;
 }
 
+// ── Simplified Learn Content (Reading-focused) ───────
+function renderLearnContentSimple(learn: Learn, d: Day): string {
+  const overview = learn.overview || {};
+
+  return `
+    <article class="learn-simple">
+      ${overview.summary ? `<p class="lead">${overview.summary}</p>` : ''}
+
+      ${overview.fullDescription ? `
+        <div class="prose">
+          ${formatLearnMarkdown(overview.fullDescription)}
+        </div>
+      ` : ''}
+
+      ${learn.diagrams?.length ? `
+        <div class="diagram-box">
+          ${learn.diagrams.map(diag => `
+            <figure>
+              ${diag.title ? `<figcaption>${diag.title}</figcaption>` : ''}
+              <pre>${escapeHtml(diag.content || '')}</pre>
+            </figure>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${learn.concepts?.length ? `
+        <section class="concepts-section">
+          <h2>Key Concepts</h2>
+          ${learn.concepts.map((c, i) => `
+            <div class="concept-item">
+              <h3><span class="concept-num">${i + 1}</span>${c.title}</h3>
+              <div class="prose">
+                ${formatLearnMarkdown(c.description)}
+              </div>
+            </div>
+          `).join('')}
+        </section>
+      ` : ''}
+
+      ${learn.codeExamples?.length ? `
+        <section class="code-section">
+          <h2>Code Examples</h2>
+          ${learn.codeExamples.map(ex => `
+            <div class="code-block-simple">
+              <div class="code-header-simple">
+                <span>${ex.title || 'Example'}</span>
+                <span class="code-lang-tag">${ex.language || 'python'}</span>
+              </div>
+              <pre><code>${escapeHtml(ex.code)}</code></pre>
+              ${ex.explanation ? `<p class="code-note">${ex.explanation}</p>` : ''}
+            </div>
+          `).join('')}
+        </section>
+      ` : ''}
+
+      ${learn.keyTakeaways?.length ? `
+        <section class="takeaways-section">
+          <h2>Key Takeaways</h2>
+          <ul>
+            ${learn.keyTakeaways.map(t => `<li>${t}</li>`).join('')}
+          </ul>
+        </section>
+      ` : ''}
+
+      ${learn.resources?.length ? `
+        <section class="resources-section">
+          <h2>Resources</h2>
+          <div class="resources-list">
+            ${learn.resources.map(r => `
+              <a href="${r.url}" target="_blank" class="resource-link-simple">
+                <span class="resource-type-tag">${r.type || 'link'}</span>
+                <span class="resource-title-simple">${r.title}</span>
+                <span class="arrow">&#8599;</span>
+              </a>
+            `).join('')}
+          </div>
+        </section>
+      ` : ''}
+    </article>
+  `;
+}
+
+function renderNotFound(message: string): string {
+  return `
+    <div class="day-page">
+      <div class="empty-state anim-fade-up">
+        <div class="empty-icon">&#128533;</div>
+        <h3>${message}</h3>
+        <button class="btn btn-secondary" data-action="go-home">Back to Roadmap</button>
+      </div>
+    </div>
+  `;
+}
+
 // ── Day Progress Tracker ─────────────────────────────
-function renderDayProgress(day, learn) {
-  const entry = getEntry(day) || { status: "pending" };
+function renderDayProgress(day: number, learn: Learn | null): string {
+  const entry = getEntry(day) || { status: "pending" } as JournalEntry;
 
   // Calculate progress for each section
   const conceptsTotal = learn?.concepts?.length || 0;
@@ -435,7 +503,7 @@ function renderDayProgress(day, learn) {
             <circle class="progress-ring-bg" cx="30" cy="30" r="26" />
             <circle class="progress-ring-fill ${statusClass}"
                     cx="30" cy="30" r="26"
-                    stroke-dasharray="${163.36}"
+                    stroke-dasharray="163.36"
                     stroke-dashoffset="${163.36 - (163.36 * overallPercent / 100)}" />
           </svg>
           <div class="progress-ring-text">
@@ -496,13 +564,12 @@ function renderDayProgress(day, learn) {
   `;
 }
 
-function renderDayCompletionSection(day) {
+function renderDayCompletionSection(day: number): string {
   const completion = getDayCompletion(day);
   const isCompleted = completion?.completed === true;
 
   if (isCompleted) {
-    // Show completed state
-    const completedDate = new Date(completion.completedAt).toLocaleDateString('en-US', {
+    const completedDate = new Date(completion.completedAt!).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -521,7 +588,6 @@ function renderDayCompletionSection(day) {
     `;
   }
 
-  // Check requirements
   const { canComplete, requirements } = checkDayCompletionRequirements(day);
 
   return `
@@ -551,7 +617,7 @@ function renderDayCompletionSection(day) {
 }
 
 // ── Learn Content V2 (Vertical Sections) ─────────────
-function renderLearnContentV2(learn, d) {
+function renderLearnContentV2(learn: Learn, d: Day): string {
   const overview = learn.overview || {};
   const hasConcepts = learn.concepts && learn.concepts.length;
   const hasCode = learn.codeExamples && learn.codeExamples.length;
@@ -592,14 +658,14 @@ function renderLearnContentV2(learn, d) {
             ${learn.diagrams.map(diag => `
               <figure class="diagram-figure">
                 <figcaption>${diag.title || 'Diagram'}</figcaption>
-                <pre class="diagram-pre">${escapeHtml(diag.content)}</pre>
+                <pre class="diagram-pre">${escapeHtml(diag.content || '')}</pre>
               </figure>
             `).join('')}
           </div>
         ` : ''}
 
         ${learn.keyTakeaways?.length ? (() => {
-          const takeawayProgress = getSectionProgressCounts(d.day, 'takeaway', learn.keyTakeaways.length);
+          const takeawayProgress = getSectionProgressCounts(d.day, 'takeaway', learn.keyTakeaways!.length);
           return `
           <div class="takeaways-box">
             <div class="takeaways-header">
@@ -610,12 +676,12 @@ function renderLearnContentV2(learn, d) {
               </div>
             </div>
             <ul class="takeaways-list">
-              ${learn.keyTakeaways.map((t, i) => {
-                const isCompleted = isSectionItemCompleted(d.day, 'takeaway', i);
+              ${learn.keyTakeaways!.map((t, i) => {
+                const isItemCompleted = isSectionItemCompleted(d.day, 'takeaway', i);
                 return `
-                <li class="${isCompleted ? 'completed' : ''}">
+                <li class="${isItemCompleted ? 'completed' : ''}">
                   <button class="takeaway-checkbox" data-action="toggle-section" data-day="${d.day}" data-type="takeaway" data-index="${i}" data-title="${t.substring(0, 50)}">
-                    ${isCompleted ? '&#10003;' : ''}
+                    ${isItemCompleted ? '&#10003;' : ''}
                   </button>
                   <span>${t}</span>
                 </li>
@@ -627,7 +693,7 @@ function renderLearnContentV2(learn, d) {
 
       <!-- Concepts Section -->
       ${hasConcepts ? (() => {
-        const conceptProgress = getSectionProgressCounts(d.day, 'concept', learn.concepts.length);
+        const conceptProgress = getSectionProgressCounts(d.day, 'concept', learn.concepts!.length);
         return `
         <section id="section-concepts" class="learn-section">
           <div class="section-header">
@@ -642,13 +708,13 @@ function renderLearnContentV2(learn, d) {
             </div>
           </div>
           <div class="concepts-list">
-            ${learn.concepts.map((c, i) => {
-              const isCompleted = isSectionItemCompleted(d.day, 'concept', i);
+            ${learn.concepts!.map((c, i) => {
+              const isItemCompleted = isSectionItemCompleted(d.day, 'concept', i);
               return `
-              <div class="concept-block ${isCompleted ? 'completed' : ''}">
+              <div class="concept-block ${isItemCompleted ? 'completed' : ''}">
                 <div class="concept-title">
                   <button class="section-checkbox" data-action="toggle-section" data-day="${d.day}" data-type="concept" data-index="${i}" data-title="${c.title}">
-                    ${isCompleted ? '&#10003;' : ''}
+                    ${isItemCompleted ? '&#10003;' : ''}
                   </button>
                   <span class="concept-num">${i + 1}</span>
                   <h3>${c.title}</h3>
@@ -681,7 +747,7 @@ function renderLearnContentV2(learn, d) {
             <h2>Code Examples</h2>
           </div>
           <div class="code-examples-list">
-            ${learn.codeExamples.map(ex => `
+            ${learn.codeExamples!.map(ex => `
               <div class="code-block-v2">
                 <div class="code-header-v2">
                   <span class="code-title">${ex.title || 'Example'}</span>
@@ -706,7 +772,7 @@ function renderLearnContentV2(learn, d) {
             <span class="section-number">${String(2 + (hasConcepts ? 1 : 0) + (hasCode ? 1 : 0)).padStart(2, '0')}</span>
             <h2>Resources</h2>
           </div>
-          ${renderResourcesV2(learn.resources, d.day)}
+          ${renderResourcesV2(learn.resources!, d.day)}
         </section>
       ` : ''}
     </article>
@@ -714,7 +780,9 @@ function renderLearnContentV2(learn, d) {
 }
 
 // ── Resources V2 ─────────────────────────────────────
-function renderResourcesV2(resources, day) {
+function renderResourcesV2(resources: Learn['resources'], day: number): string {
+  if (!resources) return '';
+
   // Get local resources for this day
   const localResources = getLocalResourcesForDay(day);
 
@@ -800,7 +868,7 @@ function renderResourcesV2(resources, day) {
 }
 
 // ── Learn Content Expansion ─────────────────────────
-function renderLearnContent(d) {
+function renderLearnContent(d: Day): string {
   // Support both learn and lesson objects for backwards compatibility
   const learn = d.learn || convertLessonToLearn(d.lesson);
 
@@ -859,7 +927,7 @@ function renderLearnContent(d) {
   `;
 }
 
-function convertLessonToLearn(lesson) {
+function convertLessonToLearn(lesson: Lesson | undefined): Learn | null {
   if (!lesson) return null;
   return {
     overview: {
@@ -875,7 +943,7 @@ function convertLessonToLearn(lesson) {
       title: lesson.codeExample.title,
       language: lesson.codeExample.language,
       code: lesson.codeExample.code,
-      category: 'basic'
+      category: 'basic' as const
     }] : [],
     diagrams: lesson.diagram ? [{
       title: lesson.diagram.title,
@@ -887,13 +955,13 @@ function convertLessonToLearn(lesson) {
   };
 }
 
-function formatTagForDisplay(tag) {
+function formatTagForDisplay(tag: string): string {
   return tag.split('-').map(word =>
     word.charAt(0).toUpperCase() + word.slice(1)
   ).join(' ');
 }
 
-function renderLearnOverviewTab(learn, d) {
+function renderLearnOverviewTab(learn: Learn, d: Day): string {
   const overview = learn.overview || {};
   return `
     <div class="learn-tab-content active" data-learn-tab-content="overview">
@@ -914,7 +982,7 @@ function renderLearnOverviewTab(learn, d) {
           ${learn.diagrams.map(diag => `
             <div class="learn-diagram">
               <h5>${diag.title || 'Diagram'}</h5>
-              <pre class="diagram-ascii">${escapeHtml(diag.content)}</pre>
+              <pre class="diagram-ascii">${escapeHtml(diag.content || '')}</pre>
               ${diag.caption ? `<p class="diagram-caption">${diag.caption}</p>` : ''}
             </div>
           `).join('')}
@@ -959,11 +1027,11 @@ function renderLearnOverviewTab(learn, d) {
   `;
 }
 
-function renderLearnConceptsTab(learn) {
+function renderLearnConceptsTab(learn: Learn): string {
   return `
     <div class="learn-tab-content" data-learn-tab-content="concepts">
       <div class="learn-concepts">
-        ${learn.concepts.map((c, i) => `
+        ${learn.concepts!.map((c, i) => `
           <div class="concept-card-full">
             <div class="concept-header">
               <span class="concept-number">${i + 1}</span>
@@ -986,11 +1054,11 @@ function renderLearnConceptsTab(learn) {
   `;
 }
 
-function renderLearnCodeTab(learn) {
+function renderLearnCodeTab(learn: Learn): string {
   return `
     <div class="learn-tab-content" data-learn-tab-content="code">
       <div class="learn-code-examples">
-        ${learn.codeExamples.map(ex => `
+        ${learn.codeExamples!.map(ex => `
           <div class="code-example-block">
             <div class="code-example-header">
               <span class="code-lang">${ex.language || 'python'}</span>
@@ -1007,9 +1075,10 @@ function renderLearnCodeTab(learn) {
   `;
 }
 
-function renderLearnResourcesTab(learn, day) {
-  const totalResources = learn.resources.length;
-  const completedCount = learn.resources.filter(r => isResourceCompleted(day, r.url)).length;
+function renderLearnResourcesTab(learn: Learn, day: number): string {
+  const resources = learn.resources!;
+  const totalResources = resources.length;
+  const completedCount = resources.filter(r => isResourceCompleted(day, r.url)).length;
   const progressPercent = totalResources > 0 ? Math.round((completedCount / totalResources) * 100) : 0;
 
   return `
@@ -1025,7 +1094,7 @@ function renderLearnResourcesTab(learn, day) {
       </div>
 
       <div class="learn-resources">
-        ${learn.resources.map((r, idx) => {
+        ${resources.map((r) => {
           const isCompleted = isResourceCompleted(day, r.url);
           return `
           <div class="resource-item ${isCompleted ? 'completed' : ''}" data-day="${day}" data-resource-url="${r.url}" data-resource-title="${r.title}">
@@ -1063,8 +1132,8 @@ function renderLearnResourcesTab(learn, day) {
   `;
 }
 
-function getResourceTypeIcon(type) {
-  const icons = {
+function getResourceTypeIcon(type: string | undefined): string {
+  const icons: Record<string, string> = {
     video: '&#127909; ',
     article: '&#128196; ',
     docs: '&#128214; ',
@@ -1074,29 +1143,27 @@ function getResourceTypeIcon(type) {
     book: '&#128218; ',
     paper: '&#128220; ',
     tool: '&#128295; ',
-    link: '&#128279; '
+    link: '&#128279; ',
+    notes: '&#128221; ',
+    guide: '&#128218; ',
+    exercise: '&#128187; ',
+    reference: '&#128214; '
   };
-  return icons[type] || icons.link;
+  return icons[type || 'link'] || icons.link;
 }
 
-function formatLearnMarkdown(text) {
+function formatLearnMarkdown(text: string | undefined): string {
   if (!text) return '';
 
-  // Process the text
   let html = text
-    // Convert double newlines to paragraph breaks
     .split(/\n\n+/)
     .map(para => para.trim())
     .filter(para => para.length > 0)
     .map(para => `<p>${para}</p>`)
     .join('\n')
-    // Bold text
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    // Italic text
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    // Inline code
     .replace(/`(.*?)`/g, '<code>$1</code>')
-    // Convert single newlines within paragraphs to spaces
     .replace(/<p>(.*?)<\/p>/gs, (match, content) => {
       return `<p>${content.replace(/\n/g, ' ')}</p>`;
     });
@@ -1105,7 +1172,7 @@ function formatLearnMarkdown(text) {
 }
 
 // ── Journal List ───────────────────────────────────
-function renderJournal() {
+function renderJournal(): string {
   const entries = getAllEntries();
   const filter = routeParams.filter || "all";
   const filtered = filter === "all" ? entries : entries.filter(e => e.status === filter);
@@ -1159,12 +1226,11 @@ function renderJournal() {
 }
 
 // ── Lesson Content Renderer ─────────────────────────
-function renderLessonContent(lesson) {
+function renderLessonContent(lesson: Lesson): string {
   if (!lesson) return "";
 
   let html = `<div class="lesson-content">`;
 
-  // Tab navigation
   html += `
     <div class="lesson-tabs">
       <button class="lesson-tab active" data-tab="overview">Overview</button>
@@ -1174,7 +1240,6 @@ function renderLessonContent(lesson) {
     </div>
   `;
 
-  // Overview tab
   html += `
     <div class="lesson-tab-content active" data-tab-content="overview">
       <div class="lesson-overview">
@@ -1199,7 +1264,6 @@ function renderLessonContent(lesson) {
     </div>
   `;
 
-  // Principles tab
   if (lesson.principles && lesson.principles.length) {
     html += `
       <div class="lesson-tab-content" data-tab-content="principles">
@@ -1218,7 +1282,6 @@ function renderLessonContent(lesson) {
     `;
   }
 
-  // Code example tab
   if (lesson.codeExample) {
     html += `
       <div class="lesson-tab-content" data-tab-content="code">
@@ -1234,7 +1297,6 @@ function renderLessonContent(lesson) {
     `;
   }
 
-  // Resources tab
   if (lesson.resources && lesson.resources.length) {
     html += `
       <div class="lesson-tab-content" data-tab-content="resources">
@@ -1255,31 +1317,29 @@ function renderLessonContent(lesson) {
   return html;
 }
 
-function bindLessonTabs() {
-  document.querySelectorAll(".lesson-tab").forEach(tab => {
+function bindLessonTabs(): void {
+  document.querySelectorAll<HTMLButtonElement>(".lesson-tab").forEach(tab => {
     tab.addEventListener("click", (e) => {
       e.stopPropagation();
       const tabName = tab.dataset.tab;
       const container = tab.closest(".lesson-content");
+      if (!container || !tabName) return;
 
-      // Update active tab within this container
       container.querySelectorAll(".lesson-tab").forEach(t => t.classList.remove("active"));
       tab.classList.add("active");
 
-      // Show corresponding content within this container
       container.querySelectorAll(".lesson-tab-content").forEach(c => c.classList.remove("active"));
       const content = container.querySelector(`[data-tab-content="${tabName}"]`);
       if (content) content.classList.add("active");
     });
   });
 
-  // Bind copy code button
-  document.querySelectorAll(".btn-copy-code").forEach(btn => {
+  document.querySelectorAll<HTMLButtonElement>(".btn-copy-code").forEach(btn => {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      const codeBlock = btn.closest(".code-example").querySelector("code");
+      const codeBlock = btn.closest(".code-example")?.querySelector("code");
       if (codeBlock) {
-        navigator.clipboard.writeText(codeBlock.textContent);
+        navigator.clipboard.writeText(codeBlock.textContent || '');
         btn.textContent = "Copied!";
         setTimeout(() => btn.textContent = "Copy", 2000);
       }
@@ -1288,8 +1348,8 @@ function bindLessonTabs() {
 }
 
 // ── Stats Page ─────────────────────────────────────
-function renderStats() {
-  const completed = getCompletedDays();
+function renderStats(): string {
+  const completed = getCompletedReadingDays();
   const inProgress = getInProgressDays();
   const entries = getAllEntries();
   const totalLessons = entries.reduce((sum, e) =>
@@ -1301,7 +1361,6 @@ function renderStats() {
     "var(--phase-4)", "var(--phase-5)", "var(--phase-6)"
   ];
 
-  // Gamification data
   const streak = getStreak();
   const achievements = getAchievements();
   const activityLog = getActivityLog();
@@ -1425,9 +1484,7 @@ function renderStats() {
   return html;
 }
 
-// ── Activity Calendar Renderer ──────────────────────
-function renderActivityCalendar(activityLog) {
-  // Generate last 35 days (5 weeks) for a clean grid
+function renderActivityCalendar(activityLog: Record<string, DayActivity>): string {
   const days = [];
   for (let i = 34; i >= 0; i--) {
     const date = new Date();
@@ -1440,7 +1497,6 @@ function renderActivityCalendar(activityLog) {
     days.push({
       date: dateStr,
       dayOfMonth: date.getDate(),
-      dayOfWeek: date.getDay(),
       activityLevel: activityCount === 0 ? 'empty' : activityCount >= 2 ? 'full' : 'partial'
     });
   }
@@ -1452,9 +1508,8 @@ function renderActivityCalendar(activityLog) {
   `).join('');
 }
 
-// ── Achievement Icon Helper ─────────────────────────
-function getAchievementIcon(iconName) {
-  const icons = {
+function getAchievementIcon(iconName: string): string {
+  const icons: Record<string, string> = {
     'rocket': '&#128640;',
     'pencil': '&#9998;',
     'star': '&#11088;',
@@ -1470,7 +1525,7 @@ function getAchievementIcon(iconName) {
 }
 
 // ── Blog Archive ────────────────────────────────────
-function renderBlogArchive() {
+function renderBlogArchive(): string {
   const posts = getAllBlogPosts({ status: "published" });
   const drafts = getAllBlogPosts({ status: "draft" });
   const tags = getAllBlogTags();
@@ -1549,8 +1604,10 @@ function renderBlogArchive() {
 }
 
 // ── Blog Post View ──────────────────────────────────
-function renderBlogPost() {
+function renderBlogPost(): string {
   const postId = routeParams.id;
+  if (!postId) return renderNotFound("Post not found");
+
   const post = getBlogPost(postId);
 
   if (!post) {
@@ -1613,9 +1670,9 @@ function renderBlogPost() {
 }
 
 // ── Blog Editor ─────────────────────────────────────
-function renderBlogEditor() {
+function renderBlogEditor(): string {
   const isEdit = currentRoute === "blog-edit";
-  const post = isEdit ? getBlogPost(routeParams.id) : null;
+  const post = isEdit && routeParams.id ? getBlogPost(routeParams.id) : null;
   const allTags = getAllBlogTags();
 
   if (isEdit && !post) {
@@ -1641,20 +1698,20 @@ function renderBlogEditor() {
         <div class="form-group">
           <label for="blog-title">Title</label>
           <input type="text" id="blog-title" name="title" placeholder="Enter post title..."
-                 value="${isEdit ? escapeHtml(post.title) : ''}" required>
+                 value="${isEdit && post ? escapeHtml(post.title) : ''}" required>
         </div>
 
         <div class="form-group">
           <label for="blog-body">Content <span class="label-hint">(Markdown supported)</span></label>
           <textarea id="blog-body" name="body" rows="20" placeholder="Write your post here..."
-                    required>${isEdit ? escapeHtml(post.body) : ''}</textarea>
+                    required>${isEdit && post ? escapeHtml(post.body) : ''}</textarea>
         </div>
 
         <div class="form-row">
           <div class="form-group form-group-half">
             <label for="blog-tags">Tags <span class="label-hint">(comma-separated)</span></label>
             <input type="text" id="blog-tags" name="tags" placeholder="e.g., reflection, week-1, technical"
-                   value="${isEdit ? post.tags.join(', ') : ''}">
+                   value="${isEdit && post ? post.tags.join(', ') : ''}">
             ${allTags.length ? `
               <div class="existing-tags">
                 <span class="existing-tags-label">Existing:</span>
@@ -1668,7 +1725,7 @@ function renderBlogEditor() {
             <select id="blog-linked-day" name="linkedDay">
               <option value="">None</option>
               ${DAYS.map(d => {
-                const selected = isEdit ? post.linkedDay === d.day : routeParams.linkedDay === d.day;
+                const selected = isEdit && post ? post.linkedDay === d.day : routeParams.linkedDay === d.day;
                 return `
                   <option value="${d.day}" ${selected ? 'selected' : ''}>
                     Day ${d.day}: ${d.title}
@@ -1683,11 +1740,11 @@ function renderBlogEditor() {
           <label for="blog-status">Status</label>
           <div class="status-toggle">
             <label class="status-option">
-              <input type="radio" name="status" value="draft" ${!isEdit || post.status === 'draft' ? 'checked' : ''}>
+              <input type="radio" name="status" value="draft" ${!isEdit || (post && post.status === 'draft') ? 'checked' : ''}>
               <span class="status-label">Draft</span>
             </label>
             <label class="status-option">
-              <input type="radio" name="status" value="published" ${isEdit && post.status === 'published' ? 'checked' : ''}>
+              <input type="radio" name="status" value="published" ${isEdit && post && post.status === 'published' ? 'checked' : ''}>
               <span class="status-label">Published</span>
             </label>
           </div>
@@ -1706,11 +1763,10 @@ function renderBlogEditor() {
   `;
 }
 
-// ── Markdown Renderer (Enhanced) ────────────────────
-function renderMarkdown(text, simple = false) {
+// ── Markdown Renderer ────────────────────────────────
+function renderMarkdown(text: string, simple = false): string {
   if (!text) return '';
 
-  // Simple mode for blog posts (original behavior)
   if (simple) {
     let html = escapeHtml(text)
       .replace(/^### (.+)$/gm, '<h3>$1</h3>')
@@ -1737,38 +1793,32 @@ function renderMarkdown(text, simple = false) {
     return html;
   }
 
-  // Full markdown rendering for resource files
   return renderMarkdownFull(text);
 }
 
-function renderMarkdownFull(text) {
-  // Process code blocks first (before escaping)
-  const codeBlocks = [];
+function renderMarkdownFull(text: string): string {
+  const codeBlocks: Array<{ lang: string; code: string }> = [];
   text = text.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
     const placeholder = `__CODE_BLOCK_${codeBlocks.length}__`;
     codeBlocks.push({ lang: lang || 'text', code: code.trim() });
     return placeholder;
   });
 
-  // Process tables
-  const tables = [];
+  const tables: Array<{ header: string; separator: string; body: string }> = [];
   text = text.replace(/\n(\|.+\|)\n(\|[-:| ]+\|)\n((?:\|.+\|\n?)+)/g, (match, header, separator, body) => {
     const placeholder = `__TABLE_${tables.length}__`;
     tables.push({ header, separator, body: body.trim() });
     return '\n' + placeholder + '\n';
   });
 
-  // Escape HTML but preserve placeholders
   let html = escapeHtml(text);
 
-  // Restore code blocks with syntax highlighting placeholder
   codeBlocks.forEach((block, i) => {
     const escapedCode = escapeHtml(block.code);
     html = html.replace(`__CODE_BLOCK_${i}__`,
       `<pre class="code-block" data-lang="${block.lang}"><code>${escapedCode}</code></pre>`);
   });
 
-  // Restore tables
   tables.forEach((table, i) => {
     const headerCells = table.header.split('|').filter(c => c.trim()).map(c => `<th>${c.trim()}</th>`).join('');
     const bodyRows = table.body.split('\n').filter(r => r.trim()).map(row => {
@@ -1779,40 +1829,28 @@ function renderMarkdownFull(text) {
       `<table class="md-table"><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table>`);
   });
 
-  // Headers (must be at start of line)
   html = html.replace(/^###### (.+)$/gm, '<h6>$1</h6>');
   html = html.replace(/^##### (.+)$/gm, '<h5>$1</h5>');
   html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
   html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
   html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
   html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-
-  // Horizontal rules
   html = html.replace(/^---+$/gm, '<hr>');
-
-  // Bold and italic
   html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-  // Inline code
   html = html.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
-
-  // Links
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 
-  // Process blocks
   const lines = html.split('\n');
-  const result = [];
+  const result: string[] = [];
   let inList = false;
-  let listType = null;
-  let listItems = [];
+  let listType: 'ul' | 'ol' | null = null;
+  let listItems: string[] = [];
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  for (const line of lines) {
     const trimmed = line.trim();
 
-    // Skip empty lines but close any open list
     if (!trimmed) {
       if (inList) {
         result.push(`<${listType}>${listItems.join('')}</${listType}>`);
@@ -1823,13 +1861,12 @@ function renderMarkdownFull(text) {
       continue;
     }
 
-    // Check for list items
     const ulMatch = trimmed.match(/^[-*] (.+)$/);
     const olMatch = trimmed.match(/^\d+\. (.+)$/);
 
     if (ulMatch) {
       if (!inList || listType !== 'ul') {
-        if (inList) result.push(`<${listType}>${listItems.join('')}</${listType}>`);
+        if (inList && listType) result.push(`<${listType}>${listItems.join('')}</${listType}>`);
         listItems = [];
         inList = true;
         listType = 'ul';
@@ -1837,34 +1874,30 @@ function renderMarkdownFull(text) {
       listItems.push(`<li>${ulMatch[1]}</li>`);
     } else if (olMatch) {
       if (!inList || listType !== 'ol') {
-        if (inList) result.push(`<${listType}>${listItems.join('')}</${listType}>`);
+        if (inList && listType) result.push(`<${listType}>${listItems.join('')}</${listType}>`);
         listItems = [];
         inList = true;
         listType = 'ol';
       }
       listItems.push(`<li>${olMatch[1]}</li>`);
     } else {
-      // Close any open list
-      if (inList) {
+      if (inList && listType) {
         result.push(`<${listType}>${listItems.join('')}</${listType}>`);
         listItems = [];
         inList = false;
         listType = null;
       }
 
-      // Check if it's already an HTML element
       if (trimmed.startsWith('<h') || trimmed.startsWith('<hr') ||
           trimmed.startsWith('<pre') || trimmed.startsWith('<table')) {
         result.push(trimmed);
       } else {
-        // Wrap in paragraph
         result.push(`<p>${trimmed}</p>`);
       }
     }
   }
 
-  // Close any remaining list
-  if (inList) {
+  if (inList && listType) {
     result.push(`<${listType}>${listItems.join('')}</${listType}>`);
   }
 
@@ -1872,10 +1905,18 @@ function renderMarkdownFull(text) {
 }
 
 // ── Resource Viewer ─────────────────────────────────
-async function renderResourceViewer() {
+async function renderResourceViewer(): Promise<void> {
   const app = document.getElementById("app");
+  if (!app) return;
+
   const day = routeParams.day;
   const resourceId = routeParams.resourceId;
+
+  if (!day || !resourceId) {
+    app.innerHTML = renderNotFound("Resource not found");
+    bindEvents();
+    return;
+  }
 
   const dayData = DAYS.find(d => d.day === day);
   const resource = getLocalResource(day, resourceId);
@@ -1898,7 +1939,6 @@ async function renderResourceViewer() {
     return;
   }
 
-  // Show loading state
   app.innerHTML = `
     <div class="resource-viewer">
       <div class="resource-viewer-header">
@@ -1917,7 +1957,6 @@ async function renderResourceViewer() {
     </div>
   `;
 
-  // Fetch the markdown content
   const content = await fetchLocalResource(resource.filePath);
 
   if (!content) {
@@ -1939,7 +1978,6 @@ async function renderResourceViewer() {
     return;
   }
 
-  // Render the markdown content
   const renderedContent = renderMarkdownFull(content);
 
   app.innerHTML = `
@@ -1970,16 +2008,16 @@ async function renderResourceViewer() {
 }
 
 // ── Modal Helpers ──────────────────────────────────
-function showModal() {
-  document.getElementById("modal-overlay").classList.remove("hidden");
+function showModal(): void {
+  document.getElementById("modal-overlay")?.classList.remove("hidden");
 }
 
-function closeModal() {
-  document.getElementById("modal-overlay").classList.add("hidden");
+function closeModal(): void {
+  document.getElementById("modal-overlay")?.classList.add("hidden");
 }
 
-document.getElementById("modal-close").addEventListener("click", closeModal);
-document.getElementById("modal-overlay").addEventListener("click", e => {
+document.getElementById("modal-close")?.addEventListener("click", closeModal);
+document.getElementById("modal-overlay")?.addEventListener("click", e => {
   if (e.target === e.currentTarget) closeModal();
 });
 document.addEventListener("keydown", e => {
@@ -1987,18 +2025,18 @@ document.addEventListener("keydown", e => {
 });
 
 // ── Event Delegation ───────────────────────────────
-function bindEvents() {
+function bindEvents(): void {
   // Navigate to day page
-  document.querySelectorAll("[data-action='go-to-day']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='go-to-day']").forEach(el => {
     el.addEventListener("click", (e) => {
       e.preventDefault();
-      const day = parseInt(el.dataset.day);
+      const day = parseInt(el.dataset.day || '0');
       navigate("day", { day });
     });
   });
 
   // Go back to home/roadmap
-  document.querySelectorAll("[data-action='go-home']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='go-home']").forEach(el => {
     el.addEventListener("click", (e) => {
       e.preventDefault();
       navigate("home");
@@ -2006,71 +2044,105 @@ function bindEvents() {
   });
 
   // Navigate to local resource viewer
-  document.querySelectorAll("[data-action='view-local-resource']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='view-local-resource']").forEach(el => {
     el.addEventListener("click", (e) => {
       e.preventDefault();
-      const day = parseInt(el.dataset.day);
+      const day = parseInt(el.dataset.day || '0');
       const resourceId = el.dataset.resourceId;
       navigate("resource", { day, resourceId });
     });
   });
 
   // Go back to day page from resource viewer
-  document.querySelectorAll("[data-action='go-to-day-from-resource']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='go-to-day-from-resource']").forEach(el => {
     el.addEventListener("click", (e) => {
       e.preventDefault();
-      const day = parseInt(el.dataset.day);
+      const day = parseInt(el.dataset.day || '0');
       navigate("day", { day });
     });
   });
 
   // Write blog post for specific day
-  document.querySelectorAll("[data-action='write-blog-for-day']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='write-blog-for-day']").forEach(el => {
     el.addEventListener("click", (e) => {
       e.preventDefault();
-      const day = parseInt(el.dataset.day);
+      const day = parseInt(el.dataset.day || '0');
       routeParams.linkedDay = day;
       navigate("blog-new", { linkedDay: day });
     });
   });
 
   // Finish day
-  document.querySelectorAll("[data-action='finish-day']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='finish-day']").forEach(el => {
     el.addEventListener("click", (e) => {
       e.preventDefault();
-      const day = parseInt(el.dataset.day);
+      const day = parseInt(el.dataset.day || '0');
       const result = markDayComplete(day);
       if (result.success) {
-        // Show success and re-render
         render();
       } else {
-        // Show what's missing
         alert("Cannot complete day yet. Check the requirements checklist.");
       }
     });
   });
 
-  // Mark demo as completed
-  document.querySelectorAll("[data-action='mark-demo-complete']").forEach(el => {
+  // Toggle reading complete
+  document.querySelectorAll<HTMLInputElement>("[data-action='toggle-reading']").forEach(el => {
+    el.addEventListener("change", () => {
+      const day = parseInt(el.dataset.day || '0');
+      const wasComplete = isReadingComplete(day);
+      const isComplete = toggleReadingComplete(day);
+      const label = el.closest('.reading-complete-label');
+
+      if (label) {
+        label.classList.toggle('checked', isComplete);
+      }
+
+      // Auto-generate log entry when marking as complete (not when unchecking)
+      if (isComplete && !wasComplete) {
+        const post = generateAutoLogEntry(day);
+        if (post) {
+          // Update the label text to show it was logged
+          const labelText = label?.querySelector('.label-text');
+          if (labelText) {
+            labelText.textContent = 'Completed & logged';
+          }
+        }
+      }
+    });
+  });
+
+  // Clear day progress
+  document.querySelectorAll<HTMLElement>("[data-action='clear-day']").forEach(el => {
     el.addEventListener("click", (e) => {
       e.preventDefault();
-      const day = parseInt(el.dataset.day);
+      e.stopPropagation();
+      const day = parseInt(el.dataset.day || '0');
+      clearDayProgress(day);
+      render(); // Re-render to show unchecked state
+    });
+  });
+
+  // Mark demo as completed
+  document.querySelectorAll<HTMLElement>("[data-action='mark-demo-complete']").forEach(el => {
+    el.addEventListener("click", (e) => {
+      e.preventDefault();
+      const day = parseInt(el.dataset.day || '0');
       markDemoCompleted(day);
       render();
     });
   });
 
-  // Toggle inline expansion for completed days (legacy - keep for roadmap view)
-  document.querySelectorAll("[data-action='toggle-expand']").forEach(el => {
+  // Toggle inline expansion for completed days
+  document.querySelectorAll<HTMLElement>("[data-action='toggle-expand']").forEach(el => {
     el.addEventListener("click", () => {
-      const day = parseInt(el.dataset.day);
+      const day = parseInt(el.dataset.day || '0');
       if (expandedDays.has(day)) {
         expandedDays.delete(day);
       } else {
         expandedDays.add(day);
       }
       render();
-      // Scroll to the expanded content
       setTimeout(() => {
         const expanded = document.querySelector(`.inline-content[data-day="${day}"]`);
         if (expanded) {
@@ -2080,33 +2152,31 @@ function bindEvents() {
     });
   });
 
-  document.querySelectorAll("[data-action='view-entry']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='view-entry']").forEach(el => {
     el.addEventListener("click", () => {
-      const day = parseInt(el.dataset.day);
-      // Navigate to day page instead of home
+      const day = parseInt(el.dataset.day || '0');
       navigate("day", { day });
     });
   });
 
-  document.querySelectorAll("[data-filter]").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-filter]").forEach(el => {
     el.addEventListener("click", () => {
       routeParams.filter = el.dataset.filter;
       render();
     });
   });
 
-  // Toggle learn expansion (works on ALL cards)
-  document.querySelectorAll("[data-action='toggle-learn']").forEach(el => {
+  // Toggle learn expansion
+  document.querySelectorAll<HTMLElement>("[data-action='toggle-learn']").forEach(el => {
     el.addEventListener("click", (e) => {
-      e.stopPropagation(); // Prevent card click action
-      const day = parseInt(el.dataset.day);
+      e.stopPropagation();
+      const day = parseInt(el.dataset.day || '0');
       if (learnExpandedDays.has(day)) {
         learnExpandedDays.delete(day);
       } else {
         learnExpandedDays.add(day);
       }
       render();
-      // Scroll to learn content
       setTimeout(() => {
         const learnContent = document.querySelector(`.learn-content[data-day="${day}"]`);
         if (learnContent) {
@@ -2117,107 +2187,98 @@ function bindEvents() {
   });
 
   // Toggle resource completion checkbox
-  document.querySelectorAll("[data-action='toggle-resource']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='toggle-resource']").forEach(el => {
     el.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const day = parseInt(el.dataset.day);
-      const url = el.dataset.url;
-      const title = el.dataset.title;
+      const day = parseInt(el.dataset.day || '0');
+      const url = el.dataset.url || '';
+      const title = el.dataset.title || '';
       toggleResourceCompletion(day, url, title);
       render();
     });
   });
 
-  // Toggle local resource completion (study materials)
-  document.querySelectorAll("[data-action='toggle-local-resource']").forEach(el => {
+  // Toggle local resource completion
+  document.querySelectorAll<HTMLElement>("[data-action='toggle-local-resource']").forEach(el => {
     el.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const day = parseInt(el.dataset.day);
-      const resourceId = el.dataset.resourceId;
-      const title = el.dataset.title;
+      const day = parseInt(el.dataset.day || '0');
+      const resourceId = el.dataset.resourceId || '';
+      const title = el.dataset.title || '';
       toggleLocalResourceCompletion(day, resourceId, title);
       render();
     });
   });
 
-  // Toggle section item completion (concepts, exercises)
-  document.querySelectorAll("[data-action='toggle-section']").forEach(el => {
+  // Toggle section item completion
+  document.querySelectorAll<HTMLElement>("[data-action='toggle-section']").forEach(el => {
     el.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const day = parseInt(el.dataset.day);
-      const type = el.dataset.type;
-      const index = parseInt(el.dataset.index);
-      const title = el.dataset.title;
+      const day = parseInt(el.dataset.day || '0');
+      const type = el.dataset.type as 'concept' | 'exercise' | 'takeaway' | 'overview';
+      const index = parseInt(el.dataset.index || '0');
+      const title = el.dataset.title || '';
       toggleSectionItem(day, type, index, title);
       render();
     });
   });
 
   // Save journal from textarea
-  document.querySelectorAll("[data-action='save-journal']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='save-journal']").forEach(el => {
     el.addEventListener("click", () => {
-      const day = parseInt(el.dataset.day);
-      const textarea = document.getElementById(`journal-textarea-${day}`);
+      const day = parseInt(el.dataset.day || '0');
+      const textarea = document.getElementById(`journal-textarea-${day}`) as HTMLTextAreaElement | null;
       if (textarea) {
-        const entry = getEntry(day) || { status: "pending" };
+        const entry = getEntry(day) || { status: "pending" as const };
         saveEntry(day, {
           ...entry,
           body: textarea.value
         });
-        // Update button text briefly
         el.textContent = "Saved!";
         setTimeout(() => { el.textContent = "Save"; }, 1500);
       }
     });
   });
 
-  // Section navigation (smooth scroll)
-  document.querySelectorAll(".section-nav-item").forEach(el => {
+  // Section navigation
+  document.querySelectorAll<HTMLAnchorElement>(".section-nav-item").forEach(el => {
     el.addEventListener("click", (e) => {
       e.preventDefault();
-      const sectionId = el.getAttribute("href").substring(1);
+      const sectionId = el.getAttribute("href")?.substring(1);
+      if (!sectionId) return;
       const section = document.getElementById(sectionId);
       if (section) {
         section.scrollIntoView({ behavior: "smooth", block: "start" });
-        // Update active state
         document.querySelectorAll(".section-nav-item").forEach(n => n.classList.remove("active"));
         el.classList.add("active");
       }
     });
   });
 
-  // Bind lesson tabs for any inline expanded content
   bindLessonTabs();
-
-  // Bind learn tabs
   bindLearnTabs();
-
-  // Bind blog events
   bindBlogEvents();
 }
 
 // ── Blog Event Handlers ─────────────────────────────
-function bindBlogEvents() {
-  // New blog post button
-  document.querySelectorAll("[data-action='new-blog-post']").forEach(el => {
+function bindBlogEvents(): void {
+  document.querySelectorAll<HTMLElement>("[data-action='new-blog-post']").forEach(el => {
     el.addEventListener("click", () => {
       navigate("blog-new");
     });
   });
 
-  // View blog post
-  document.querySelectorAll("[data-action='view-blog']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='view-blog']").forEach(el => {
     el.addEventListener("click", () => {
       const id = el.dataset.id;
       navigate("blog-post", { id });
     });
   });
 
-  // Edit blog post
-  document.querySelectorAll("[data-action='edit-blog']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='edit-blog']").forEach(el => {
     el.addEventListener("click", (e) => {
       e.stopPropagation();
       const id = el.dataset.id;
@@ -2225,31 +2286,28 @@ function bindBlogEvents() {
     });
   });
 
-  // Delete blog post
-  document.querySelectorAll("[data-action='delete-blog']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='delete-blog']").forEach(el => {
     el.addEventListener("click", (e) => {
       e.stopPropagation();
       const id = el.dataset.id;
-      if (confirm("Are you sure you want to delete this blog post?")) {
+      if (id && confirm("Are you sure you want to delete this blog post?")) {
         deleteBlogPost(id);
         navigate("blog");
       }
     });
   });
 
-  // Go back to blog
-  document.querySelectorAll("[data-action='go-blog']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='go-blog']").forEach(el => {
     el.addEventListener("click", (e) => {
       e.preventDefault();
       navigate("blog");
     });
   });
 
-  // Go to specific day
-  document.querySelectorAll("[data-action='go-day']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='go-day']").forEach(el => {
     el.addEventListener("click", (e) => {
       e.preventDefault();
-      const day = parseInt(el.dataset.day);
+      const day = parseInt(el.dataset.day || '0');
       expandedDays.add(day);
       navigate("home");
       setTimeout(() => {
@@ -2261,35 +2319,31 @@ function bindBlogEvents() {
     });
   });
 
-  // Cancel blog editing
-  document.querySelectorAll("[data-action='cancel-blog']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='cancel-blog']").forEach(el => {
     el.addEventListener("click", () => {
       navigate("blog");
     });
   });
 
-  // Blog filter tabs (Published/Drafts)
-  document.querySelectorAll("[data-action='blog-filter']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='blog-filter']").forEach(el => {
     el.addEventListener("click", () => {
       const showDrafts = el.dataset.showDrafts === "true";
-      navigate("blog", { showDrafts, tag: null });
+      navigate("blog", { showDrafts, tag: undefined });
     });
   });
 
-  // Blog tag filter
-  document.querySelectorAll("[data-action='blog-tag-filter']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='blog-tag-filter']").forEach(el => {
     el.addEventListener("click", () => {
-      const tag = el.dataset.tag || null;
+      const tag = el.dataset.tag || undefined;
       navigate("blog", { tag, showDrafts: false });
     });
   });
 
-  // Add existing tag to input
-  document.querySelectorAll("[data-action='add-tag']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='add-tag']").forEach(el => {
     el.addEventListener("click", () => {
       const tag = el.dataset.tag;
-      const input = document.getElementById("blog-tags");
-      if (input) {
+      const input = document.getElementById("blog-tags") as HTMLInputElement | null;
+      if (input && tag) {
         const currentTags = input.value.split(",").map(t => t.trim()).filter(Boolean);
         if (!currentTags.includes(tag)) {
           currentTags.push(tag);
@@ -2299,19 +2353,18 @@ function bindBlogEvents() {
     });
   });
 
-  // Blog form submission
-  const blogForm = document.getElementById("blog-form");
+  const blogForm = document.getElementById("blog-form") as HTMLFormElement | null;
   if (blogForm) {
     blogForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const fd = new FormData(e.target);
-      const title = fd.get("title").trim();
-      const body = fd.get("body").trim();
-      const tagsStr = fd.get("tags");
+      const fd = new FormData(e.target as HTMLFormElement);
+      const title = (fd.get("title") as string)?.trim() || '';
+      const body = (fd.get("body") as string)?.trim() || '';
+      const tagsStr = fd.get("tags") as string;
       const tags = tagsStr ? tagsStr.split(",").map(t => t.trim()).filter(Boolean) : [];
-      const linkedDayStr = fd.get("linkedDay");
+      const linkedDayStr = fd.get("linkedDay") as string;
       const linkedDay = linkedDayStr ? parseInt(linkedDayStr) : null;
-      const status = fd.get("status");
+      const status = fd.get("status") as 'draft' | 'published';
 
       if (!title || !body) {
         alert("Title and content are required.");
@@ -2320,7 +2373,7 @@ function bindBlogEvents() {
 
       const isEdit = currentRoute === "blog-edit";
 
-      if (isEdit) {
+      if (isEdit && routeParams.id) {
         updateBlogPost(routeParams.id, { title, body, tags, linkedDay, status });
         navigate("blog-post", { id: routeParams.id });
       } else {
@@ -2334,37 +2387,41 @@ function bindBlogEvents() {
     });
   }
 
-  // Preview blog (opens modal with rendered content)
-  document.querySelectorAll("[data-action='preview-blog']").forEach(el => {
+  document.querySelectorAll<HTMLElement>("[data-action='preview-blog']").forEach(el => {
     el.addEventListener("click", () => {
-      const title = document.getElementById("blog-title")?.value || "Untitled";
-      const body = document.getElementById("blog-body")?.value || "";
+      const titleInput = document.getElementById("blog-title") as HTMLInputElement | null;
+      const bodyInput = document.getElementById("blog-body") as HTMLTextAreaElement | null;
+      const title = titleInput?.value || "Untitled";
+      const body = bodyInput?.value || "";
 
       const modal = document.getElementById("modal-content");
-      modal.innerHTML = `
-        <div class="blog-preview">
-          <div class="blog-preview-header">
-            <h3>Preview</h3>
-          </div>
-          <article class="blog-post-content">
-            <h1>${escapeHtml(title)}</h1>
-            <div class="blog-post-body">
-              ${renderMarkdown(body)}
+      if (modal) {
+        modal.innerHTML = `
+          <div class="blog-preview">
+            <div class="blog-preview-header">
+              <h3>Preview</h3>
             </div>
-          </article>
-        </div>
-      `;
-      showModal();
+            <article class="blog-post-content">
+              <h1>${escapeHtml(title)}</h1>
+              <div class="blog-post-body">
+                ${renderMarkdown(body)}
+              </div>
+            </article>
+          </div>
+        `;
+        showModal();
+      }
     });
   });
 }
 
-function bindLearnTabs() {
-  document.querySelectorAll(".learn-tab").forEach(tab => {
+function bindLearnTabs(): void {
+  document.querySelectorAll<HTMLButtonElement>(".learn-tab").forEach(tab => {
     tab.addEventListener("click", (e) => {
       e.stopPropagation();
       const tabName = tab.dataset.learnTab;
       const container = tab.closest(".learn-content");
+      if (!container || !tabName) return;
 
       container.querySelectorAll(".learn-tab").forEach(t => t.classList.remove("active"));
       tab.classList.add("active");
@@ -2375,13 +2432,12 @@ function bindLearnTabs() {
     });
   });
 
-  // Bind copy code buttons in learn content
-  document.querySelectorAll(".learn-content .btn-copy-code").forEach(btn => {
+  document.querySelectorAll<HTMLButtonElement>(".learn-content .btn-copy-code").forEach(btn => {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      const codeBlock = btn.closest(".code-example-block").querySelector("code");
+      const codeBlock = btn.closest(".code-example-block")?.querySelector("code");
       if (codeBlock) {
-        navigator.clipboard.writeText(codeBlock.textContent);
+        navigator.clipboard.writeText(codeBlock.textContent || '');
         btn.textContent = "Copied!";
         setTimeout(() => btn.textContent = "Copy", 2000);
       }
@@ -2390,26 +2446,27 @@ function bindLearnTabs() {
 }
 
 // ── Utilities ──────────────────────────────────────
-function escapeHtml(str) {
+function escapeHtml(str: string): string {
   const div = document.createElement("div");
   div.textContent = str;
   return div.innerHTML;
 }
 
-function formatDate(iso) {
+function formatDate(iso: string | undefined | null): string {
   if (!iso) return "";
   const d = new Date(iso);
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function copyCode(btn) {
-  const codeBlock = btn.closest('.code-block-v2').querySelector('code');
+// Global function for inline onclick
+(window as unknown as { copyCode: (btn: HTMLButtonElement) => void }).copyCode = function(btn: HTMLButtonElement): void {
+  const codeBlock = btn.closest('.code-block-v2')?.querySelector('code');
   if (codeBlock) {
-    navigator.clipboard.writeText(codeBlock.textContent);
+    navigator.clipboard.writeText(codeBlock.textContent || '');
     btn.textContent = "Copied!";
     setTimeout(() => { btn.textContent = "Copy"; }, 2000);
   }
-}
+};
 
 // ── Init ───────────────────────────────────────────
 render();
