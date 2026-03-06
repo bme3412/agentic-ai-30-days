@@ -1404,6 +1404,7 @@ for block in response.content:
     title: "Building an Agent from Scratch",
     partner: "DeepLearning.AI",
     tags: ["python", "llm", "fundamentals"],
+    concept: "Implement a complete agent with tool registry, parsing, and execution loop—no frameworks required",
     demoUrl: "demos/day-3/",
     learn: {
       overview: {
