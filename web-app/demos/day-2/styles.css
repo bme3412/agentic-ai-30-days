@@ -36,7 +36,19 @@ body {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 48px 32px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 32px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 24px 16px;
+  }
 }
 
 /* Header */
@@ -741,4 +753,82 @@ input[type="text"]:focus {
 .demo-footer p {
   color: var(--text-muted);
   font-size: 0.85rem;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  header {
+    margin-bottom: 1.5rem;
+  }
+
+  header h1 {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .demo-explanation {
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .demo-explanation h2 {
+    font-size: 1.1rem;
+  }
+
+  .demo-tabs {
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .demo-panel {
+    padding: 1rem;
+  }
+
+  .panel-header h2 {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  header h1 {
+    font-size: 1.35rem;
+  }
+
+  .demo-tabs {
+    gap: 0.25rem;
+  }
+
+  .tab-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .tab-icon {
+    display: none;
+  }
+
+  .explanation-card {
+    padding: 1rem;
+  }
+
+  .explanation-icon {
+    font-size: 1.5rem;
+  }
+
+  .btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .output-json {
+    font-size: 0.75rem;
+    padding: 0.75rem;
+  }
 }
