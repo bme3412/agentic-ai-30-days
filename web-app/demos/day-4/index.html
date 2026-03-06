@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 4: The ReAct Pattern</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="../../#day/4" class="back-link">&larr; Back to Day 4</a>
+      <h1>The ReAct Pattern</h1>
+      <p class="subtitle">Reasoning + Acting: Interleaving thoughts with tool use</p>
+    </header>
+
+    <section class="demo-explanation">
+      <h2>What This Demo Teaches</h2>
+      <p>
+        ReAct (Reasoning + Acting) is the pattern that makes AI agents <strong>transparent and debuggable</strong>.
+        Instead of jumping straight to actions, the model first explains its reasoning, then acts, then interprets
+        the results. This demo lets you see the pattern in action and understand why it matters.
+      </p>
+      <div class="explanation-grid">
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128173;</div>
+          <h3>Thought</h3>
+          <p>The model explains what it's trying to figure out and why. This creates a traceable reasoning chain you can debug.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#9881;</div>
+          <h3>Action</h3>
+          <p>Based on its reasoning, the model decides what tool to call. The action is purposeful, not random.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128065;</div>
+          <h3>Observation</h3>
+          <p>Tool results are fed back to the model. It interprets them in context and decides what to do next.</p>
+        </div>
+      </div>
+      <p class="explanation-note">
+        <strong>Key insight:</strong> ReAct creates <em>grounded reasoning</em>&mdash;conclusions based on actual observations,
+        not just the model's training data. This dramatically reduces hallucination and improves reliability.
+      </p>
+    </section>
+
+    <!-- Demo Tabs -->
+    <nav class="demo-tabs">
+      <button class="tab-btn active" data-tab="visualize">
+        <span class="tab-icon">&#128200;</span>
+        <span class="tab-label">Visualize ReAct</span>
+      </button>
+      <button class="tab-btn" data-tab="compare">
+        <span class="tab-icon">&#8596;</span>
+        <span class="tab-label">Compare Patterns</span>
+      </button>
+      <button class="tab-btn" data-tab="build">
+        <span class="tab-icon">&#128736;</span>
+        <span class="tab-label">Build Your Own</span>
+      </button>
+    </nav>
+
+    <!-- Visualize Tab -->
+    <section id="visualize" class="tab-content active">
+      <div class="panel">
+        <h3>ReAct Trace Visualization</h3>
+        <p class="panel-description">Watch how ReAct interleaves reasoning with actions. Each step shows the model's thought process.</p>
+
+        <div class="query-input">
+          <label for="react-query">Ask a question:</label>
+          <div class="input-row">
+            <input type="text" id="react-query" placeholder="What is the population of Tokyo?" value="What is 25% of the population of Tokyo?">
+            <button id="run-react" class="btn-primary">Run ReAct</button>
+          </div>
+        </div>
+
+        <div class="trace-container">
+          <div id="react-trace" class="trace">
+            <div class="trace-step" data-type="thought">
+              <div class="step-label">Thought</div>
+              <div class="step-content">Click "Run ReAct" to see the reasoning trace...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Compare Tab -->
+    <section id="compare" class="tab-content">
+      <div class="panel">
+        <h3>ReAct vs. Other Patterns</h3>
+        <p class="panel-description">See how different patterns approach the same problem.</p>
+
+        <div class="comparison-grid">
+          <div class="comparison-card">
+            <h4>Chain-of-Thought (CoT)</h4>
+            <div class="comparison-trace">
+              <div class="mini-step thought">Thought: Tokyo is Japan's capital. Japan has about 125 million people. Tokyo probably has around 14 million...</div>
+              <div class="mini-step answer">Answer: About 14 million</div>
+            </div>
+            <div class="comparison-note warning">
+              <strong>Problem:</strong> Reasoning from training data. May be outdated or wrong.
+            </div>
+          </div>
+
+          <div class="comparison-card">
+            <h4>Action-Only</h4>
+            <div class="comparison-trace">
+              <div class="mini-step action">Action: search("Tokyo population")</div>
+              <div class="mini-step observation">Observation: 13.96 million</div>
+              <div class="mini-step answer">Answer: 13.96 million</div>
+            </div>
+            <div class="comparison-note warning">
+              <strong>Problem:</strong> No reasoning visible. Hard to debug if wrong.
+            </div>
+          </div>
+
+          <div class="comparison-card highlight">
+            <h4>ReAct</h4>
+            <div class="comparison-trace">
+              <div class="mini-step thought">Thought: I need current data on Tokyo's population. Let me search.</div>
+              <div class="mini-step action">Action: search("Tokyo population 2024")</div>
+              <div class="mini-step observation">Observation: 13.96 million (2024 estimate)</div>
+              <div class="mini-step thought">Thought: Now I can calculate 25% of 13.96 million.</div>
+              <div class="mini-step action">Action: calculate("13960000 * 0.25")</div>
+              <div class="mini-step observation">Observation: 3490000</div>
+              <div class="mini-step thought">Thought: I have the answer grounded in real data.</div>
+              <div class="mini-step answer">Answer: 3.49 million (25% of Tokyo's 13.96 million population)</div>
+            </div>
+            <div class="comparison-note success">
+              <strong>Advantage:</strong> Grounded in observations. Traceable reasoning. Self-documenting.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Build Tab -->
+    <section id="build" class="tab-content">
+      <div class="panel">
+        <h3>Build a ReAct Prompt</h3>
+        <p class="panel-description">Construct a ReAct system prompt step by step. See how each component affects agent behavior.</p>
+
+        <div class="prompt-builder">
+          <div class="builder-section">
+            <h4>1. Format Specification</h4>
+            <textarea id="format-spec" class="code-input" rows="8">Always respond in EXACTLY one of these formats:
+
+When you need information:
+Thought: [your reasoning about what to do next]
+Action: tool_name(arguments)
+
+When you have the final answer:
+Thought: [your reasoning about why you can answer]
+Answer: [your complete response]</textarea>
+          </div>
+
+          <div class="builder-section">
+            <h4>2. Available Tools</h4>
+            <textarea id="tools-spec" class="code-input" rows="5">Available tools:
+- search(query): Search the web for current information
+- calculate(expression): Evaluate a mathematical expression
+- lookup(term): Look up a definition or fact</textarea>
+          </div>
+
+          <div class="builder-section">
+            <h4>3. Behavioral Guidelines</h4>
+            <textarea id="guidelines-spec" class="code-input" rows="5">Guidelines:
+- Think step by step before acting
+- Base conclusions on observations, not assumptions
+- If a tool fails, try a different approach
+- Only provide Answer: when you have sufficient information</textarea>
+          </div>
+
+          <div class="builder-output">
+            <h4>Complete System Prompt</h4>
+            <pre id="complete-prompt" class="code-output"></pre>
+            <button id="copy-prompt" class="btn-secondary">Copy to Clipboard</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="demo-footer">
+      <div class="next-steps">
+        <h3>Next Steps</h3>
+        <ul>
+          <li>Try the ReAct visualization with different questions</li>
+          <li>Compare how different patterns handle ambiguous queries</li>
+          <li>Build your own ReAct prompt and test it with an LLM</li>
+          <li>Read the original ReAct paper for the full research context</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <script src="demo.js"></script>
+</body>
+</html>

@@ -53,6 +53,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Prevent horizontal scroll on mobile */
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+  }
+}
+
 .grain-overlay {
   position: fixed;
   inset: 0;
@@ -4125,6 +4132,8 @@ body {
 }
 
 @media (max-width: 480px) {
+  #app { padding: 0 12px 60px; }
+  .nav-inner { padding: 0 12px; }
   .hero h1 { font-size: 1.8rem; }
   .progress-strip { flex-direction: column; align-items: flex-start; }
   .nav-logo .logo-text { display: none; }
@@ -6853,6 +6862,41 @@ body {
     align-items: flex-start;
     gap: 12px;
   }
+
+  /* Mobile overflow containment for markdown content */
+  .resource-content-inner {
+    overflow-x: hidden;
+  }
+
+  .markdown-body {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+  .markdown-body pre.code-block {
+    max-width: 100%;
+    padding: 16px;
+    font-size: 0.8rem;
+  }
+
+  .markdown-body pre.code-block code {
+    font-size: 0.75rem;
+  }
+
+  /* Make tables scrollable on mobile without affecting page */
+  .markdown-body .md-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    font-size: 0.8rem;
+  }
+
+  .markdown-body .md-table th,
+  .markdown-body .md-table td {
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -7882,6 +7926,12 @@ body {
 @media (max-width: 640px) {
   .day-page-simple {
     padding: 1.5rem 1rem 3rem;
+    overflow-x: hidden;
+  }
+
+  .day-content-simple {
+    overflow-x: hidden;
+    max-width: 100%;
   }
 
   .day-title-simple h1 {
@@ -7890,10 +7940,47 @@ body {
 
   .learn-simple {
     font-size: 1rem;
+    overflow-x: hidden;
+    max-width: 100%;
   }
 
   .learn-simple .lead {
     font-size: 1.125rem;
+  }
+
+  .learn-simple .prose {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+  /* Code blocks on mobile */
+  .code-block-inline {
+    max-width: 100%;
+    padding: 12px 14px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+  }
+
+  .code-block-inline code {
+    font-size: 0.75rem;
+  }
+
+  /* Tables on mobile - make scrollable within container */
+  .learn-simple table,
+  .prose table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    font-size: 0.8rem;
+  }
+
+  .learn-simple table th,
+  .learn-simple table td,
+  .prose table th,
+  .prose table td {
+    padding: 8px 10px;
+    white-space: nowrap;
   }
 
   .concept-item {
