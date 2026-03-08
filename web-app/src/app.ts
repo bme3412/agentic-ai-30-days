@@ -338,13 +338,78 @@ function renderDayPage(): string {
         <div class="day-title-simple">
           <span class="phase-tag ${phase?.badge || ''}">Phase ${dayData.phase}</span>
           <h1>${dayData.title}</h1>
-          ${dayData.demoUrl ? `
-            <a href="${dayData.demoUrl}" target="_blank" class="demo-btn">
-              <span>&#9654;</span> Try Demo
-            </a>
-          ` : ''}
         </div>
       </header>
+
+      <!-- Action Bar: Demo & Code Tabs -->
+      ${(dayData.demoUrl || (learn?.codeExamples?.length)) ? `
+        <div class="day-action-bar">
+          <div class="action-tabs">
+            ${dayData.demoUrl ? `
+              <button class="action-tab active" data-action="switch-action-tab" data-tab="demo">
+                <span class="action-tab-icon">&#9654;</span>
+                <span>Interactive Demo</span>
+              </button>
+            ` : ''}
+            ${learn?.codeExamples?.length ? `
+              <button class="action-tab ${!dayData.demoUrl ? 'active' : ''}" data-action="switch-action-tab" data-tab="code">
+                <span class="action-tab-icon">&#128187;</span>
+                <span>Code Examples</span>
+                <span class="action-tab-count">${learn.codeExamples.length}</span>
+              </button>
+            ` : ''}
+          </div>
+
+          <div class="action-panels">
+            ${dayData.demoUrl ? `
+              <div class="action-panel active" data-panel="demo">
+                <div class="demo-hero">
+                  <div class="demo-hero-content">
+                    <div class="demo-hero-badge">Interactive Demo for Day ${dayData.day}</div>
+                    <h3>${dayData.title}</h3>
+                    <p>${dayData.demoDescription || 'Experiment with the concepts from this lesson in a live, interactive environment.'}</p>
+                    <a href="${dayData.demoUrl}" target="_blank" class="demo-hero-btn">
+                      <span class="demo-play-icon">&#9654;</span>
+                      Launch Demo
+                      <span class="demo-external-icon">&#8599;</span>
+                    </a>
+                  </div>
+                  <div class="demo-hero-visual">
+                    <div class="demo-visual-circles">
+                      <div class="demo-circle demo-circle-1"></div>
+                      <div class="demo-circle demo-circle-2"></div>
+                      <div class="demo-circle demo-circle-3"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            ${learn?.codeExamples?.length ? `
+              <div class="action-panel ${!dayData.demoUrl ? 'active' : ''}" data-panel="code">
+                <div class="code-panel-header">
+                  <span>Reference implementations for this lesson. Each example builds on the concepts above.</span>
+                </div>
+                <div class="code-panel-examples">
+                  ${learn.codeExamples.map((ex, idx) => `
+                    <div class="code-panel-example ${idx === 0 ? 'expanded' : ''}">
+                      <button class="code-panel-toggle" data-action="toggle-code-panel" data-index="${idx}">
+                        <span class="toggle-icon">${idx === 0 ? '&#9660;' : '&#9654;'}</span>
+                        <span class="code-panel-title">${ex.title || 'Example'}</span>
+                        <span class="code-lang-badge">${ex.language || 'python'}</span>
+                      </button>
+                      <div class="code-panel-content" style="${idx === 0 ? '' : 'display: none;'}">
+                        ${ex.explanation ? `<p class="code-panel-explanation">${ex.explanation}</p>` : ''}
+                        <pre class="code-pre"><code>${highlightSyntax(ex.code, ex.language || 'python')}</code></pre>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      ` : ''}
 
       <!-- Layout with optional TOC sidebar -->
       <div class="day-layout-wrapper">
@@ -398,9 +463,7 @@ function renderSectionNav(learn: Learn, d: Day): string {
   if (learn.concepts?.length) {
     sections.push({ id: 'concepts', label: 'Concepts', icon: '&#128161;' });
   }
-  if (learn.codeExamples?.length) {
-    sections.push({ id: 'code', label: 'Code', icon: '&#128187;' });
-  }
+  // Code examples are now shown in the action bar, not in main content
   if (learn.keyTakeaways?.length) {
     sections.push({ id: 'takeaways', label: 'Takeaways', icon: '&#10003;' });
   }
@@ -412,9 +475,6 @@ function renderSectionNav(learn: Learn, d: Day): string {
   }
   if (learn.faq?.length) {
     sections.push({ id: 'faq', label: 'FAQ', icon: '&#10067;' });
-  }
-  if (learn.exercises?.length) {
-    sections.push({ id: 'exercises', label: 'Exercises', icon: '&#9998;' });
   }
   if (learn.applications?.length) {
     sections.push({ id: 'applications', label: 'Applications', icon: '&#128640;' });
@@ -471,7 +531,7 @@ function renderLearnContentSimple(learn: Learn, d: Day): string {
           ${learn.diagrams.map(diag => `
             <figure>
               ${diag.title ? `<figcaption>${diag.title}</figcaption>` : ''}
-              <pre>${escapeHtml(diag.content || '')}</pre>
+              <pre>${escapeHtml(diag.ascii || diag.content || '')}</pre>
             </figure>
           `).join('')}
         </section>
@@ -491,21 +551,7 @@ function renderLearnContentSimple(learn: Learn, d: Day): string {
         </section>
       ` : ''}
 
-      ${learn.codeExamples?.length ? `
-        <section id="section-code" class="content-section code-section">
-          <h2>Code Examples</h2>
-          ${learn.codeExamples.map(ex => `
-            <div class="code-block-simple">
-              <div class="code-header-simple">
-                <span>${ex.title || 'Example'}</span>
-                <span class="code-lang-tag">${ex.language || 'python'}</span>
-              </div>
-              <pre><code>${escapeHtml(ex.code)}</code></pre>
-              ${ex.explanation ? `<p class="code-note">${ex.explanation}</p>` : ''}
-            </div>
-          `).join('')}
-        </section>
-      ` : ''}
+      <!-- Code examples are shown in the action bar above -->
 
       ${learn.keyTakeaways?.length ? `
         <section id="section-takeaways" class="content-section takeaways-section">
@@ -577,22 +623,6 @@ function renderLearnContentSimple(learn: Learn, d: Day): string {
               </details>
             `).join('')}
           </div>
-        </section>
-      ` : ''}
-
-      ${learn.exercises?.length ? `
-        <section id="section-exercises" class="content-section exercises-section">
-          <h2>Exercises</h2>
-          ${learn.exercises.map((ex, i) => `
-            <div class="exercise-item">
-              <div class="exercise-header">
-                <span class="exercise-num">${i + 1}</span>
-                <span class="exercise-title">${ex.title}</span>
-                ${ex.difficulty ? `<span class="exercise-difficulty ${ex.difficulty}">${ex.difficulty}</span>` : ''}
-              </div>
-              <div class="prose">${formatLearnMarkdown(ex.description)}</div>
-            </div>
-          `).join('')}
         </section>
       ` : ''}
 
@@ -819,7 +849,7 @@ function renderLearnContentV2(learn: Learn, d: Day): string {
             ${learn.diagrams.map(diag => `
               <figure class="diagram-figure">
                 <figcaption>${diag.title || 'Diagram'}</figcaption>
-                <pre class="diagram-pre">${escapeHtml(diag.content || '')}</pre>
+                <pre class="diagram-pre">${escapeHtml(diag.ascii || diag.content || '')}</pre>
               </figure>
             `).join('')}
           </div>
@@ -918,7 +948,7 @@ function renderLearnContentV2(learn: Learn, d: Day): string {
                     <button class="btn-copy" onclick="copyCode(this)">Copy</button>
                   </div>
                 </div>
-                <pre class="code-pre"><code>${escapeHtml(ex.code)}</code></pre>
+                <pre class="code-pre"><code>${highlightSyntax(ex.code, ex.language || 'python')}</code></pre>
                 ${ex.explanation ? `<div class="code-explanation">${ex.explanation}</div>` : ''}
               </div>
             `).join('')}
@@ -1157,7 +1187,7 @@ function renderLearnOverviewTab(learn: Learn, d: Day): string {
           ${learn.diagrams.map(diag => `
             <div class="learn-diagram">
               <h5>${diag.title || 'Diagram'}</h5>
-              <pre class="diagram-ascii">${escapeHtml(diag.content || '')}</pre>
+              <pre class="diagram-ascii">${escapeHtml(diag.ascii || diag.content || '')}</pre>
               ${diag.caption ? `<p class="diagram-caption">${diag.caption}</p>` : ''}
             </div>
           `).join('')}
@@ -1241,7 +1271,7 @@ function renderLearnCodeTab(learn: Learn): string {
               ${ex.category ? `<span class="code-category ${ex.category}">${ex.category}</span>` : ''}
               <button class="btn-copy-code" title="Copy code">Copy</button>
             </div>
-            <pre class="code-block"><code>${escapeHtml(ex.code)}</code></pre>
+            <pre class="code-pre"><code>${highlightSyntax(ex.code, ex.language || 'python')}</code></pre>
             ${ex.explanation ? `<div class="code-explanation">${ex.explanation}</div>` : ''}
           </div>
         `).join('')}
@@ -2574,7 +2604,7 @@ function bindEvents(): void {
       e.preventDefault();
       e.stopPropagation();
       const day = parseInt(el.dataset.day || '0');
-      const type = el.dataset.type as 'concept' | 'exercise' | 'takeaway' | 'overview';
+      const type = el.dataset.type as 'concept' | 'takeaway' | 'overview';
       const index = parseInt(el.dataset.index || '0');
       const title = el.dataset.title || '';
       toggleSectionItem(day, type, index, title);
@@ -2822,6 +2852,47 @@ function bindLearnTabs(): void {
       }
     });
   });
+
+  // Action bar tab switching (Demo / Code)
+  document.querySelectorAll<HTMLButtonElement>("[data-action='switch-action-tab']").forEach(tab => {
+    tab.addEventListener("click", () => {
+      const tabName = tab.dataset.tab;
+      const actionBar = tab.closest(".day-action-bar");
+      if (!actionBar || !tabName) return;
+
+      // Update tab states
+      actionBar.querySelectorAll(".action-tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+
+      // Update panel visibility
+      actionBar.querySelectorAll(".action-panel").forEach(p => p.classList.remove("active"));
+      const panel = actionBar.querySelector(`[data-panel="${tabName}"]`);
+      if (panel) panel.classList.add("active");
+    });
+  });
+
+  // Code panel toggle (expand/collapse)
+  document.querySelectorAll<HTMLButtonElement>("[data-action='toggle-code-panel']").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const example = btn.closest(".code-panel-example");
+      if (!example) return;
+
+      const content = example.querySelector(".code-panel-content") as HTMLElement | null;
+      const icon = btn.querySelector(".toggle-icon");
+      if (!content) return;
+
+      const isExpanded = example.classList.contains("expanded");
+      if (isExpanded) {
+        example.classList.remove("expanded");
+        content.style.display = "none";
+        if (icon) icon.innerHTML = "&#9654;";
+      } else {
+        example.classList.add("expanded");
+        content.style.display = "block";
+        if (icon) icon.innerHTML = "&#9660;";
+      }
+    });
+  });
 }
 
 // ── Utilities ──────────────────────────────────────
@@ -2829,6 +2900,88 @@ function escapeHtml(str: string): string {
   const div = document.createElement("div");
   div.textContent = str;
   return div.innerHTML;
+}
+
+function highlightSyntax(code: string, language: string): string {
+  // First escape HTML to prevent XSS
+  const escaped = escapeHtml(code);
+
+  // Use a token-based approach to avoid regex conflicts with inserted HTML
+  // We'll collect all tokens with their positions, then build the result
+  interface Token { start: number; end: number; type: string; }
+  const tokens: Token[] = [];
+
+  const addTokens = (regex: RegExp, type: string, groupIndex = 0) => {
+    let match;
+    while ((match = regex.exec(escaped)) !== null) {
+      const start = match.index + (groupIndex > 0 ? match[0].indexOf(match[groupIndex]) : 0);
+      const text = groupIndex > 0 ? match[groupIndex] : match[0];
+      tokens.push({ start, end: start + text.length, type });
+    }
+  };
+
+  if (language === 'python' || language === 'py') {
+    // Order matters: more specific patterns first
+    addTokens(/(#[^\n]*)/g, 'comment');
+    addTokens(/("""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\')/g, 'string');
+    addTokens(/(@\w+)/g, 'decorator');
+    addTokens(/\b(def|class)\s+(\w+)/g, 'fn-def'); // Special: captures function name
+    addTokens(/\b(def|class|if|elif|else|for|while|try|except|finally|with|as|import|from|return|yield|raise|pass|break|continue|and|or|not|in|is|None|True|False|async|await|lambda)\b/g, 'keyword');
+    addTokens(/\b(print|len|range|str|int|float|list|dict|set|tuple|bool|type|isinstance|hasattr|getattr|setattr|open|input|sorted|enumerate|zip|map|filter|any|all|sum|min|max|abs|round)\b(?=\s*\()/g, 'builtin');
+    addTokens(/(&quot;[^&]*?&quot;|&#39;[^&]*?&#39;)/g, 'string');
+    addTokens(/\b(\d+\.?\d*)\b/g, 'number');
+  } else if (language === 'javascript' || language === 'js' || language === 'typescript' || language === 'ts') {
+    addTokens(/(\/\/[^\n]*)/g, 'comment');
+    addTokens(/(\/\*[\s\S]*?\*\/)/g, 'comment');
+    addTokens(/\b(function|class)\s+(\w+)/g, 'fn-def');
+    addTokens(/\b(const|let|var|function|class|if|else|for|while|do|switch|case|break|continue|return|throw|try|catch|finally|new|this|typeof|instanceof|import|export|from|default|async|await|yield|extends|implements|interface|type|enum|public|private|protected|static|readonly)\b/g, 'keyword');
+    addTokens(/\b(console|Math|JSON|Object|Array|String|Number|Boolean|Date|Promise|Map|Set|RegExp|Error)\b/g, 'builtin');
+    addTokens(/(`[^`]*`|&quot;[^&]*?&quot;|&#39;[^&]*?&#39;)/g, 'string');
+    addTokens(/\b(\d+\.?\d*)\b/g, 'number');
+  }
+
+  if (tokens.length === 0) return escaped;
+
+  // Sort by start position, then by length (longer matches first for overlaps)
+  tokens.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+
+  // Remove overlapping tokens (keep first/longest)
+  const filtered: Token[] = [];
+  let lastEnd = -1;
+  for (const t of tokens) {
+    if (t.start >= lastEnd) {
+      filtered.push(t);
+      lastEnd = t.end;
+    }
+  }
+
+  // Build result string
+  let result = '';
+  let pos = 0;
+  for (const t of filtered) {
+    if (t.start > pos) {
+      result += escaped.slice(pos, t.start);
+    }
+    const content = escaped.slice(t.start, t.end);
+
+    // Handle function definitions specially
+    if (t.type === 'fn-def') {
+      const match = content.match(/^(def|class|function)\s+(\w+)/);
+      if (match) {
+        result += `<span class="keyword">${match[1]}</span> <span class="function">${match[2]}</span>`;
+      } else {
+        result += content;
+      }
+    } else {
+      result += `<span class="${t.type}">${content}</span>`;
+    }
+    pos = t.end;
+  }
+  if (pos < escaped.length) {
+    result += escaped.slice(pos);
+  }
+
+  return result;
 }
 
 function formatDate(iso: string | undefined | null): string {

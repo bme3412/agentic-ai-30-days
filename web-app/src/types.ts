@@ -56,14 +56,6 @@ export interface Concept {
   gotchas?: string[];
 }
 
-export interface Exercise {
-  title: string;
-  objective: string;
-  steps: string[];
-  hints?: string[];
-  solution?: string;
-}
-
 export interface FAQ {
   question: string;
   answer: string;
@@ -87,7 +79,6 @@ export interface Learn {
   concepts?: Concept[];
   codeExamples?: CodeExample[];
   diagrams?: Diagram[];
-  exercises?: Exercise[];
   keyTakeaways?: string[];
   resources?: Resource[];
   localResources?: LocalResource[];
@@ -122,6 +113,7 @@ export interface Day {
   tags: string[];
   concept?: string;
   demoUrl?: string;
+  demoDescription?: string;
   lesson?: Lesson;
   learn?: Learn;
 }
@@ -236,7 +228,7 @@ export interface ReadingProgressData {
 export interface SectionItem {
   completedAt: string;
   day: number;
-  type: 'concept' | 'exercise' | 'takeaway' | 'overview';
+  type: 'concept' | 'takeaway' | 'overview';
   index: number;
   title: string;
 }
@@ -253,7 +245,6 @@ export interface SectionProgressCounts {
 
 export interface DayOverallProgress {
   concepts: number;
-  exercises: number;
   takeaways: number;
   resources: number;
   total: number;

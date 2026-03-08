@@ -348,10 +348,16 @@ web-app/
 │   └── types.ts        # TypeScript interfaces
 ├── demos/
 │   ├── day-1/          # Day 1 interactive demo
-│   └── day-2/          # Day 2 interactive demo
+│   ├── day-2/          # Day 2 interactive demo
+│   ├── day-3/          # Day 3 interactive demo
+│   ├── day-4/          # Day 4 interactive demo
+│   └── day-5/          # Day 5 interactive demo
 ├── data/
 │   ├── day-1/          # Day 1 resource summaries
-│   └── day-2/          # Day 2 resource summaries
+│   ├── day-2/          # Day 2 resource summaries
+│   ├── day-3/          # Day 3 resource summaries
+│   ├── day-4/          # Day 4 resource summaries
+│   └── day-5/          # Day 5 resource summaries
 ├── dist/
 │   └── app.js          # Bundled output
 ├── styles.css          # Application styles
@@ -371,8 +377,11 @@ Each day can have an interactive demo accessible from the Demos page. Demos are 
 
 | Day | Demo | Description |
 |-----|------|-------------|
-| 1 | Research Agent | Visualizes the OBSERVE → THINK → ACT → REFLECT loop |
+| 1 | Agentic AI Patterns | Visualizes the OBSERVE → THINK → ACT → REFLECT loop |
 | 2 | Structured Outputs | Extract data, function calling flow, schema playground |
+| 3 | Agent from Scratch | Step through a framework-free agent with tool registry |
+| 4 | ReAct Pattern | Visualize Thought → Action → Observation traces |
+| 5 | Reflection Patterns | Self-Refine, Reflexion, and Constitutional AI demos |
 
 ### Creating a New Demo
 

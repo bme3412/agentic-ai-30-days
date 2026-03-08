@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 5: Reflection & Self-Improvement</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="../../#day/5" class="back-link">&larr; Back to Day 5</a>
+      <h1>Reflection & Self-Improvement</h1>
+      <p class="subtitle">Teaching agents to critique and improve their own outputs</p>
+    </header>
+
+    <section class="demo-explanation">
+      <h2>What This Demo Teaches</h2>
+      <p>
+        Reflection patterns let AI agents <strong>improve their outputs through self-critique</strong>.
+        Instead of accepting the first response, the model evaluates its work, identifies issues,
+        and refines iteratively. This demo shows when and how self-improvement works.
+      </p>
+      <div class="explanation-grid">
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128221;</div>
+          <h3>Generate</h3>
+          <p>The model produces an initial output—code, text, or a solution to a problem.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128269;</div>
+          <h3>Critique</h3>
+          <p>A separate evaluation step identifies specific issues, often using external tools for grounding.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#10227;</div>
+          <h3>Refine</h3>
+          <p>Based on the critique, the model revises its output to address identified problems.</p>
+        </div>
+      </div>
+      <p class="explanation-note">
+        <strong>Key insight:</strong> Self-correction works for <em>surface errors</em> (formatting, style)
+        but fails for <em>reasoning errors</em> without external grounding. The critic needs new information.
+      </p>
+    </section>
+
+    <!-- Demo Tabs -->
+    <nav class="demo-tabs">
+      <button class="tab-btn active" data-tab="refine">
+        <span class="tab-icon">&#10227;</span>
+        <span class="tab-label">Self-Refine</span>
+      </button>
+      <button class="tab-btn" data-tab="reflexion">
+        <span class="tab-icon">&#128218;</span>
+        <span class="tab-label">Reflexion</span>
+      </button>
+      <button class="tab-btn" data-tab="constitution">
+        <span class="tab-icon">&#128220;</span>
+        <span class="tab-label">Constitutional</span>
+      </button>
+    </nav>
+
+    <!-- Self-Refine Tab -->
+    <section id="refine" class="tab-content active">
+      <div class="panel">
+        <h3>Self-Refine: Iterate Within One Attempt</h3>
+        <p class="panel-description">Watch as the model generates, critiques, and refines its own output. Same model, three roles.</p>
+
+        <div class="refine-demo">
+          <div class="task-input">
+            <label for="refine-task">Task:</label>
+            <select id="refine-task">
+              <option value="code">Write a factorial function (Python)</option>
+              <option value="email">Write a professional email declining a meeting</option>
+              <option value="summary">Summarize the key points of machine learning</option>
+            </select>
+            <button id="run-refine" class="btn-primary">Run Self-Refine</button>
+          </div>
+
+          <div class="refine-container">
+            <div class="refine-column">
+              <h4>Initial Generation</h4>
+              <div id="initial-output" class="output-box">
+                <p class="placeholder">Click "Run Self-Refine" to see the initial output...</p>
+              </div>
+            </div>
+
+            <div class="refine-column">
+              <h4>Critique</h4>
+              <div id="critique-output" class="output-box critique">
+                <p class="placeholder">The critique will identify issues...</p>
+              </div>
+            </div>
+
+            <div class="refine-column">
+              <h4>Refined Output</h4>
+              <div id="refined-output" class="output-box refined">
+                <p class="placeholder">The refined output addresses the critique...</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="refine-insight">
+            <h4>When Self-Refine Works</h4>
+            <div class="insight-grid">
+              <div class="insight-item success">
+                <span class="insight-icon">&#10003;</span>
+                <span>Formatting & style</span>
+              </div>
+              <div class="insight-item success">
+                <span class="insight-icon">&#10003;</span>
+                <span>Code polish</span>
+              </div>
+              <div class="insight-item success">
+                <span class="insight-icon">&#10003;</span>
+                <span>Grammar fixes</span>
+              </div>
+              <div class="insight-item warning">
+                <span class="insight-icon">&#9888;</span>
+                <span>Logic (needs tests)</span>
+              </div>
+              <div class="insight-item failure">
+                <span class="insight-icon">&#10007;</span>
+                <span>Factual errors</span>
+              </div>
+              <div class="insight-item failure">
+                <span class="insight-icon">&#10007;</span>
+                <span>Math reasoning</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reflexion Tab -->
+    <section id="reflexion" class="tab-content">
+      <div class="panel">
+        <h3>Reflexion: Learn Across Attempts</h3>
+        <p class="panel-description">Unlike Self-Refine, Reflexion stores verbal reflections in memory. Each failure teaches a lesson.</p>
+
+        <div class="reflexion-demo">
+          <div class="attempt-container">
+            <div class="attempt" data-attempt="1">
+              <div class="attempt-header">
+                <span class="attempt-num">Attempt 1</span>
+                <span class="attempt-status fail">&#10007; Failed</span>
+              </div>
+              <div class="attempt-code">
+                <pre>def two_sum(nums, target):
+    for i in range(len(nums)):
+        for j in range(len(nums)):
+            if nums[i] + nums[j] == target:
+                return [i, j]</pre>
+              </div>
+              <div class="attempt-result">
+                <strong>Test Failed:</strong> two_sum([3, 3], 6) returned [0, 0], expected [0, 1]
+              </div>
+              <div class="attempt-reflection">
+                <strong>Reflection:</strong> "My inner loop starts at 0, allowing the same element to be used twice.
+                For next time: start the inner loop at i+1 to ensure distinct indices."
+              </div>
+            </div>
+
+            <div class="memory-arrow">
+              <span>&#8595;</span>
+              <span class="memory-label">Reflection stored in memory</span>
+            </div>
+
+            <div class="attempt" data-attempt="2">
+              <div class="attempt-header">
+                <span class="attempt-num">Attempt 2</span>
+                <span class="attempt-status success">&#10003; Passed</span>
+              </div>
+              <div class="attempt-code">
+                <pre>def two_sum(nums, target):
+    for i in range(len(nums)):
+        for j in range(i + 1, len(nums)):  # Start after i
+            if nums[i] + nums[j] == target:
+                return [i, j]</pre>
+              </div>
+              <div class="attempt-result">
+                <strong>All tests passed</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="reflexion-insight">
+            <h4>Key Difference: External Feedback</h4>
+            <p>
+              Reflexion works because the <strong>environment</strong> (test results) provides the failure signal—not
+              the model's self-assessment. The reflection is informed by concrete external feedback.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Constitutional Tab -->
+    <section id="constitution" class="tab-content">
+      <div class="panel">
+        <h3>Constitutional AI: Principle-Based Critique</h3>
+        <p class="panel-description">Instead of open-ended "find problems," critique against explicit principles.</p>
+
+        <div class="constitution-demo">
+          <div class="constitution-builder">
+            <h4>Define Your Constitution</h4>
+            <div class="principles-list" id="principles-list">
+              <div class="principle-item">
+                <input type="checkbox" id="p1" checked>
+                <label for="p1">Code must not contain hardcoded secrets or API keys</label>
+              </div>
+              <div class="principle-item">
+                <input type="checkbox" id="p2" checked>
+                <label for="p2">Code must handle errors gracefully with try/except</label>
+              </div>
+              <div class="principle-item">
+                <input type="checkbox" id="p3" checked>
+                <label for="p3">Functions must have docstrings explaining their purpose</label>
+              </div>
+              <div class="principle-item">
+                <input type="checkbox" id="p4">
+                <label for="p4">SQL queries must use parameterized queries</label>
+              </div>
+              <div class="principle-item">
+                <input type="checkbox" id="p5">
+                <label for="p5">User input must be validated before use</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="constitution-review">
+            <h4>Code to Review</h4>
+            <pre class="code-review" id="code-to-review">def get_user(user_id):
+    api_key = "sk-1234567890abcdef"
+    query = f"SELECT * FROM users WHERE id = {user_id}"
+    result = db.execute(query)
+    return result</pre>
+            <button id="run-constitution" class="btn-primary">Run Constitutional Review</button>
+
+            <div id="constitution-results" class="constitution-results">
+              <p class="placeholder">Click "Run Constitutional Review" to see violations...</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="constitution-insight">
+          <h4>Why Principles Work</h4>
+          <div class="insight-grid-horizontal">
+            <div class="insight-box">
+              <strong>Focus</strong>
+              <p>The critic knows exactly what to look for</p>
+            </div>
+            <div class="insight-box">
+              <strong>Consistency</strong>
+              <p>Same rules applied to every review</p>
+            </div>
+            <div class="insight-box">
+              <strong>Customizable</strong>
+              <p>Different domains, different constitutions</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="demo-footer">
+      <div class="next-steps">
+        <h3>Next Steps</h3>
+        <ul>
+          <li>Try Self-Refine with different task types to see when it helps</li>
+          <li>Notice how Reflexion needs external test results to improve</li>
+          <li>Build your own constitution for a specific domain (security, style, compliance)</li>
+          <li>Read the Reflexion and Self-Refine papers for implementation details</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <script src="demo.js"></script>
+</body>
+</html>
