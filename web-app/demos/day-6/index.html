@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 6: LangChain Tools & Agents</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="../../#day/6" class="back-link">&larr; Back to Day 6</a>
+      <h1>LangChain Tools & Agents</h1>
+      <p class="subtitle">Building agents that can take action in the real world</p>
+    </header>
+
+    <section class="demo-explanation">
+      <h2>What This Demo Teaches</h2>
+      <p>
+        Tools give agents the ability to <strong>interact with the world</strong> beyond text generation.
+        Instead of just responding, agents can search the web, query databases, call APIs, and execute code.
+        This demo shows how agents decide which tools to use and how the tool-calling flow works.
+      </p>
+      <div class="explanation-grid">
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128295;</div>
+          <h3>Define Tools</h3>
+          <p>Create tools with clear descriptions so the model knows when to use them.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#129504;</div>
+          <h3>Bind & Reason</h3>
+          <p>The model analyzes the query and decides which tool(s) to call with what arguments.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#9889;</div>
+          <h3>Execute & Loop</h3>
+          <p>Tools execute, results feed back, and the agent continues until the task is complete.</p>
+        </div>
+      </div>
+      <p class="explanation-note">
+        <strong>Key insight:</strong> The quality of your tool descriptions directly impacts how reliably
+        the agent will use them. Clear, specific descriptions > vague ones.
+      </p>
+    </section>
+
+    <!-- Demo Tabs -->
+    <nav class="demo-tabs">
+      <button class="tab-btn active" data-tab="toolbox">
+        <span class="tab-icon">&#128736;</span>
+        <span class="tab-label">Tool Builder</span>
+      </button>
+      <button class="tab-btn" data-tab="agent">
+        <span class="tab-icon">&#129302;</span>
+        <span class="tab-label">Agent Simulator</span>
+      </button>
+      <button class="tab-btn" data-tab="flow">
+        <span class="tab-icon">&#128200;</span>
+        <span class="tab-label">Call Flow</span>
+      </button>
+    </nav>
+
+    <!-- Tool Builder Tab -->
+    <section id="toolbox" class="tab-content active">
+      <div class="panel">
+        <h3>Build Your Toolbox</h3>
+        <p class="panel-description">Select tools to give your agent. Notice how each tool has a clear description that helps the model decide when to use it.</p>
+
+        <div class="tool-builder">
+          <div class="available-tools">
+            <h4>Available Tools</h4>
+            <div class="tool-list" id="available-tools">
+              <div class="tool-card" data-tool="search">
+                <div class="tool-header">
+                  <span class="tool-icon">&#128269;</span>
+                  <span class="tool-name">web_search</span>
+                  <button class="add-tool-btn" data-tool="search">+ Add</button>
+                </div>
+                <p class="tool-description">Search the web for current information. Use for recent events, facts, or when you need up-to-date data.</p>
+                <div class="tool-schema">
+                  <code>query: str</code> - The search query
+                </div>
+              </div>
+
+              <div class="tool-card" data-tool="calculator">
+                <div class="tool-header">
+                  <span class="tool-icon">&#129518;</span>
+                  <span class="tool-name">calculator</span>
+                  <button class="add-tool-btn" data-tool="calculator">+ Add</button>
+                </div>
+                <p class="tool-description">Evaluate mathematical expressions. Use for arithmetic, percentages, or any numerical calculations.</p>
+                <div class="tool-schema">
+                  <code>expression: str</code> - Math expression (e.g., "15 * 7 + 3")
+                </div>
+              </div>
+
+              <div class="tool-card" data-tool="weather">
+                <div class="tool-header">
+                  <span class="tool-icon">&#127782;</span>
+                  <span class="tool-name">get_weather</span>
+                  <button class="add-tool-btn" data-tool="weather">+ Add</button>
+                </div>
+                <p class="tool-description">Get current weather for a city. Use when users ask about weather, temperature, or conditions.</p>
+                <div class="tool-schema">
+                  <code>city: str</code> - City name (e.g., "Tokyo")
+                </div>
+              </div>
+
+              <div class="tool-card" data-tool="wikipedia">
+                <div class="tool-header">
+                  <span class="tool-icon">&#128214;</span>
+                  <span class="tool-name">wikipedia</span>
+                  <button class="add-tool-btn" data-tool="wikipedia">+ Add</button>
+                </div>
+                <p class="tool-description">Search Wikipedia for factual information about people, places, events, or concepts.</p>
+                <div class="tool-schema">
+                  <code>topic: str</code> - Topic to look up
+                </div>
+              </div>
+
+              <div class="tool-card" data-tool="database">
+                <div class="tool-header">
+                  <span class="tool-icon">&#128451;</span>
+                  <span class="tool-name">query_database</span>
+                  <button class="add-tool-btn" data-tool="database">+ Add</button>
+                </div>
+                <p class="tool-description">Execute read-only SQL queries against the database. Use for data lookups and reports.</p>
+                <div class="tool-schema">
+                  <code>sql: str</code> - SELECT query only
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="selected-tools">
+            <h4>Your Agent's Toolbox</h4>
+            <div class="selected-list" id="selected-tools">
+              <p class="placeholder">Click "+ Add" to add tools to your agent...</p>
+            </div>
+            <div class="tool-stats">
+              <span id="tool-count">0 tools selected</span>
+              <button id="clear-tools" class="btn-secondary">Clear All</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-insight">
+          <h4>Best Practices</h4>
+          <div class="insight-grid">
+            <div class="insight-item">
+              <span class="insight-icon">&#10003;</span>
+              <span>Keep toolbox small (3-5 tools)</span>
+            </div>
+            <div class="insight-item">
+              <span class="insight-icon">&#10003;</span>
+              <span>Use specific, clear descriptions</span>
+            </div>
+            <div class="insight-item">
+              <span class="insight-icon">&#10003;</span>
+              <span>Include when NOT to use the tool</span>
+            </div>
+            <div class="insight-item warning">
+              <span class="insight-icon">&#9888;</span>
+              <span>Too many tools confuse the model</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Agent Simulator Tab -->
+    <section id="agent" class="tab-content">
+      <div class="panel">
+        <h3>Agent Simulator</h3>
+        <p class="panel-description">Watch how an agent reasons about which tools to use for different queries.</p>
+
+        <div class="agent-simulator">
+          <div class="query-section">
+            <label for="user-query">User Query:</label>
+            <select id="user-query">
+              <option value="weather-calc">What's the temperature in Paris? And what's that in Fahrenheit if it's 22 Celsius?</option>
+              <option value="search-wiki">Who won the 2024 Super Bowl and when was the team founded?</option>
+              <option value="multi-search">Compare the populations of Tokyo and New York City</option>
+              <option value="simple">What is 15% of 340?</option>
+            </select>
+            <button id="run-agent" class="btn-primary">Run Agent</button>
+          </div>
+
+          <div class="agent-trace" id="agent-trace">
+            <p class="placeholder">Select a query and click "Run Agent" to see the reasoning...</p>
+          </div>
+
+          <div class="agent-insight">
+            <h4>What's Happening</h4>
+            <p>
+              The agent analyzes the query, identifies what information it needs, and selects the appropriate
+              tool(s). For complex queries, it may call multiple tools in sequence or parallel.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call Flow Tab -->
+    <section id="flow" class="tab-content">
+      <div class="panel">
+        <h3>Tool Calling Flow</h3>
+        <p class="panel-description">Step through the complete lifecycle of a tool call, from binding to execution.</p>
+
+        <div class="flow-diagram">
+          <div class="flow-step" data-step="1">
+            <div class="flow-number">1</div>
+            <div class="flow-content">
+              <h4>bind_tools()</h4>
+              <p>Attach tools to the model. The model learns what tools are available and their schemas.</p>
+              <pre class="flow-code">model = ChatOpenAI(model="gpt-4")
+model_with_tools = model.bind_tools([
+    get_weather,
+    calculator,
+    web_search
+])</pre>
+            </div>
+          </div>
+
+          <div class="flow-arrow">&#8595;</div>
+
+          <div class="flow-step" data-step="2">
+            <div class="flow-number">2</div>
+            <div class="flow-content">
+              <h4>Model Invocation</h4>
+              <p>Send the user's message. The model decides if tools are needed.</p>
+              <pre class="flow-code">response = model_with_tools.invoke([
+    HumanMessage("What's the weather in Tokyo?")
+])</pre>
+            </div>
+          </div>
+
+          <div class="flow-arrow">&#8595;</div>
+
+          <div class="flow-step highlight" data-step="3">
+            <div class="flow-number">3</div>
+            <div class="flow-content">
+              <h4>Tool Calls Generated</h4>
+              <p>The model outputs structured tool calls instead of (or in addition to) text.</p>
+              <pre class="flow-code">response.tool_calls = [
+    {
+        "id": "call_abc123",
+        "name": "get_weather",
+        "args": {"city": "Tokyo"}
+    }
+]</pre>
+            </div>
+          </div>
+
+          <div class="flow-arrow">&#8595;</div>
+
+          <div class="flow-step" data-step="4">
+            <div class="flow-number">4</div>
+            <div class="flow-content">
+              <h4>Execute Tools</h4>
+              <p>Your code runs the actual tool functions with the provided arguments.</p>
+              <pre class="flow-code">for tool_call in response.tool_calls:
+    result = tools[tool_call["name"]].invoke(
+        tool_call["args"]
+    )
+    # result = "Tokyo: 22°C, Partly cloudy"</pre>
+            </div>
+          </div>
+
+          <div class="flow-arrow">&#8595;</div>
+
+          <div class="flow-step" data-step="5">
+            <div class="flow-number">5</div>
+            <div class="flow-content">
+              <h4>Feed Results Back</h4>
+              <p>Package results as ToolMessages and continue the conversation.</p>
+              <pre class="flow-code">messages = [
+    HumanMessage("What's the weather in Tokyo?"),
+    response,  # AIMessage with tool_calls
+    ToolMessage(
+        content="Tokyo: 22°C, Partly cloudy",
+        tool_call_id="call_abc123"
+    )
+]
+final = model_with_tools.invoke(messages)</pre>
+            </div>
+          </div>
+
+          <div class="flow-arrow">&#8595;</div>
+
+          <div class="flow-step success" data-step="6">
+            <div class="flow-number">6</div>
+            <div class="flow-content">
+              <h4>Final Response</h4>
+              <p>Model synthesizes the tool results into a natural language response.</p>
+              <pre class="flow-code">final.content = "The weather in Tokyo is currently
+22°C (72°F) with partly cloudy skies."</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="demo-footer">
+      <div class="next-steps">
+        <h3>Next Steps</h3>
+        <ul>
+          <li>Build a custom tool using the @tool decorator</li>
+          <li>Try the AgentExecutor for automatic tool execution loops</li>
+          <li>Explore LangGraph for more complex agent workflows (Day 7)</li>
+          <li>Add error handling and validation to your tools</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <script src="demo.js"></script>
+</body>
+</html>

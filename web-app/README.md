@@ -351,13 +351,15 @@ web-app/
 │   ├── day-2/          # Day 2 interactive demo
 │   ├── day-3/          # Day 3 interactive demo
 │   ├── day-4/          # Day 4 interactive demo
-│   └── day-5/          # Day 5 interactive demo
+│   ├── day-5/          # Day 5 interactive demo
+│   └── day-6/          # Day 6 interactive demo
 ├── data/
 │   ├── day-1/          # Day 1 resource summaries
 │   ├── day-2/          # Day 2 resource summaries
 │   ├── day-3/          # Day 3 resource summaries
 │   ├── day-4/          # Day 4 resource summaries
-│   └── day-5/          # Day 5 resource summaries
+│   ├── day-5/          # Day 5 resource summaries
+│   └── day-6/          # Day 6 resource summaries
 ├── dist/
 │   └── app.js          # Bundled output
 ├── styles.css          # Application styles
@@ -382,6 +384,7 @@ Each day can have an interactive demo accessible from the Demos page. Demos are 
 | 3 | Agent from Scratch | Step through a framework-free agent with tool registry |
 | 4 | ReAct Pattern | Visualize Thought → Action → Observation traces |
 | 5 | Reflection Patterns | Self-Refine, Reflexion, and Constitutional AI demos |
+| 6 | LangChain Tools & Agents | Tool builder, agent simulator, and tool-calling flow |
 
 ### Creating a New Demo
 
