@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 7: LangGraph Workflows</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="../../#day/7" class="back-link">&larr; Back to Day 7</a>
+      <h1>LangGraph: Stateful Agent Workflows</h1>
+      <p class="subtitle">Graph-based control flow with conditional routing</p>
+    </header>
+
+    <section class="demo-explanation">
+      <h2>What This Demo Teaches</h2>
+      <p>
+        LangGraph represents agent workflows as <strong>graphs with nodes and edges</strong>.
+        State flows through the graph, and conditional edges enable dynamic routing based on
+        intermediate results. This demo visualizes how state moves through different graph patterns.
+      </p>
+      <div class="explanation-grid">
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128992;</div>
+          <h3>State Graph</h3>
+          <p>Define typed state that flows through nodes, accumulating information at each step.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128260;</div>
+          <h3>Conditional Routing</h3>
+          <p>Route to different nodes based on state values - enable branching and loops.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128257;</div>
+          <h3>Tool Loop</h3>
+          <p>The agent-tools loop: call LLM, execute tools, feed results back, repeat.</p>
+        </div>
+      </div>
+      <p class="explanation-note">
+        <strong>Key insight:</strong> LangGraph gives you explicit control over your agent's
+        execution flow - you can see exactly how decisions are made and where state goes.
+      </p>
+    </section>
+
+    <!-- Demo Tabs -->
+    <nav class="demo-tabs">
+      <button class="tab-btn active" data-tab="visualizer">
+        <span class="tab-icon">&#128200;</span>
+        <span class="tab-label">Graph Visualizer</span>
+      </button>
+      <button class="tab-btn" data-tab="routing">
+        <span class="tab-icon">&#128256;</span>
+        <span class="tab-label">Conditional Routing</span>
+      </button>
+      <button class="tab-btn" data-tab="builder">
+        <span class="tab-icon">&#128736;</span>
+        <span class="tab-label">Build Your Own</span>
+      </button>
+    </nav>
+
+    <!-- Graph Visualizer Tab -->
+    <section id="visualizer" class="tab-content active">
+      <div class="panel">
+        <h3>Agent Loop Visualization</h3>
+        <p class="panel-description">Watch state flow through a tool-calling agent graph. The agent calls the LLM, checks for tool calls, executes tools, and loops back until done.</p>
+
+        <div class="visualizer-layout">
+          <div class="graph-container">
+            <svg id="agent-graph" viewBox="0 0 500 400">
+              <!-- START node -->
+              <g id="node-start" class="graph-node" transform="translate(250, 30)">
+                <circle r="20" class="node-circle start-node"/>
+                <text y="5" class="node-label">START</text>
+              </g>
+
+              <!-- AGENT node -->
+              <g id="node-agent" class="graph-node" transform="translate(250, 120)">
+                <rect x="-50" y="-25" width="100" height="50" rx="8" class="node-rect agent-node"/>
+                <text y="5" class="node-label">AGENT</text>
+                <text y="20" class="node-sublabel">LLM Call</text>
+              </g>
+
+              <!-- Decision diamond -->
+              <g id="node-decision" class="graph-node" transform="translate(250, 210)">
+                <polygon points="0,-25 35,0 0,25 -35,0" class="node-diamond"/>
+                <text y="5" class="node-label decision-label">tools?</text>
+              </g>
+
+              <!-- TOOLS node -->
+              <g id="node-tools" class="graph-node" transform="translate(400, 210)">
+                <rect x="-50" y="-25" width="100" height="50" rx="8" class="node-rect tool-node"/>
+                <text y="5" class="node-label">TOOLS</text>
+                <text y="20" class="node-sublabel">Execute</text>
+              </g>
+
+              <!-- END node -->
+              <g id="node-end" class="graph-node" transform="translate(250, 320)">
+                <circle r="20" class="node-circle end-node"/>
+                <text y="5" class="node-label">END</text>
+              </g>
+
+              <!-- Edges -->
+              <g class="graph-edges">
+                <!-- START -> AGENT -->
+                <line id="edge-start-agent" x1="250" y1="50" x2="250" y2="95" class="graph-edge"/>
+                <polygon points="250,95 245,85 255,85" class="edge-arrow"/>
+
+                <!-- AGENT -> Decision -->
+                <line id="edge-agent-decision" x1="250" y1="145" x2="250" y2="185" class="graph-edge"/>
+                <polygon points="250,185 245,175 255,175" class="edge-arrow"/>
+
+                <!-- Decision -> TOOLS (yes) -->
+                <path id="edge-decision-tools" d="M 285,210 L 350,210" class="graph-edge"/>
+                <polygon points="350,210 340,205 340,215" class="edge-arrow"/>
+                <text x="315" y="200" class="edge-label">yes</text>
+
+                <!-- Decision -> END (no) -->
+                <line id="edge-decision-end" x1="250" y1="235" x2="250" y2="300" class="graph-edge"/>
+                <polygon points="250,300 245,290 255,290" class="edge-arrow"/>
+                <text x="260" y="270" class="edge-label">no</text>
+
+                <!-- TOOLS -> AGENT (loop back) -->
+                <path id="edge-tools-agent" d="M 400,185 L 400,120 L 300,120" class="graph-edge loop-edge"/>
+                <polygon points="300,120 310,115 310,125" class="edge-arrow"/>
+              </g>
+            </svg>
+          </div>
+
+          <div class="state-panel">
+            <h4>Current State</h4>
+            <div id="state-display" class="state-display">
+              <pre>{
+  "messages": [],
+  "iteration": 0
+}</pre>
+            </div>
+
+            <h4>Execution Log</h4>
+            <div id="execution-log" class="execution-log">
+              <div class="log-entry info">Click "Run Agent" to start</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="input-group">
+            <label for="agent-query">Query:</label>
+            <input type="text" id="agent-query" value="What's the weather in Tokyo and calculate 15 * 7?" placeholder="Enter a query...">
+          </div>
+          <div class="button-group">
+            <button id="run-agent" class="primary-btn">Run Agent</button>
+            <button id="step-agent" class="secondary-btn">Step</button>
+            <button id="reset-agent" class="secondary-btn">Reset</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Conditional Routing Tab -->
+    <section id="routing" class="tab-content">
+      <div class="panel">
+        <h3>Conditional Routing Playground</h3>
+        <p class="panel-description">See how different inputs route to different handlers. The classifier analyzes the input and sets a flag that the routing function reads.</p>
+
+        <div class="routing-layout">
+          <div class="routing-graph">
+            <svg id="routing-svg" viewBox="0 0 500 350">
+              <!-- Classifier node -->
+              <g id="route-classifier" class="graph-node" transform="translate(250, 50)">
+                <rect x="-60" y="-25" width="120" height="50" rx="8" class="node-rect classifier-node"/>
+                <text y="5" class="node-label">CLASSIFIER</text>
+              </g>
+
+              <!-- Routing arrows -->
+              <g class="routing-paths">
+                <path id="path-calc" d="M 190,75 L 100,150" class="routing-path"/>
+                <path id="path-search" d="M 250,75 L 250,150" class="routing-path"/>
+                <path id="path-chat" d="M 310,75 L 400,150" class="routing-path"/>
+              </g>
+
+              <!-- Handler nodes -->
+              <g id="route-calc" class="graph-node" transform="translate(100, 180)">
+                <rect x="-50" y="-25" width="100" height="50" rx="8" class="node-rect calc-node"/>
+                <text y="0" class="node-label">CALCULATE</text>
+                <text y="15" class="node-sublabel">Math Handler</text>
+              </g>
+
+              <g id="route-search" class="graph-node" transform="translate(250, 180)">
+                <rect x="-50" y="-25" width="100" height="50" rx="8" class="node-rect search-node"/>
+                <text y="0" class="node-label">SEARCH</text>
+                <text y="15" class="node-sublabel">Info Handler</text>
+              </g>
+
+              <g id="route-chat" class="graph-node" transform="translate(400, 180)">
+                <rect x="-50" y="-25" width="100" height="50" rx="8" class="node-rect chat-node"/>
+                <text y="0" class="node-label">CHAT</text>
+                <text y="15" class="node-sublabel">General Handler</text>
+              </g>
+
+              <!-- Converge to END -->
+              <g class="routing-paths">
+                <path d="M 100,205 L 100,270 L 250,300" class="routing-path converge"/>
+                <path d="M 250,205 L 250,300" class="routing-path converge"/>
+                <path d="M 400,205 L 400,270 L 250,300" class="routing-path converge"/>
+              </g>
+
+              <g id="route-end" class="graph-node" transform="translate(250, 320)">
+                <circle r="20" class="node-circle end-node"/>
+                <text y="5" class="node-label">END</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="routing-controls">
+            <h4>Test Different Inputs</h4>
+            <div class="routing-examples">
+              <button class="routing-example" data-input="Calculate 15 * 7 + 23">
+                <span class="example-icon">&#129518;</span>
+                <span>Calculate 15 * 7 + 23</span>
+              </button>
+              <button class="routing-example" data-input="What is the capital of France?">
+                <span class="example-icon">&#128269;</span>
+                <span>What is the capital of France?</span>
+              </button>
+              <button class="routing-example" data-input="Hello, how are you today?">
+                <span class="example-icon">&#128172;</span>
+                <span>Hello, how are you today?</span>
+              </button>
+              <button class="routing-example" data-input="Search for recent AI news">
+                <span class="example-icon">&#128269;</span>
+                <span>Search for recent AI news</span>
+              </button>
+            </div>
+
+            <div class="custom-input">
+              <input type="text" id="routing-input" placeholder="Or type your own...">
+              <button id="route-btn" class="primary-btn">Route</button>
+            </div>
+
+            <div id="routing-result" class="routing-result">
+              <div class="result-label">Routing Decision:</div>
+              <div class="result-value">-</div>
+              <div class="result-reason"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Build Your Own Tab -->
+    <section id="builder" class="tab-content">
+      <div class="panel">
+        <h3>Build Your Own Graph</h3>
+        <p class="panel-description">Create a simple workflow by adding nodes and connecting them. Watch how state flows through your custom graph.</p>
+
+        <div class="builder-layout">
+          <div class="builder-canvas">
+            <svg id="builder-svg" viewBox="0 0 500 400">
+              <!-- Grid background -->
+              <defs>
+                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="var(--surface-3)" stroke-width="0.5"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#grid)"/>
+
+              <!-- Nodes will be added here -->
+              <g id="builder-nodes"></g>
+              <g id="builder-edges"></g>
+            </svg>
+          </div>
+
+          <div class="builder-controls">
+            <h4>Add Nodes</h4>
+            <div class="node-palette">
+              <button class="palette-btn" data-type="start">
+                <span class="palette-icon start">&#9679;</span>
+                <span>START</span>
+              </button>
+              <button class="palette-btn" data-type="process">
+                <span class="palette-icon process">&#9632;</span>
+                <span>Process</span>
+              </button>
+              <button class="palette-btn" data-type="decision">
+                <span class="palette-icon decision">&#9670;</span>
+                <span>Decision</span>
+              </button>
+              <button class="palette-btn" data-type="end">
+                <span class="palette-icon end">&#9679;</span>
+                <span>END</span>
+              </button>
+            </div>
+
+            <h4>Instructions</h4>
+            <ol class="builder-instructions">
+              <li>Click a node type to add it to the canvas</li>
+              <li>Drag nodes to position them</li>
+              <li>Click "Connect" then click two nodes to link them</li>
+              <li>Click "Run" to simulate execution</li>
+            </ol>
+
+            <div class="builder-actions">
+              <button id="connect-mode" class="secondary-btn">Connect Nodes</button>
+              <button id="run-builder" class="primary-btn">Run Graph</button>
+              <button id="clear-builder" class="secondary-btn">Clear</button>
+            </div>
+
+            <div id="builder-log" class="builder-log">
+              <div class="log-entry info">Add nodes to get started</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="code-reference">
+      <h3>Code Pattern</h3>
+      <pre><code class="language-python">from langgraph.graph import StateGraph, END
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+
+class AgentState(TypedDict):
+    messages: Annotated[list, add_messages]
+    iteration: int
+
+def agent(state):
+    response = model.invoke(state["messages"])
+    return {"messages": [response], "iteration": state["iteration"] + 1}
+
+def tools(state):
+    results = execute_tools(state["messages"][-1].tool_calls)
+    return {"messages": results}
+
+def should_continue(state):
+    if state["messages"][-1].tool_calls:
+        return "tools"
+    return "end"
+
+graph = StateGraph(AgentState)
+graph.add_node("agent", agent)
+graph.add_node("tools", tools)
+graph.set_entry_point("agent")
+graph.add_conditional_edges("agent", should_continue, {"tools": "tools", "end": END})
+graph.add_edge("tools", "agent")
+
+app = graph.compile()</code></pre>
+    </section>
+  </div>
+
+  <script src="demo.js"></script>
+</body>
+</html>
