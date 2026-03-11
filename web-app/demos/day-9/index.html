@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 9: CrewAI Multi-Agent Systems</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="../../#day/9" class="back-link">&larr; Back to Day 9</a>
+      <h1>CrewAI Multi-Agent Systems</h1>
+      <p class="subtitle">Orchestrating specialized agents that collaborate on complex tasks</p>
+    </header>
+
+    <section class="demo-explanation">
+      <h2>What This Demo Teaches</h2>
+      <p>
+        CrewAI enables you to build <strong>teams of AI agents</strong> that work together, each with a distinct role.
+        Instead of one agent doing everything, specialized agents handle what they're best at and pass results
+        to the next agent in the workflow.
+      </p>
+      <div class="explanation-grid">
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128100;</div>
+          <h3>Agents</h3>
+          <p>Team members with specific roles, goals, backstories, and tools. Each agent focuses on what it does best.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128203;</div>
+          <h3>Tasks</h3>
+          <p>Specific work assignments with clear deliverables. Tasks can depend on each other through context.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128101;</div>
+          <h3>Crews</h3>
+          <p>The orchestrator that coordinates agents and tasks, manages execution, and produces the final output.</p>
+        </div>
+      </div>
+      <p class="explanation-note">
+        <strong>Key insight:</strong> Multi-agent systems excel when tasks require diverse expertise.
+        A researcher finds information, an analyst interprets it, a writer crafts the output&mdash;each
+        agent's focused role produces better results than one agent attempting everything.
+      </p>
+    </section>
+
+    <!-- Demo Tabs -->
+    <nav class="demo-tabs">
+      <button class="tab-btn active" data-tab="visualize">
+        <span class="tab-icon">&#128101;</span>
+        <span class="tab-label">Watch a Crew</span>
+      </button>
+      <button class="tab-btn" data-tab="context">
+        <span class="tab-icon">&#128260;</span>
+        <span class="tab-label">Context Flow</span>
+      </button>
+      <button class="tab-btn" data-tab="build">
+        <span class="tab-icon">&#128736;</span>
+        <span class="tab-label">Design a Crew</span>
+      </button>
+    </nav>
+
+    <!-- Visualize Tab -->
+    <section id="visualize" class="tab-content active">
+      <div class="panel">
+        <h3>Crew Execution Visualization</h3>
+        <p class="panel-description">Watch a research crew collaborate on a topic. Each agent completes their task and passes results forward.</p>
+
+        <div class="query-input">
+          <label for="crew-topic">Research topic:</label>
+          <div class="input-row">
+            <input type="text" id="crew-topic" placeholder="Enter a topic..." value="The future of renewable energy">
+            <button id="run-crew" class="btn-primary">Run Crew</button>
+          </div>
+        </div>
+
+        <div class="crew-visualization">
+          <div class="crew-agents">
+            <div class="agent-card" id="agent-researcher">
+              <div class="agent-icon">&#128269;</div>
+              <div class="agent-name">Researcher</div>
+              <div class="agent-status">Waiting</div>
+            </div>
+            <div class="agent-arrow">&#8594;</div>
+            <div class="agent-card" id="agent-analyst">
+              <div class="agent-icon">&#128200;</div>
+              <div class="agent-name">Analyst</div>
+              <div class="agent-status">Waiting</div>
+            </div>
+            <div class="agent-arrow">&#8594;</div>
+            <div class="agent-card" id="agent-writer">
+              <div class="agent-icon">&#9997;</div>
+              <div class="agent-name">Writer</div>
+              <div class="agent-status">Waiting</div>
+            </div>
+          </div>
+
+          <div class="execution-log">
+            <div id="crew-log" class="log-container">
+              <div class="log-entry info">Click "Run Crew" to see the agents collaborate...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Context Flow Tab -->
+    <section id="context" class="tab-content">
+      <div class="panel">
+        <h3>How Context Flows Between Tasks</h3>
+        <p class="panel-description">See how each task's output becomes the next task's input.</p>
+
+        <div class="context-flow">
+          <div class="flow-step">
+            <div class="flow-header">
+              <span class="flow-badge research">Task 1: Research</span>
+              <span class="flow-agent">&#128269; Researcher</span>
+            </div>
+            <div class="flow-content">
+              <div class="flow-input">
+                <strong>Input:</strong> "Research the future of renewable energy"
+              </div>
+              <div class="flow-output">
+                <strong>Output:</strong>
+                <pre>Solar capacity grew 25% YoY globally. Wind energy now
+provides 7% of global electricity. Battery storage
+costs dropped 89% since 2010. Key players: Tesla,
+NextEra, Vestas. Emerging: green hydrogen, offshore
+wind, perovskite solar cells.</pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-arrow">&#8595; context=[research_task]</div>
+
+          <div class="flow-step">
+            <div class="flow-header">
+              <span class="flow-badge analysis">Task 2: Analysis</span>
+              <span class="flow-agent">&#128200; Analyst</span>
+            </div>
+            <div class="flow-content">
+              <div class="flow-input">
+                <strong>Input:</strong> Research output + "Analyze trends and identify key insights"
+              </div>
+              <div class="flow-output">
+                <strong>Output:</strong>
+                <pre>Key Trends:
+1. Cost parity reached - renewables now cheapest source
+2. Storage solving intermittency - enables 24/7 clean power
+3. Policy acceleration - IRA driving US investment
+
+Investment Implications:
+- Solar + storage companies well-positioned
+- Fossil fuel stranded asset risk increasing
+- Grid infrastructure needs $4T investment by 2030</pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-arrow">&#8595; context=[research_task, analysis_task]</div>
+
+          <div class="flow-step">
+            <div class="flow-header">
+              <span class="flow-badge writing">Task 3: Writing</span>
+              <span class="flow-agent">&#9997; Writer</span>
+            </div>
+            <div class="flow-content">
+              <div class="flow-input">
+                <strong>Input:</strong> Research + Analysis + "Write executive summary"
+              </div>
+              <div class="flow-output">
+                <strong>Output:</strong>
+                <pre>EXECUTIVE SUMMARY: The Future of Renewable Energy
+
+The renewable energy sector has reached an inflection
+point. With solar growing 25% annually and battery
+costs down 89% since 2010, clean energy is now the
+cheapest option in most markets.
+
+Three trends will shape the next decade:
+1. Cost leadership driving adoption
+2. Storage enabling grid reliability
+3. Policy support accelerating investment
+
+Organizations should evaluate their energy strategy now
+as the transition accelerates faster than most forecasts.</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Build Tab -->
+    <section id="build" class="tab-content">
+      <div class="panel">
+        <h3>Design Your Own Crew</h3>
+        <p class="panel-description">Configure agents and tasks for your use case. See the CrewAI code generated.</p>
+
+        <div class="crew-builder">
+          <div class="builder-agents">
+            <h4>Agents</h4>
+            <div class="agent-builder" id="agent-builder-1">
+              <div class="builder-row">
+                <label>Role:</label>
+                <input type="text" class="agent-role" value="Research Specialist" placeholder="e.g., Research Specialist">
+              </div>
+              <div class="builder-row">
+                <label>Goal:</label>
+                <input type="text" class="agent-goal" value="Find accurate, comprehensive information" placeholder="e.g., Find accurate information">
+              </div>
+              <div class="builder-row">
+                <label>Backstory:</label>
+                <textarea class="agent-backstory" rows="2" placeholder="e.g., You are an experienced researcher...">You are an experienced researcher known for thorough, well-sourced findings.</textarea>
+              </div>
+            </div>
+            <div class="agent-builder" id="agent-builder-2">
+              <div class="builder-row">
+                <label>Role:</label>
+                <input type="text" class="agent-role" value="Content Writer" placeholder="e.g., Content Writer">
+              </div>
+              <div class="builder-row">
+                <label>Goal:</label>
+                <input type="text" class="agent-goal" value="Create clear, engaging content" placeholder="e.g., Create engaging content">
+              </div>
+              <div class="builder-row">
+                <label>Backstory:</label>
+                <textarea class="agent-backstory" rows="2" placeholder="e.g., You are a skilled writer...">You are a skilled writer who makes complex topics accessible.</textarea>
+              </div>
+            </div>
+            <button id="add-agent" class="btn-secondary">+ Add Agent</button>
+          </div>
+
+          <div class="builder-config">
+            <h4>Crew Configuration</h4>
+            <div class="config-row">
+              <label>Process Type:</label>
+              <select id="process-type">
+                <option value="sequential">Sequential (tasks run in order)</option>
+                <option value="hierarchical">Hierarchical (manager coordinates)</option>
+              </select>
+            </div>
+            <div class="config-row">
+              <label>Memory:</label>
+              <select id="memory-enabled">
+                <option value="false">Disabled</option>
+                <option value="true">Enabled (remember across runs)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="builder-output">
+            <h4>Generated Code</h4>
+            <pre id="generated-code" class="code-output"></pre>
+            <button id="copy-code" class="btn-secondary">Copy to Clipboard</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="demo-footer">
+      <div class="next-steps">
+        <h3>Next Steps</h3>
+        <ul>
+          <li>Run the crew visualization with different topics</li>
+          <li>Study how context flows between tasks</li>
+          <li>Design your own crew for a specific use case</li>
+          <li>Try the DeepLearning.AI CrewAI course for hands-on practice</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <script src="demo.js"></script>
+</body>
+</html>
