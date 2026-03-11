@@ -71,13 +71,11 @@ The agent has no memory between messages. Each \`invoke()\` starts fresh. You co
 
 Each checkpoint contains:
 
-| Field | Description |
-|-------|-------------|
-| \`values\` | The complete state dict at that point |
-| \`next\` | Which nodes would execute next |
-| \`config\` | The configuration (including thread_id) |
-| \`metadata\` | Timestamps, node info, custom data |
-| \`parent_config\` | Link to the previous checkpoint (enabling history) |
+- **\`values\`** — The complete state dict at that point
+- **\`next\`** — Which nodes would execute next
+- **\`config\`** — The configuration (including thread_id)
+- **\`metadata\`** — Timestamps, node info, custom data
+- **\`parent_config\`** — Link to the previous checkpoint (enabling history)
 
 This means you can not only resume execution but also inspect any point in the agent's history—invaluable for debugging.`,
         analogy: "Checkpointing is like a court stenographer. Every statement (state change) is recorded with timestamps. If you need to review what happened, the full transcript is available. If the trial is interrupted, it resumes exactly where it stopped.",
@@ -135,14 +133,12 @@ Full PostgreSQL backend. Supports multiple servers, connection pooling, and ente
 
 ### Choosing the Right Checkpointer
 
-| Scenario | Recommendation |
-|----------|----------------|
-| Local development | MemorySaver |
-| Development with persistence | SqliteSaver |
-| Single-server production | SqliteSaver |
-| Multi-server production | PostgresSaver |
-| Serverless (Lambda, etc.) | PostgresSaver or Redis-based |
-| Testing | MemorySaver |`,
+- **Local development** → MemorySaver
+- **Development with persistence** → SqliteSaver
+- **Single-server production** → SqliteSaver
+- **Multi-server production** → PostgresSaver
+- **Serverless (Lambda, etc.)** → PostgresSaver or Redis-based
+- **Testing** → MemorySaver`,
         analogy: "Checkpointers are like different filing systems. MemorySaver is keeping papers on your desk—fast access, but lost if you leave. SqliteSaver is a local filing cabinet—persistent but only you can access it. PostgresSaver is a central records office—accessible from anywhere, properly backed up, but requires more infrastructure.",
         gotchas: ["MemorySaver loses ALL data on process restart—never use in production", "SqliteSaver file must be accessible to your process—tricky in serverless", "PostgresSaver requires connection string management and potentially pooling"]
       },
@@ -169,12 +165,17 @@ result2 = agent.invoke({"messages": [("human", "What's my name?")]}, config)
 
 ### Thread ID Strategies
 
-| Strategy | Pattern | Best For |
-|----------|---------|----------|
-| **User-Based** | \`thread_id = user_id\` | Personal assistants (one conversation per user) |
-| **Session-Based** | \`f"{user_id}-{session_id}"\` | Support tickets, task-based interactions |
-| **Task-Based** | \`thread_id = task_id\` | Document processing, approval workflows |
-| **Composite** | \`f"{user_id}-{context}-{timestamp}"\` | Complex apps with multiple concurrent conversations |
+- **User-Based** — \`thread_id = user_id\`
+  - Best for: Personal assistants (one conversation per user)
+
+- **Session-Based** — \`f"{user_id}-{session_id}"\`
+  - Best for: Support tickets, task-based interactions
+
+- **Task-Based** — \`thread_id = task_id\`
+  - Best for: Document processing, approval workflows
+
+- **Composite** — \`f"{user_id}-{context}-{timestamp}"\`
+  - Best for: Complex apps with multiple concurrent conversations
 
 ---
 
@@ -247,12 +248,10 @@ result = agent.invoke(None, old_checkpoint.config)
 
 ### Monitoring Use Cases
 
-| Use Case | Description |
-|----------|-------------|
-| **Debugging** | "Why did the agent do that?" Walk through history to see state at each node |
-| **Auditing** | Compliance requirements often need full interaction logs—checkpoint history provides this |
-| **Analytics** | Track token usage, iteration counts, error rates by analyzing checkpoint metadata |
-| **Quality Assurance** | Review random samples of conversations by loading historical checkpoints |`,
+- **Debugging** — "Why did the agent do that?" Walk through history to see state at each node
+- **Auditing** — Compliance requirements often need full interaction logs—checkpoint history provides this
+- **Analytics** — Track token usage, iteration counts, error rates by analyzing checkpoint metadata
+- **Quality Assurance** — Review random samples of conversations by loading historical checkpoints`,
         analogy: "State inspection is like having a DVR for your agent. You can pause, rewind, and replay any moment. Unlike a simple log file that just records events, you can actually resume execution from any point—like loading a save file in a game.",
         gotchas: ["get_state_history returns checkpoints in reverse chronological order (newest first)", "Large histories can be slow to load—consider limiting with the 'limit' parameter", "Checkpoint metadata depends on your LangGraph version—check docs for available fields"]
       },
@@ -424,12 +423,10 @@ result = agent.invoke(None, config)  # None means "continue from checkpoint"
 
 ### The Power of This Pattern
 
-| Capability | Benefit |
-|------------|---------|
-| Indefinite waits | Agent can wait hours or days for human response |
-| Crash resilience | Server can restart—state is persisted |
-| Revision loops | Multiple approval rounds work automatically |
-| Audit trail | Full history via checkpoint storage |`,
+- **Indefinite waits** — Agent can wait hours or days for human response
+- **Crash resilience** — Server can restart—state is persisted
+- **Revision loops** — Multiple approval rounds work automatically
+- **Audit trail** — Full history via checkpoint storage`,
         analogy: "It's like a document approval workflow in a large company. The document moves through departments (nodes), but at certain points it stops and waits in someone's inbox (interrupt). When they act on it (update_state), the workflow resumes and routes based on their decision.",
         gotchas: ["Your app needs its own notification system to alert humans", "Set timeouts for cases where humans don't respond", "Test the 'wait' state thoroughly—bugs here cause workflows to hang forever"]
       },
@@ -516,10 +513,8 @@ def maybe_summarize(state):
 
 The most sophisticated agents use both:
 
-| Memory Type | Mechanism | Stores |
-|-------------|-----------|--------|
-| **Short-term** | Checkpointing | Current conversation flow |
-| **Long-term** | External DB | User preferences, past learnings, domain knowledge |`,
+- **Short-term** (Checkpointing) — Current conversation flow
+- **Long-term** (External DB) — User preferences, past learnings, domain knowledge`,
         analogy: "Short-term memory is like RAM—fast, holds current work, lost when powered off. Long-term memory is like a hard drive—persistent, larger capacity, but slower to access. Good systems use both: RAM for immediate needs, disk for permanent storage.",
         gotchas: ["Long-term memory requires additional infrastructure (databases, vector stores)", "Be careful about what you store long-term—privacy and data retention laws apply", "Balance memory retrieval cost vs benefit—not every fact needs to be remembered"]
       },
@@ -583,12 +578,10 @@ checkpointer = PostgresSaver.from_conn_string(
 
 ### Scaling Strategies
 
-| Challenge | Solution |
-|-----------|----------|
-| High read volume | Read replicas for checkpoint queries |
-| High write volume | Write batching, async saves |
-| Large states | State compression, external storage for big objects |
-| Many concurrent threads | Connection pooling, partitioning |
+- **High read volume** → Read replicas for checkpoint queries
+- **High write volume** → Write batching, async saves
+- **Large states** → State compression, external storage for big objects
+- **Many concurrent threads** → Connection pooling, partitioning
 
 ---
 
@@ -596,13 +589,11 @@ checkpointer = PostgresSaver.from_conn_string(
 
 Track these metrics:
 
-| Metric | Why It Matters |
-|--------|----------------|
-| Checkpoint save latency | Impacts response time |
-| State size distribution | Identifies bloat |
-| Thread count and growth | Capacity planning |
-| Checkpoint storage usage | Cost and cleanup triggers |
-| Error rates on save/load | Reliability indicator |`,
+- **Checkpoint save latency** — Impacts response time
+- **State size distribution** — Identifies bloat
+- **Thread count and growth** — Capacity planning
+- **Checkpoint storage usage** — Cost and cleanup triggers
+- **Error rates on save/load** — Reliability indicator`,
         analogy: "Production checkpointing is like running a library's loan system at scale. You need to track millions of checkouts (checkpoints), clean up overdue records, handle rush periods (high throughput), and ensure the system stays responsive even when very large books (states) are processed.",
         gotchas: ["Test with production-like state sizes—small test states hide performance issues", "Monitor checkpoint storage growth—it can surprise you", "Have a strategy for corrupted checkpoints—they can block entire threads"]
       }

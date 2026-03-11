@@ -161,11 +161,11 @@ The \`re.IGNORECASE\` flag handles variations like "action:" or "ACTION:". The \
 
 **Structured outputs approach** (guaranteed reliability): Use Day 2's structured outputs to guarantee valid format. Define a Pydantic model for the response and let the API enforce it—no regex needed, no edge cases to handle. The trade-off is you're locked into JSON format, which some find less readable for debugging.
 
-| Strategy | Reliability | Best For |
-|----------|-------------|----------|
-| Basic Regex | Medium | Prototypes, controlled settings |
-| Robust Regex | Medium-High | Production with natural language |
-| Structured Outputs | Guaranteed | High reliability requirements |`
+**Parsing Strategy Options:**
+
+- **Basic Regex** — Medium reliability, best for prototypes and controlled settings
+- **Robust Regex** — Medium-High reliability, best for production with natural language
+- **Structured Outputs** — Guaranteed reliability, best for high reliability requirements`
       },
       {
         title: "The Execution Loop",
