@@ -209,7 +209,7 @@ class StockPriceTool(BaseTool):
         stock = yf.Ticker(ticker)
         price = stock.info.get('regularMarketPrice', 'N/A')
         change = stock.info.get('regularMarketChangePercent', 'N/A')
-        return f"{ticker}: ${price}, {change:.2f}% change"
+        return f"{ticker}: \${price}, {change:.2f}% change"
 \`\`\`
 
 **Tool with Error Handling**:
