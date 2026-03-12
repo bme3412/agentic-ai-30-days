@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 10: CrewAI Advanced - Tasks, Tools, Flows</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="../../#day/10" class="back-link">&larr; Back to Day 10</a>
+      <h1>CrewAI Advanced: Tasks, Tools, Flows</h1>
+      <p class="subtitle">Production patterns for complex multi-agent workflows</p>
+    </header>
+
+    <section class="demo-explanation">
+      <h2>What This Demo Teaches</h2>
+      <p>
+        Day 9 covered the basics. Now we go deeper: <strong>advanced task controls</strong> for checkpoints and validation,
+        <strong>custom tools</strong> that extend agent capabilities, and <strong>Flows</strong> for event-driven orchestration
+        with branching and state management.
+      </p>
+      <div class="explanation-grid">
+        <div class="explanation-card">
+          <div class="explanation-icon">&#9881;</div>
+          <h3>Task Controls</h3>
+          <p>Callbacks for monitoring, human_input for approval gates, async execution for parallelism, output validation.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128295;</div>
+          <h3>Custom Tools</h3>
+          <p>Extend agents with your APIs, databases, and services. Define inputs, handle errors, return structured data.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128256;</div>
+          <h3>Flows</h3>
+          <p>Event-driven orchestration with @start, @listen, @router. Branch based on results, maintain state across crews.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo Tabs -->
+    <nav class="demo-tabs">
+      <button class="tab-btn active" data-tab="tasks">
+        <span class="tab-icon">&#9881;</span>
+        <span class="tab-label">Task Controls</span>
+      </button>
+      <button class="tab-btn" data-tab="tools">
+        <span class="tab-icon">&#128295;</span>
+        <span class="tab-label">Tool Builder</span>
+      </button>
+      <button class="tab-btn" data-tab="flows">
+        <span class="tab-icon">&#128256;</span>
+        <span class="tab-label">Flow Visualizer</span>
+      </button>
+    </nav>
+
+    <!-- Tasks Tab -->
+    <section id="tasks" class="tab-content active">
+      <div class="panel">
+        <h3>Task Configuration Explorer</h3>
+        <p class="panel-description">See how different task options affect execution. Toggle options to watch the crew behave differently.</p>
+
+        <div class="task-config-grid">
+          <div class="config-section">
+            <h4>Task Options</h4>
+            <div class="config-options">
+              <label class="toggle-option">
+                <input type="checkbox" id="opt-callback" checked>
+                <span class="toggle-label">callback</span>
+                <span class="toggle-desc">Log task completion</span>
+              </label>
+              <label class="toggle-option">
+                <input type="checkbox" id="opt-human">
+                <span class="toggle-label">human_input</span>
+                <span class="toggle-desc">Pause for approval</span>
+              </label>
+              <label class="toggle-option">
+                <input type="checkbox" id="opt-async">
+                <span class="toggle-label">async_execution</span>
+                <span class="toggle-desc">Run in parallel</span>
+              </label>
+              <label class="toggle-option">
+                <input type="checkbox" id="opt-validation">
+                <span class="toggle-label">output_pydantic</span>
+                <span class="toggle-desc">Validate output schema</span>
+              </label>
+            </div>
+            <button id="run-task-demo" class="btn-primary">Run Task Demo</button>
+          </div>
+
+          <div class="execution-section">
+            <h4>Execution Timeline</h4>
+            <div id="task-timeline" class="timeline">
+              <div class="timeline-empty">Configure options and click "Run Task Demo"</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-preview">
+          <h4>Generated Code</h4>
+          <pre id="task-code"><code>task = Task(
+    description="Analyze the market data",
+    expected_output="Analysis report",
+    agent=analyst,
+    callback=log_completion
+)</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tools Tab -->
+    <section id="tools" class="tab-content">
+      <div class="panel">
+        <h3>Custom Tool Builder</h3>
+        <p class="panel-description">Design a custom tool and see how agents use it. The tool description is critical&mdash;it tells the LLM when and how to use the tool.</p>
+
+        <div class="tool-builder-grid">
+          <div class="tool-form">
+            <div class="form-group">
+              <label for="tool-name">Tool Name</label>
+              <input type="text" id="tool-name" value="stock_price" placeholder="e.g., stock_price">
+            </div>
+            <div class="form-group">
+              <label for="tool-description">Description (LLM reads this!)</label>
+              <textarea id="tool-description" rows="3" placeholder="Describe what the tool does, input format, and output...">Get current stock price and daily change. Input: ticker symbol (e.g., 'AAPL'). Output: price, change %, volume.</textarea>
+            </div>
+            <div class="form-group">
+              <label for="tool-input">Input Parameter</label>
+              <input type="text" id="tool-input" value="ticker" placeholder="e.g., ticker">
+            </div>
+            <div class="form-group">
+              <label>Error Handling</label>
+              <div class="checkbox-group">
+                <label><input type="checkbox" id="tool-retry" checked> Retry on failure</label>
+                <label><input type="checkbox" id="tool-graceful" checked> Graceful error messages</label>
+              </div>
+            </div>
+            <button id="test-tool" class="btn-primary">Test Tool</button>
+          </div>
+
+          <div class="tool-preview">
+            <h4>Tool Execution</h4>
+            <div id="tool-execution" class="execution-log">
+              <div class="log-empty">Design your tool and click "Test Tool"</div>
+            </div>
+            <h4>Generated Code</h4>
+            <pre id="tool-code"><code>class StockPriceTool(BaseTool):
+    name: str = "stock_price"
+    description: str = """Get current stock price..."""
+
+    def _run(self, ticker: str) -> str:
+        # Implementation here
+        pass</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Flows Tab -->
+    <section id="flows" class="tab-content">
+      <div class="panel">
+        <h3>Flow Execution Visualizer</h3>
+        <p class="panel-description">Watch a CrewAI Flow execute with conditional routing. The flow branches based on confidence level&mdash;high confidence auto-approves, low confidence triggers human review.</p>
+
+        <div class="flow-controls">
+          <div class="flow-scenario">
+            <label for="confidence-level">Simulated Confidence Level:</label>
+            <input type="range" id="confidence-level" min="0" max="100" value="75">
+            <span id="confidence-value">75%</span>
+          </div>
+          <button id="run-flow" class="btn-primary">Run Flow</button>
+        </div>
+
+        <div class="flow-visualization">
+          <div class="flow-diagram">
+            <!-- Start -->
+            <div class="flow-node start" id="node-start">
+              <div class="node-decorator">@start</div>
+              <div class="node-name">gather_data</div>
+              <div class="node-status">Ready</div>
+            </div>
+
+            <div class="flow-arrow down" id="arrow-1"></div>
+
+            <!-- Listen -->
+            <div class="flow-node listen" id="node-analyze">
+              <div class="node-decorator">@listen</div>
+              <div class="node-name">analyze_data</div>
+              <div class="node-status">Waiting</div>
+            </div>
+
+            <div class="flow-arrow down" id="arrow-2"></div>
+
+            <!-- Router -->
+            <div class="flow-node router" id="node-router">
+              <div class="node-decorator">@router</div>
+              <div class="node-name">route_by_confidence</div>
+              <div class="node-status">Waiting</div>
+            </div>
+
+            <!-- Branches -->
+            <div class="flow-branches">
+              <div class="flow-branch left">
+                <div class="branch-label">confidence &gt; 80%</div>
+                <div class="flow-arrow diagonal-left" id="arrow-approve"></div>
+                <div class="flow-node approve" id="node-approve">
+                  <div class="node-decorator">@listen("approve")</div>
+                  <div class="node-name">auto_approve</div>
+                  <div class="node-status">Waiting</div>
+                </div>
+              </div>
+              <div class="flow-branch right">
+                <div class="branch-label">confidence &le; 80%</div>
+                <div class="flow-arrow diagonal-right" id="arrow-review"></div>
+                <div class="flow-node review" id="node-review">
+                  <div class="node-decorator">@listen("review")</div>
+                  <div class="node-name">human_review</div>
+                  <div class="node-status">Waiting</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-state">
+            <h4>Flow State</h4>
+            <pre id="flow-state-display">{}</pre>
+          </div>
+        </div>
+
+        <div class="flow-log">
+          <h4>Execution Log</h4>
+          <div id="flow-execution-log" class="execution-log">
+            <div class="log-empty">Set confidence level and click "Run Flow"</div>
+          </div>
+        </div>
+
+        <div class="code-preview">
+          <h4>Flow Code</h4>
+          <pre><code>class AnalysisFlow(Flow):
+    @start()
+    def gather_data(self):
+        return {"data": crew.kickoff(self.inputs).raw}
+
+    @listen(gather_data)
+    def analyze_data(self, state):
+        analysis = analyze(state["data"])
+        return {"confidence": analysis.confidence}
+
+    @router(analyze_data)
+    def route_by_confidence(self, state):
+        if state["confidence"] > 0.8:
+            return "approve"
+        return "review"
+
+    @listen("approve")
+    def auto_approve(self, state):
+        return {"status": "approved", "process": "auto"}
+
+    @listen("review")
+    def human_review(self, state):
+        return {"status": "pending_review", "process": "manual"}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="key-insights">
+      <h2>Key Insights</h2>
+      <ul>
+        <li><strong>Task controls</strong> let you add checkpoints, validation, and parallelism to your workflows</li>
+        <li><strong>Tool descriptions</strong> are prompts in disguise&mdash;clear descriptions lead to better tool usage</li>
+        <li><strong>Flows</strong> enable complex orchestration that sequential/hierarchical processes can't handle</li>
+        <li><strong>State accumulates</strong> through a Flow&mdash;each method can read from and add to shared state</li>
+        <li><strong>@router</strong> returns a string that matches a @listen decorator for conditional branching</li>
+      </ul>
+    </section>
+  </div>
+
+  <script src="demo.js"></script>
+</body>
+</html>

@@ -9,6 +9,116 @@ export const day09: Day = {
   concept: "Role-based agent teams that collaborate on complex tasks",
   demoUrl: "demos/day-9/",
   demoDescription: "Watch a CrewAI crew in action. See how agents with different roles collaborate, how context flows between tasks, and design your own crew with generated Python code.",
+  lesson: {
+    overview: `Multi-agent systems decompose complex tasks across specialized agents that collaborate. Instead of one agent doing everything, you create a team—a researcher, an analyst, a writer—each with distinct roles, goals, and tools. CrewAI is a Python framework that orchestrates these agent teams with clean abstractions for defining roles, managing task dependencies, and handling context flow between agents.
+
+**Why This Matters**: Real-world tasks often require diverse expertise. A single agent's prompt becomes unwieldy when it must research, analyze, AND write. Multi-agent crews let each agent focus on what it does best, producing results that exceed what any single agent could achieve.`,
+
+    principles: [
+      {
+        title: "Agents Have Roles, Goals, and Backstories",
+        description: "Each agent is defined by its role (job title), goal (what it's trying to achieve), and backstory (personality that shapes HOW it works). The backstory is surprisingly powerful—an agent described as a 'cautious risk analyst' works very differently from an 'aggressive growth investor' even with the same role."
+      },
+      {
+        title: "Tasks Flow Through Context",
+        description: "Tasks can depend on other tasks via the context parameter. When the writing task has context=[research_task], it automatically receives the research output. This is how information flows through your crew—each agent builds on previous work."
+      },
+      {
+        title: "Sequential Process for Most Workflows",
+        description: "CrewAI supports sequential (tasks in order), hierarchical (manager delegates), and consensual (agents debate). Start with sequential—it's predictable and debuggable. Use hierarchical only when task decomposition can't be predetermined."
+      },
+      {
+        title: "Match Tools to Roles",
+        description: "Give each agent only the tools it needs. The researcher gets search tools; the writer gets document tools. Agents with too many tools get confused about which to use. Focused tool sets lead to more reliable behavior."
+      }
+    ],
+
+    codeExample: {
+      language: "python",
+      title: "Basic CrewAI Setup",
+      code: `from crewai import Agent, Task, Crew, Process
+
+# Define specialized agents
+researcher = Agent(
+    role="Senior Research Analyst",
+    goal="Find comprehensive, accurate information",
+    backstory="You are thorough and always cite sources.",
+    verbose=True
+)
+
+writer = Agent(
+    role="Content Writer",
+    goal="Transform research into clear content",
+    backstory="You make complex topics accessible.",
+    verbose=True
+)
+
+# Define tasks with dependencies
+research_task = Task(
+    description="Research {topic} thoroughly",
+    expected_output="Research brief with key findings",
+    agent=researcher
+)
+
+writing_task = Task(
+    description="Write a blog post from the research",
+    expected_output="800-word blog post",
+    agent=writer,
+    context=[research_task]  # Receives research output
+)
+
+# Create and run the crew
+crew = Crew(
+    agents=[researcher, writer],
+    tasks=[research_task, writing_task],
+    process=Process.sequential
+)
+
+result = crew.kickoff(inputs={"topic": "AI agents"})`
+    },
+
+    diagram: {
+      type: "flow",
+      title: "CrewAI Task Flow",
+      ascii: `
+    ┌─────────────────────────────────────────────────────────────┐
+    │                         CREW                                 │
+    └───────────────────────────┬─────────────────────────────────┘
+                                │
+            ┌───────────────────┼───────────────────┐
+            ▼                   ▼                   ▼
+    ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+    │  RESEARCHER   │   │   ANALYST     │   │    WRITER     │
+    │  Role + Goal  │   │  Role + Goal  │   │  Role + Goal  │
+    │  + Backstory  │   │  + Backstory  │   │  + Backstory  │
+    └───────┬───────┘   └───────┬───────┘   └───────┬───────┘
+            │                   │                   │
+            ▼                   ▼                   ▼
+    ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+    │   TASK 1      │──▶│   TASK 2      │──▶│   TASK 3      │
+    │   Research    │   │   Analyze     │   │   Write       │
+    │               │   │  context=[1]  │   │ context=[1,2] │
+    └───────────────┘   └───────────────┘   └───────────────┘
+                                                    │
+                                                    ▼
+                                            ┌──────────────┐
+                                            │ FINAL OUTPUT │
+                                            └──────────────┘`
+    },
+
+    keyTakeaways: [
+      "Multi-agent systems divide complex tasks among specialized agents with distinct roles",
+      "CrewAI uses three abstractions: Agents (team members), Tasks (work), Crews (orchestration)",
+      "Backstory significantly impacts agent behavior—it's not just flavor text",
+      "Task context enables information flow between agents",
+      "Start with 2-3 agents; add more only when there's clear role differentiation"
+    ],
+
+    resources: [
+      { title: "CrewAI Documentation", url: "https://docs.crewai.com/", type: "docs", summaryPath: "data/day-9/summary-crewai-docs.md" },
+      { title: "Multi-Agent AI Systems with CrewAI", url: "https://www.deeplearning.ai/short-courses/multi-ai-agent-systems-with-crewai/", type: "course", summaryPath: "data/day-9/summary-deeplearning-course.md" }
+    ]
+  },
   learn: {
     overview: {
       summary: "Build collaborative AI teams where specialized agents work together, each with distinct roles, goals, and expertise.",
@@ -428,8 +538,8 @@ result = crew.kickoff(inputs={"ticker": "TSLA"})`,
       "Start with 2-3 agents; add more only when there's clear role differentiation"
     ],
     resources: [
-      { title: "CrewAI Documentation", url: "https://docs.crewai.com/", type: "docs", description: "Official guides and API reference" },
-      { title: "Multi-Agent AI Systems with CrewAI (DeepLearning.AI)", url: "https://www.deeplearning.ai/short-courses/multi-ai-agent-systems-with-crewai/", type: "course", description: "Free course covering multi-agent concepts" },
+      { title: "CrewAI Documentation", url: "https://docs.crewai.com/", type: "docs", description: "Official guides and API reference", summaryPath: "data/day-9/summary-crewai-docs.md" },
+      { title: "Multi-Agent AI Systems with CrewAI (DeepLearning.AI)", url: "https://www.deeplearning.ai/short-courses/multi-ai-agent-systems-with-crewai/", type: "course", description: "Free course covering multi-agent concepts", summaryPath: "data/day-9/summary-deeplearning-course.md" },
       { title: "CrewAI GitHub Repository", url: "https://github.com/crewAIInc/crewAI", type: "github", description: "Source code and examples" },
       { title: "CrewAI Examples", url: "https://github.com/crewAIInc/crewAI-examples", type: "github", description: "Collection of example crews" }
     ],

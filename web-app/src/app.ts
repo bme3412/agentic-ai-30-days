@@ -1,4 +1,8 @@
+import { inject } from '@vercel/analytics';
 import type { Route, RouteParams, Day, JournalEntry, BlogPost, Learn, Lesson, Achievement, DayActivity } from './types';
+
+// Initialize Vercel Analytics
+inject();
 import {
   PHASES,
   DAYS,
