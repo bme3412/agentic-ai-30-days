@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 11: AutoGen/AG2 - Conversational Multi-Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="../../#day/11" class="back-link">&larr; Back to Day 11</a>
+      <h1>AutoGen/AG2: Conversational Multi-Agent</h1>
+      <p class="subtitle">Agents that converse, execute code, and iterate to solutions</p>
+    </header>
+
+    <section class="demo-explanation">
+      <h2>What This Demo Teaches</h2>
+      <p>
+        AutoGen takes a different approach: <strong>agents converse</strong> to solve problems. Rather than following
+        predefined task sequences, they exchange messages dynamically, execute code, observe results, and iterate
+        until they reach a solution.
+      </p>
+      <div class="explanation-grid">
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128172;</div>
+          <h3>Two-Agent Chat</h3>
+          <p>Watch AssistantAgent and UserProxyAgent exchange messages. Code is generated, executed, and results flow back.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128101;</div>
+          <h3>GroupChat</h3>
+          <p>Multiple agents discuss a problem. The GroupChatManager uses an LLM to select who speaks next.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128187;</div>
+          <h3>Code Builder</h3>
+          <p>Configure agents and generate ready-to-use AutoGen Python code for your own projects.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo Tabs -->
+    <nav class="demo-tabs">
+      <button class="tab-btn active" data-tab="two-agent">
+        <span class="tab-icon">&#128172;</span>
+        <span class="tab-label">Two-Agent Chat</span>
+      </button>
+      <button class="tab-btn" data-tab="groupchat">
+        <span class="tab-icon">&#128101;</span>
+        <span class="tab-label">GroupChat</span>
+      </button>
+      <button class="tab-btn" data-tab="builder">
+        <span class="tab-icon">&#128187;</span>
+        <span class="tab-label">Code Builder</span>
+      </button>
+    </nav>
+
+    <!-- Two-Agent Chat Tab -->
+    <section id="two-agent" class="tab-content active">
+      <div class="panel">
+        <h3>Two-Agent Conversation Simulator</h3>
+        <p class="panel-description">Watch how an AssistantAgent and UserProxyAgent collaborate. The assistant generates code, the proxy executes it, and the conversation continues until TERMINATE.</p>
+
+        <div class="chat-config">
+          <div class="config-row">
+            <div class="form-group">
+              <label for="task-input">Task for Agents</label>
+              <select id="task-input">
+                <option value="fibonacci">Calculate the 20th Fibonacci number</option>
+                <option value="sort">Sort a list of numbers and find the median</option>
+                <option value="analyze">Analyze sales data and find top product</option>
+                <option value="custom">Custom task...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="human-mode">Human Input Mode</label>
+              <select id="human-mode">
+                <option value="TERMINATE">TERMINATE (review at end)</option>
+                <option value="NEVER">NEVER (fully autonomous)</option>
+                <option value="ALWAYS">ALWAYS (approve each step)</option>
+              </select>
+            </div>
+          </div>
+          <div id="custom-task-group" class="form-group hidden">
+            <label for="custom-task">Custom Task</label>
+            <input type="text" id="custom-task" placeholder="Enter your task...">
+          </div>
+          <button id="run-two-agent" class="btn-primary">Start Conversation</button>
+          <button id="reset-two-agent" class="btn-secondary">Reset</button>
+        </div>
+
+        <div class="conversation-container">
+          <div class="agent-panel assistant">
+            <div class="agent-header">
+              <span class="agent-icon">&#129302;</span>
+              <span class="agent-name">AssistantAgent</span>
+              <span class="agent-badge">LLM-powered</span>
+            </div>
+            <div class="agent-status" id="assistant-status">Waiting for task...</div>
+          </div>
+
+          <div class="message-flow">
+            <div id="chat-messages" class="messages">
+              <div class="message-placeholder">Click "Start Conversation" to begin</div>
+            </div>
+          </div>
+
+          <div class="agent-panel proxy">
+            <div class="agent-header">
+              <span class="agent-icon">&#128100;</span>
+              <span class="agent-name">UserProxyAgent</span>
+              <span class="agent-badge">Code executor</span>
+            </div>
+            <div class="agent-status" id="proxy-status">Ready to execute</div>
+          </div>
+        </div>
+
+        <div class="execution-panel">
+          <h4>Code Execution Log</h4>
+          <div id="execution-log" class="execution-log">
+            <div class="log-empty">Code execution results will appear here</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GroupChat Tab -->
+    <section id="groupchat" class="tab-content">
+      <div class="panel">
+        <h3>GroupChat Dynamics</h3>
+        <p class="panel-description">See how GroupChatManager coordinates multiple agents. The manager uses an LLM to determine who should speak next based on conversation context.</p>
+
+        <div class="groupchat-config">
+          <div class="config-row">
+            <div class="form-group">
+              <label for="groupchat-scenario">Scenario</label>
+              <select id="groupchat-scenario">
+                <option value="code-review">Code Review (Coder + Reviewer + Tester)</option>
+                <option value="research">Research (Researcher + Fact-Checker + Writer)</option>
+                <option value="debug">Debugging (Developer + Debugger + Tester)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="max-rounds">Max Rounds</label>
+              <input type="number" id="max-rounds" value="8" min="3" max="20">
+            </div>
+          </div>
+          <button id="run-groupchat" class="btn-primary">Start GroupChat</button>
+          <button id="reset-groupchat" class="btn-secondary">Reset</button>
+        </div>
+
+        <div class="groupchat-container">
+          <div class="agents-ring" id="agents-ring">
+            <!-- Agents will be rendered here -->
+          </div>
+
+          <div class="groupchat-center">
+            <div class="manager-box">
+              <div class="manager-icon">&#129504;</div>
+              <div class="manager-label">GroupChatManager</div>
+              <div class="manager-thinking" id="manager-thinking">Selecting speaker...</div>
+            </div>
+          </div>
+
+          <div class="groupchat-log" id="groupchat-log">
+            <div class="log-empty">Start the GroupChat to see agent conversations</div>
+          </div>
+        </div>
+
+        <div class="speaker-selection">
+          <h4>Speaker Selection Logic</h4>
+          <div id="selection-explanation" class="selection-box">
+            <p>The GroupChatManager analyzes the conversation context and decides which agent should speak next. It considers:</p>
+            <ul>
+              <li>What was just said and what needs to happen next</li>
+              <li>Each agent's role and capabilities</li>
+              <li>Allowed speaker transitions (if configured)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Code Builder Tab -->
+    <section id="builder" class="tab-content">
+      <div class="panel">
+        <h3>AutoGen Code Builder</h3>
+        <p class="panel-description">Configure your agents and generate ready-to-use Python code. Copy and paste into your project.</p>
+
+        <div class="builder-grid">
+          <div class="builder-config">
+            <h4>Configuration</h4>
+
+            <div class="config-section">
+              <h5>Pattern</h5>
+              <div class="pattern-select">
+                <label class="pattern-option">
+                  <input type="radio" name="pattern" value="two-agent" checked>
+                  <span class="pattern-label">Two-Agent</span>
+                  <span class="pattern-desc">Assistant + UserProxy</span>
+                </label>
+                <label class="pattern-option">
+                  <input type="radio" name="pattern" value="groupchat">
+                  <span class="pattern-label">GroupChat</span>
+                  <span class="pattern-desc">Multiple agents + Manager</span>
+                </label>
+                <label class="pattern-option">
+                  <input type="radio" name="pattern" value="tools">
+                  <span class="pattern-label">With Tools</span>
+                  <span class="pattern-desc">Function calling enabled</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="config-section">
+              <h5>LLM Settings</h5>
+              <div class="form-group">
+                <label for="model-select">Model</label>
+                <select id="model-select">
+                  <option value="gpt-4o">GPT-4o (recommended)</option>
+                  <option value="gpt-4o-mini">GPT-4o-mini (faster)</option>
+                  <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                  <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="config-section">
+              <h5>Code Execution</h5>
+              <div class="checkbox-group">
+                <label><input type="checkbox" id="use-docker" checked> Use Docker (recommended)</label>
+                <label><input type="checkbox" id="enable-execution" checked> Enable code execution</label>
+              </div>
+              <div class="form-group">
+                <label for="work-dir">Work Directory</label>
+                <input type="text" id="work-dir" value="coding">
+              </div>
+            </div>
+
+            <div class="config-section">
+              <h5>Human Input Mode</h5>
+              <select id="builder-human-mode">
+                <option value="TERMINATE">TERMINATE</option>
+                <option value="NEVER">NEVER</option>
+                <option value="ALWAYS">ALWAYS</option>
+              </select>
+            </div>
+
+            <div class="config-section groupchat-options hidden" id="groupchat-options">
+              <h5>GroupChat Agents</h5>
+              <div id="agent-list">
+                <div class="agent-item">
+                  <input type="text" value="Coder" placeholder="Agent name">
+                  <input type="text" value="Write clean Python code" placeholder="System message">
+                  <button class="btn-remove">X</button>
+                </div>
+                <div class="agent-item">
+                  <input type="text" value="Reviewer" placeholder="Agent name">
+                  <input type="text" value="Review code for bugs" placeholder="System message">
+                  <button class="btn-remove">X</button>
+                </div>
+              </div>
+              <button id="add-agent" class="btn-secondary">+ Add Agent</button>
+            </div>
+
+            <button id="generate-code" class="btn-primary">Generate Code</button>
+          </div>
+
+          <div class="builder-output">
+            <div class="output-header">
+              <h4>Generated Code</h4>
+              <button id="copy-code" class="btn-copy">Copy to Clipboard</button>
+            </div>
+            <pre id="generated-code"><code># Configure your settings and click "Generate Code"
+
+from autogen import AssistantAgent, UserProxyAgent
+
+# Your code will appear here...</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="key-insights">
+      <h2>Key Insights</h2>
+      <ul>
+        <li><strong>Conversations are the unit of work</strong>&mdash;agents don't execute isolated tasks, they converse until the problem is solved</li>
+        <li><strong>Code execution</strong> enables verification&mdash;agents can run code, see results, and iterate on failures</li>
+        <li><strong>human_input_mode</strong> controls autonomy: ALWAYS (full oversight), TERMINATE (review at end), NEVER (autonomous)</li>
+        <li><strong>GroupChatManager</strong> uses an LLM to dynamically select the next speaker based on conversation context</li>
+        <li><strong>Use Docker</strong> for code execution&mdash;it provides isolation and prevents unsafe code from affecting your system</li>
+      </ul>
+    </section>
+  </div>
+
+  <script src="demo.js"></script>
+</body>
+</html>
