@@ -142,7 +142,7 @@ if response.choices[0].message.tool_calls:
     resources: [
       { title: "OpenAI Function Calling Guide", url: "https://platform.openai.com/docs/guides/function-calling", type: "docs", summaryPath: "data/day-2/summary-openai-function-calling.md" },
       { title: "OpenAI Structured Outputs", url: "https://platform.openai.com/docs/guides/structured-outputs", type: "docs", summaryPath: "data/day-2/summary-openai-structured-outputs.md" },
-      { title: "Anthropic Tool Use", url: "https://docs.anthropic.com/en/docs/build-with-claude/tool-use", type: "docs", summaryPath: "data/day-2/summary-anthropic-tool-use.md" },
+      { title: "Anthropic Tool Use", url: "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview", type: "docs", summaryPath: "data/day-2/summary-anthropic-tool-use.md" },
       { title: "Functions, Tools and Agents with LangChain", url: "https://learn.deeplearning.ai/courses/functions-tools-agents-langchain", type: "course", summaryPath: "data/day-2/summary-langchain-functions-tools.md" }
     ],
     localResources: [
@@ -856,7 +856,7 @@ for block in response.content:
     resources: [
       { title: "OpenAI Function Calling Guide", url: "https://platform.openai.com/docs/guides/function-calling", type: "docs", description: "Official OpenAI documentation on function calling", summaryPath: "data/day-2/summary-openai-function-calling.md" },
       { title: "OpenAI Structured Outputs", url: "https://platform.openai.com/docs/guides/structured-outputs", type: "docs", description: "Guaranteed JSON schema compliance", summaryPath: "data/day-2/summary-openai-structured-outputs.md" },
-      { title: "Anthropic Tool Use", url: "https://docs.anthropic.com/en/docs/build-with-claude/tool-use", type: "docs", description: "Claude's approach to function calling", summaryPath: "data/day-2/summary-anthropic-tool-use.md" },
+      { title: "Anthropic Tool Use", url: "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview", type: "docs", description: "Claude's approach to function calling", summaryPath: "data/day-2/summary-anthropic-tool-use.md" },
       { title: "Instructor Library", url: "https://python.useinstructor.com/", type: "docs", description: "Pydantic-powered structured outputs for multiple providers", summaryPath: "data/day-2/summary-instructor-library.md" },
       { title: "Functions, Tools and Agents with LangChain", url: "https://learn.deeplearning.ai/courses/functions-tools-agents-langchain", type: "course", duration: "1h", difficulty: "beginner", description: "DeepLearning.AI course on tool use patterns", summaryPath: "data/day-2/summary-langchain-functions-tools.md" },
       { title: "JSON Schema Reference", url: "https://json-schema.org/understanding-json-schema/", type: "docs", description: "Learn to write effective JSON schemas", summaryPath: "data/day-2/summary-json-schema.md" }

@@ -615,7 +615,7 @@ class ProductionAgent:
       { title: "Agentic AI Course", url: "https://learn.deeplearning.ai/courses/agentic-ai", type: "course", duration: "6h", difficulty: "intermediate", description: "Andrew Ng's comprehensive course on building agents from first principles", summaryPath: "data/day-3/summary-deeplearning-agentic-ai.md" },
       { title: "Build an Agent from Scratch (LangGraph Lesson)", url: "https://learn.deeplearning.ai/courses/ai-agents-in-langgraph/lesson/c1l2c/build-an-agent-from-scratch", type: "course", duration: "30m", difficulty: "beginner", description: "Focused lesson on implementing the ReAct pattern without frameworks", summaryPath: "data/day-3/summary-langgraph-scratch-lesson.md" },
       { title: "OpenAI Function Calling", url: "https://platform.openai.com/docs/guides/function-calling", type: "docs", description: "Official documentation for OpenAI's function calling API", summaryPath: "data/day-2/summary-openai-function-calling.md" },
-      { title: "Anthropic Tool Use", url: "https://docs.anthropic.com/en/docs/build-with-claude/tool-use", type: "docs", description: "Claude's approach to tool use and function calling", summaryPath: "data/day-3/summary-anthropic-tool-use.md" }
+      { title: "Anthropic Tool Use", url: "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview", type: "docs", description: "Claude's approach to tool use and function calling", summaryPath: "data/day-3/summary-anthropic-tool-use.md" }
     ],
     localResources: [
       {

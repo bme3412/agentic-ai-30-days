@@ -100,7 +100,7 @@ This foundational lesson introduces the core design pattern that underlies all a
       { title: "AI Agentic Design Patterns with AutoGen", url: "https://learn.deeplearning.ai/courses/ai-agentic-design-patterns-with-autogen", type: "course", summaryPath: "data/day-1/summary-autogen.md" },
       { title: "Building Agentic RAG with LlamaIndex", url: "https://learn.deeplearning.ai/courses/building-agentic-rag-with-llamaindex", type: "course", summaryPath: "data/day-1/summary-agentic-RAC-llamaindex.md" },
       { title: "Anthropic's Building Effective Agents", url: "https://www.anthropic.com/research/building-effective-agents", type: "article", summaryPath: "data/day-1/summary-anthropic-building-agents.md" },
-      { title: "LangChain: What is an Agent?", url: "https://python.langchain.com/docs/concepts/agents/", type: "docs", summaryPath: "data/day-1/summary-langchain-agents.md" },
+      { title: "LangChain: What is an Agent?", url: "https://docs.langchain.com/oss/python/langchain/agents", type: "docs", summaryPath: "data/day-1/summary-langchain-agents.md" },
       { title: "ReAct Paper", url: "https://arxiv.org/abs/2210.03629", type: "paper", summaryPath: "data/day-1/summary-reAct-paper.md" }
     ],
     localResources: [

@@ -496,7 +496,7 @@ print(f"\\nFinal: {result}")
     ],
     resources: [
       { title: "ReAct: Synergizing Reasoning and Acting (Original Paper)", url: "https://arxiv.org/abs/2210.03629", type: "paper", summaryPath: "data/day-4/summary-react-paper.md" },
-      { title: "LangChain ReAct Agent Documentation", url: "https://python.langchain.com/docs/modules/agents/agent_types/react", type: "docs", summaryPath: "data/day-4/summary-langchain-react.md" },
+      { title: "LangChain ReAct Agent Documentation", url: "https://python.langchain.com/api_reference/langchain/agents/langchain.agents.react.agent.create_react_agent.html", type: "docs", summaryPath: "data/day-4/summary-langchain-react.md" },
       { title: "Chain-of-Thought Prompting (Background)", url: "https://arxiv.org/abs/2201.11903", type: "paper", summaryPath: "data/day-4/summary-chain-of-thought.md" },
       { title: "Building Effective Agents - Anthropic", url: "https://www.anthropic.com/research/building-effective-agents", type: "article", summaryPath: "data/day-4/summary-anthropic-agents.md" },
       { title: "DeepLearning.AI: Functions, Tools and Agents", url: "https://www.deeplearning.ai/short-courses/functions-tools-agents-langchain/", type: "course", summaryPath: "data/day-4/summary-deeplearning-agents.md" }

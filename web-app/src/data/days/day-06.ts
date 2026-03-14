@@ -402,7 +402,7 @@ print(response.tool_calls[0]["args"])
     resources: [
       {
         title: "LangChain Tools Documentation",
-        url: "https://python.langchain.com/docs/concepts/tool_calling",
+        url: "https://docs.langchain.com/oss/python/langchain/tools",
         type: "docs",
         description: "Official documentation for LangChain tool calling",
         summaryPath: "data/day-6/summary-langchain-tools.md"
@@ -430,7 +430,7 @@ print(response.tool_calls[0]["args"])
       },
       {
         title: "Building Custom Tools Guide",
-        url: "https://python.langchain.com/docs/how_to/custom_tools",
+        url: "https://docs.langchain.com/oss/python/langchain/tools",
         type: "tutorial",
         description: "Comprehensive guide to creating custom LangChain tools",
         summaryPath: "data/day-6/summary-custom-tools.md"
