@@ -65,28 +65,20 @@ This foundational lesson introduces the core design pattern that underlies all a
     },
 
     diagram: {
-      type: "flow",
+      type: "mermaid",
       title: "The Agent Loop",
-      ascii: `
-    ┌─────────────────────────────────────────────────────────┐
-    │                    USER INPUT                           │
-    └───────────────────────┬─────────────────────────────────┘
-                            │
-                            ▼
-    ┌───────────────────────────────────────────────────────────┐
-    │  ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐ │
-    │  │ OBSERVE │───▶│  THINK  │───▶│   ACT   │───▶│ REFLECT │ │
-    │  └─────────┘    └─────────┘    └─────────┘    └────┬────┘ │
-    │       ▲                                            │      │
-    │       │              ITERATE IF NEEDED             │      │
-    │       └────────────────────────────────────────────┘      │
-    │                     AGENT LOOP                            │
-    └───────────────────────────────────────────────────────────┘
-                            │
-                            ▼ (when complete)
-    ┌─────────────────────────────────────────────────────────┐
-    │                    FINAL OUTPUT                         │
-    └─────────────────────────────────────────────────────────┘`
+      mermaid: `flowchart LR
+    input[User Input] --> observe[OBSERVE]
+    observe --> think[THINK]
+    think --> act[ACT]
+    act --> reflect[REFLECT]
+    reflect -->|Iterate| observe
+    reflect -->|Complete| output[Final Output]
+
+    style observe fill:#3b82f6,color:#fff
+    style think fill:#8b5cf6,color:#fff
+    style act fill:#ff9500,color:#000
+    style reflect fill:#00d084,color:#000`
     },
 
     keyTakeaways: [
@@ -291,27 +283,19 @@ Return JSON: {{"is_complete": bool, "quality_score": 1-10, "improvements": []}}"
     diagrams: [
       {
         title: "The Agent Loop",
-        type: "ascii",
-        content: `
-    ┌─────────────────────────────────────────────────────────┐
-    │                    USER INPUT                           │
-    └───────────────────────┬─────────────────────────────────┘
-                            │
-                            ▼
-    ┌───────────────────────────────────────────────────────────┐
-    │  ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐ │
-    │  │ OBSERVE │───▶│  THINK  │───▶│   ACT   │───▶│ REFLECT │ │
-    │  └─────────┘    └─────────┘    └─────────┘    └────┬────┘ │
-    │       ▲                                            │      │
-    │       │              ITERATE IF NEEDED             │      │
-    │       └────────────────────────────────────────────┘      │
-    │                     AGENT LOOP                            │
-    └───────────────────────────────────────────────────────────┘
-                            │
-                            ▼ (when complete)
-    ┌─────────────────────────────────────────────────────────┐
-    │                    FINAL OUTPUT                         │
-    └─────────────────────────────────────────────────────────┘`,
+        type: "mermaid",
+        mermaid: `flowchart LR
+    input[User Input] --> observe[OBSERVE]
+    observe --> think[THINK]
+    think --> act[ACT]
+    act --> reflect[REFLECT]
+    reflect -->|Iterate| observe
+    reflect -->|Complete| output[Final Output]
+
+    style observe fill:#3b82f6,color:#fff
+    style think fill:#8b5cf6,color:#fff
+    style act fill:#ff9500,color:#000
+    style reflect fill:#00d084,color:#000`,
         caption: "The fundamental OBSERVE-THINK-ACT-REFLECT cycle that powers all AI agents"
       }
     ],

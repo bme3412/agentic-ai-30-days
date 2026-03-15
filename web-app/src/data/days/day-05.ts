@@ -613,75 +613,36 @@ print(f"\\nFinal critique:\\n{result['critique']}")`,
     diagrams: [
       {
         title: "Self-Refine vs. Reflexion",
-        type: "comparison",
-        ascii: `
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        SELF-REFINE                                      │
-│                    (Within one attempt)                                 │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│    ┌──────────┐    ┌──────────┐    ┌──────────┐                        │
-│    │ Generate │───►│ Critique │───►│  Refine  │───┐                    │
-│    └──────────┘    └──────────┘    └──────────┘   │                    │
-│         ▲                                          │                    │
-│         └──────────────────────────────────────────┘                    │
-│                         Loop until approved                             │
-│                                                                         │
-│    No memory between tasks. Fast iteration on single outputs.          │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
+        type: "mermaid",
+        mermaid: `flowchart LR
+    subgraph SelfRefine[Self-Refine]
+        g1[Generate] --> c1[Critique] --> r1[Refine]
+        r1 --> g1
+    end
+    subgraph Reflexion
+        a2[Act] --> e2[Evaluate] --> ref2[Reflect] --> m2[Memory]
+        m2 --> a2
+    end
 
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         REFLEXION                                       │
-│                   (Across multiple attempts)                            │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐        │
-│    │   Act    │───►│ Evaluate │───►│ Reflect  │───►│  Memory  │        │
-│    └──────────┘    └──────────┘    └──────────┘    └────┬─────┘        │
-│         ▲                                                │              │
-│         │              Environment                       │              │
-│         │              feedback!                         │              │
-│         └────────────────────────────────────────────────┘              │
-│                                                                         │
-│    Memory persists. Learns from failures across attempts.               │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘`,
+    style g1 fill:#3b82f6,color:#fff
+    style a2 fill:#00d084,color:#000
+    style m2 fill:#8b5cf6,color:#fff`,
         caption: "Self-Refine iterates within one attempt without memory. Reflexion learns across attempts by storing reflections, crucially relying on environment feedback."
       },
       {
         title: "When Self-Correction Works",
-        type: "flow",
-        ascii: `
-┌─────────────────────────────────────────────────────────────────────────┐
-│                  SELF-CORRECTION DECISION TREE                          │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│                        ┌───────────────────┐                            │
-│                        │ What type of error │                           │
-│                        │   are we fixing?   │                           │
-│                        └─────────┬─────────┘                            │
-│                                  │                                      │
-│              ┌───────────────────┼───────────────────┐                  │
-│              ▼                   ▼                   ▼                  │
-│     ┌────────────────┐  ┌────────────────┐  ┌────────────────┐         │
-│     │   Surface      │  │    Logic /     │  │   Factual      │         │
-│     │  (formatting,  │  │   Reasoning    │  │   (claims,     │         │
-│     │   grammar)     │  │                │  │    data)       │         │
-│     └───────┬────────┘  └───────┬────────┘  └───────┬────────┘         │
-│             │                   │                   │                  │
-│             ▼                   ▼                   ▼                  │
-│     ┌────────────────┐  ┌────────────────┐  ┌────────────────┐         │
-│     │   ✅ Works!    │  │   ⚠️ Only with │  │   ❌ Needs     │         │
-│     │  Self-Refine   │  │   external     │  │   external     │         │
-│     │  is effective  │  │   verification │  │   fact-check   │         │
-│     └────────────────┘  └────────────────┘  └────────────────┘         │
-│                                                                         │
-│     Model can         Need: test         Need: search,                 │
-│     recognize         execution,         RAG, knowledge                │
-│     quality           symbolic solver    base lookup                   │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘`,
+        type: "mermaid",
+        mermaid: `flowchart TB
+    error[Error Type?] --> surface[Surface Errors]
+    error --> logic[Logic Errors]
+    error --> factual[Factual Errors]
+    surface --> works[Works - Self-Refine]
+    logic --> external[Needs External Verification]
+    factual --> search[Needs Fact-Check]
+
+    style works fill:#00d084,color:#000
+    style external fill:#ff9500,color:#000
+    style search fill:#ef4444,color:#fff`,
         caption: "Self-correction effectiveness depends on error type. Surface errors can be self-corrected; logical and factual errors require external verification."
       }
     ],

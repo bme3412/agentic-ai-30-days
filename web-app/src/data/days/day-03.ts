@@ -556,48 +556,22 @@ class ProductionAgent:
     diagrams: [
       {
         title: "Agent Execution Loop",
-        type: "ascii",
-        content: `
-    ┌─────────────────────────────────────────────────────────────────┐
-    │                      AGENT EXECUTION LOOP                       │
-    └─────────────────────────────────────────────────────────────────┘
+        type: "mermaid",
+        mermaid: `flowchart TB
+    query[User Query] --> messages[Add to Messages]
+    messages --> observe[Observe + Think]
+    observe --> answerCheck{Answer?}
+    answerCheck -->|Yes| return[Return Answer]
+    answerCheck -->|No| actionCheck{Action?}
+    actionCheck -->|No| prompt[Prompt Format]
+    actionCheck -->|Yes| act[ACT - Execute Tool]
+    prompt --> messages
+    act --> reflect[REFLECT - Add Result]
+    reflect --> messages
 
-         ┌──────────────┐
-         │  User Query  │
-         └──────┬───────┘
-                │
-                ▼
-    ┌───────────────────────┐
-    │   Add to messages[]   │◀───────────────────────────────────┐
-    └───────────┬───────────┘                                    │
-                │                                                 │
-                ▼                                                 │
-    ┌───────────────────────┐                                    │
-    │      OBSERVE          │  Read full message history          │
-    │    + THINK            │  Send to LLM                        │
-    └───────────┬───────────┘                                    │
-                │                                                 │
-                ▼                                                 │
-    ┌───────────────────────┐     Yes    ┌──────────────────┐    │
-    │   Answer: detected?   │───────────▶│   Return answer  │    │
-    └───────────┬───────────┘            └──────────────────┘    │
-                │ No                                              │
-                ▼                                                 │
-    ┌───────────────────────┐     No     ┌──────────────────┐    │
-    │   Action: detected?   │───────────▶│ Prompt for format│────┤
-    └───────────┬───────────┘            └──────────────────┘    │
-                │ Yes                                             │
-                ▼                                                 │
-    ┌───────────────────────┐                                    │
-    │        ACT            │  Look up tool in registry           │
-    │   Execute tool(args)  │  Call function with arguments       │
-    └───────────┬───────────┘                                    │
-                │                                                 │
-                ▼                                                 │
-    ┌───────────────────────┐                                    │
-    │      REFLECT          │  Format: "Observation: {result}"   │
-    │  Add to messages[]    │────────────────────────────────────┘
-    └───────────────────────┘`,
+    style observe fill:#3b82f6,color:#fff
+    style act fill:#ff9500,color:#000
+    style return fill:#00d084,color:#000`,
         caption: "The agent loop: observe history, think via LLM, act with tools, reflect by adding results"
       }
     ],

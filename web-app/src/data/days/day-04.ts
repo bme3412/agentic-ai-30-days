@@ -442,48 +442,18 @@ print(f"\\nFinal: {result}")
     diagrams: [
       {
         title: "ReAct Flow",
-        type: "flow",
-        ascii: `
-    ┌─────────────────────────────────────────────────────────────┐
-    │                      USER QUERY                             │
-    └───────────────────────────┬─────────────────────────────────┘
-                                │
-                                ▼
-    ┌───────────────────────────────────────────────────────────────┐
-    │                                                               │
-    │  ┌──────────────────────────────────────────────────────┐    │
-    │  │ THOUGHT: Reason about current state and next steps   │    │
-    │  │ "I need to find X to answer this question..."        │    │
-    │  └────────────────────────┬─────────────────────────────┘    │
-    │                           │                                   │
-    │                           ▼                                   │
-    │  ┌──────────────────────────────────────────────────────┐    │
-    │  │ ACTION: Execute tool based on reasoning              │    │
-    │  │ search("query") / calculate("expr") / etc.           │    │
-    │  └────────────────────────┬─────────────────────────────┘    │
-    │                           │                                   │
-    │                           ▼                                   │
-    │  ┌──────────────────────────────────────────────────────┐    │
-    │  │ OBSERVATION: Tool returns result                     │    │
-    │  │ "The search returned: ..."                           │    │
-    │  └────────────────────────┬─────────────────────────────┘    │
-    │                           │                                   │
-    │                           ▼                                   │
-    │                    Have enough info?                          │
-    │                      /         \\                              │
-    │                    No           Yes                           │
-    │                    │             │                            │
-    │                    ▼             │                            │
-    │              Loop back           │                            │
-    │              to THOUGHT          │                            │
-    │                                  │                            │
-    │               REACT LOOP         │                            │
-    └──────────────────────────────────┼────────────────────────────┘
-                                       │
-                                       ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │            ANSWER: Final grounded response                  │
-    └─────────────────────────────────────────────────────────────┘`,
+        type: "mermaid",
+        mermaid: `flowchart TB
+    query[User Query] --> thought[Thought]
+    thought --> action[Action]
+    action --> obs[Observation]
+    obs --> check{Enough Info?}
+    check -->|No| thought
+    check -->|Yes| answer[Answer]
+
+    style thought fill:#3b82f6,color:#fff
+    style action fill:#ff9500,color:#000
+    style answer fill:#00d084,color:#000`,
         caption: "The ReAct pattern: Thought → Action → Observation → (repeat until Answer)"
       }
     ],

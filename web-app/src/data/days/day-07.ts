@@ -1192,174 +1192,66 @@ print(f"Final message: {result['messages'][-1].content}")`,
     diagrams: [
       {
         title: "LangGraph Agent Architecture",
-        type: "architecture",
-        ascii: `
-+------------------------------------------------------------------+
-|                        LANGGRAPH AGENT                            |
-+------------------------------------------------------------------+
-|                                                                   |
-|  +-------------+                                                  |
-|  |   STATE     |  TypedDict that flows through the graph          |
-|  | - messages  |  Each node reads and returns updates             |
-|  | - flags     |                                                  |
-|  +------+------+                                                  |
-|         |                                                         |
-|         v                                                         |
-|  +------+------+     +-------------+     +-------------+          |
-|  |   NODE A    | --> |   NODE B    | --> |   NODE C    |          |
-|  | (function)  |     | (function)  |     | (function)  |          |
-|  +-------------+     +------+------+     +-------------+          |
-|                             |                                     |
-|                             v                                     |
-|                      +------+------+                              |
-|                      |  ROUTING    |  Examines state              |
-|                      |  FUNCTION   |  Returns next node name      |
-|                      +------+------+                              |
-|                             |                                     |
-|              +--------------+--------------+                      |
-|              |              |              |                      |
-|              v              v              v                      |
-|         +--------+     +--------+     +--------+                  |
-|         | PATH A |     | PATH B |     | PATH C |                  |
-|         +--------+     +--------+     +--------+                  |
-|                                                                   |
-|  +-------------+                                                  |
-|  | CHECKPOINTER|  Saves state at each step for persistence        |
-|  +-------------+                                                  |
-|                                                                   |
-+------------------------------------------------------------------+`,
+        type: "mermaid",
+        mermaid: `flowchart TB
+    state[State] --> nodeA[Node A]
+    nodeA --> nodeB[Node B]
+    nodeB --> router{Router}
+    router --> pathA[Path A]
+    router --> pathB[Path B]
+    router --> pathC[Path C]
+    nodeA -.-> cp[Checkpointer]
+    nodeB -.-> cp
+
+    style state fill:#3b82f6,color:#fff
+    style router fill:#ff9500,color:#000
+    style cp fill:#8b5cf6,color:#fff`,
         caption: "LangGraph architecture: State flows through nodes, routing functions direct traffic, checkpointer enables persistence."
       },
       {
         title: "Tool-Calling Loop Detail",
-        type: "flow",
-        ascii: `
-+------------------------------------------------------------------+
-|                     TOOL-CALLING LOOP                             |
-+------------------------------------------------------------------+
-|                                                                   |
-|                    +----------------+                             |
-|                    |     START      |                             |
-|                    +-------+--------+                             |
-|                            |                                      |
-|                            v                                      |
-|  +-----------------------------------------------------+          |
-|  |                    AGENT NODE                        |          |
-|  |  1. Receives state with messages                     |          |
-|  |  2. Calls LLM with tools bound                       |          |
-|  |  3. Returns AIMessage (may include tool_calls)       |          |
-|  |  4. Increments iteration counter                     |          |
-|  +------------------------+----------------------------+          |
-|                           |                                       |
-|                           v                                       |
-|  +------------------------+----------------------------+          |
-|  |              ROUTING FUNCTION                        |          |
-|  |  if iteration >= 10: return "end"                    |          |
-|  |  if message has tool_calls: return "tools"           |          |
-|  |  else: return "end"                                  |          |
-|  +------------------------+----------------------------+          |
-|              |                            |                       |
-|         "tools"                        "end"                      |
-|              |                            |                       |
-|              v                            v                       |
-|  +-----------------------+      +------------------+              |
-|  |      TOOLS NODE       |      |       END        |              |
-|  | For each tool_call:   |      | Return final     |              |
-|  |   Execute tool        |      | state to caller  |              |
-|  |   Create ToolMessage  |      +------------------+              |
-|  | Return tool results   |                                        |
-|  +-----------+-----------+                                        |
-|              |                                                    |
-|              | (edge loops back)                                  |
-|              +-------------------------> AGENT NODE               |
-|                                                                   |
-+------------------------------------------------------------------+`,
+        type: "mermaid",
+        mermaid: `flowchart TB
+    start[Start] --> agent[Agent Node]
+    agent --> check{Has Tools?}
+    check -->|Yes| tools[Tools Node]
+    check -->|No| done[End]
+    tools --> agent
+
+    style agent fill:#3b82f6,color:#fff
+    style tools fill:#00d084,color:#000
+    style done fill:#8b5cf6,color:#fff`,
         caption: "The tool-calling loop in detail: Agent generates response, routing checks for tool_calls, tools execute and loop back until no more tool calls or max iterations reached."
       },
       {
         title: "Human-in-the-Loop Flow",
-        type: "flow",
-        ascii: `
-+------------------------------------------------------------------+
-|                   HUMAN-IN-THE-LOOP WORKFLOW                      |
-+------------------------------------------------------------------+
-|                                                                   |
-|    +----------+         +---------------+                         |
-|    |  START   | ------> |   GENERATE    |                         |
-|    +----------+         |   (AI draft)  |                         |
-|                         +-------+-------+                         |
-|                                 |                                 |
-|                                 v                                 |
-|    +------------------------------------------------+             |
-|    |              APPROVAL GATE (INTERRUPT)          |             |
-|    |                                                 |             |
-|    |  State saved to checkpoint                      |             |
-|    |  External system notified                       |             |
-|    |  WAITING FOR HUMAN INPUT...                     |             |
-|    |                                                 |             |
-|    |  Human reviews draft                            |             |
-|    |  Human calls: update_state({"approved": ...})   |             |
-|    |  Human calls: invoke(None) to resume            |             |
-|    +------------------------+------------------------+             |
-|                             |                                      |
-|              +--------------+--------------+                       |
-|              |              |              |                       |
-|          APPROVED       REJECTED        TIMEOUT                    |
-|              |              |              |                       |
-|              v              v              v                       |
-|         +--------+     +--------+     +--------+                   |
-|         |  SEND  |     | REVISE |     | CANCEL |                   |
-|         +---+----+     +---+----+     +--------+                   |
-|             |              |                                       |
-|             |              +--------> APPROVAL GATE (loop)         |
-|             |                                                      |
-|             v                                                      |
-|         +--------+                                                 |
-|         |  END   |                                                 |
-|         +--------+                                                 |
-|                                                                   |
-+------------------------------------------------------------------+`,
+        type: "mermaid",
+        mermaid: `flowchart TB
+    start[Start] --> generate[Generate]
+    generate --> gate[Approval Gate]
+    gate --> decision{Decision}
+    decision -->|Approved| send[Send]
+    decision -->|Rejected| revise[Revise]
+    decision -->|Timeout| cancel[Cancel]
+    revise --> gate
+    send --> done[End]
+
+    style gate fill:#ff9500,color:#000
+    style done fill:#00d084,color:#000`,
         caption: "Human-in-the-loop: Agent generates draft, pauses at approval gate with state checkpointed. Human reviews externally and updates state. Agent resumes based on decision."
       },
       {
         title: "State Flow and Reducers",
-        type: "architecture",
-        ascii: `
-+------------------------------------------------------------------+
-|                    STATE FLOW WITH REDUCERS                       |
-+------------------------------------------------------------------+
-|                                                                   |
-|  Initial State:                                                   |
-|  {                                                                |
-|    messages: [HumanMessage("Hi")],  <-- add_messages reducer     |
-|    count: 0,                         <-- replace (no reducer)     |
-|    total: 0                          <-- operator.add reducer     |
-|  }                                                                |
-|                                                                   |
-|  Node A returns: {messages: [AIMessage("Hello")], count: 1, total: 5}
-|                                                                   |
-|  After merge:                                                     |
-|  {                                                                |
-|    messages: [Human("Hi"), AI("Hello")],  <-- APPENDED            |
-|    count: 1,                               <-- REPLACED           |
-|    total: 5                                <-- ADDED (0+5)        |
-|  }                                                                |
-|                                                                   |
-|  Node B returns: {messages: [AIMessage("Bye")], total: 3}         |
-|                                                                   |
-|  After merge:                                                     |
-|  {                                                                |
-|    messages: [Human, AI, AI],              <-- APPENDED again     |
-|    count: 1,                               <-- UNCHANGED          |
-|    total: 8                                <-- ADDED (5+3)        |
-|  }                                                                |
-|                                                                   |
-|  Reducer definitions:                                             |
-|    messages: Annotated[list, add_messages]  # Append              |
-|    count: int                                # Replace            |
-|    total: Annotated[int, operator.add]       # Sum                |
-|                                                                   |
-+------------------------------------------------------------------+`,
+        type: "mermaid",
+        mermaid: `flowchart LR
+    init[Initial State] --> nodeA[Node A]
+    nodeA --> merge1[Merge]
+    merge1 --> nodeB[Node B]
+    nodeB --> merge2[Final State]
+
+    style init fill:#3b82f6,color:#fff
+    style merge1 fill:#ff9500,color:#000
+    style merge2 fill:#00d084,color:#000`,
         caption: "State reducers control how node updates merge: add_messages appends, no reducer replaces, operator.add sums values."
       }
     ],

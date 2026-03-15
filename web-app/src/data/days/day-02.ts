@@ -84,51 +84,19 @@ if response.choices[0].message.tool_calls:
     },
 
     diagram: {
-      type: "flow",
+      type: "mermaid",
       title: "Function Calling Flow",
-      ascii: `
-    ┌─────────────────────────────────────────────────────────────┐
-    │                     USER MESSAGE                            │
-    │              "What's the weather in Paris?"                 │
-    └───────────────────────┬─────────────────────────────────────┘
-                            │
-                            ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │                      LLM + TOOLS                            │
-    │  ┌─────────────────────────────────────────────────────┐    │
-    │  │  Available Tools:                                    │    │
-    │  │  • get_weather(location, unit)                      │    │
-    │  │  • search_web(query)                                │    │
-    │  │  • send_email(to, subject, body)                    │    │
-    │  └─────────────────────────────────────────────────────┘    │
-    └───────────────────────┬─────────────────────────────────────┘
-                            │
-                            ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │                   TOOL CALL (JSON)                          │
-    │  {                                                          │
-    │    "name": "get_weather",                                   │
-    │    "arguments": {"location": "Paris", "unit": "celsius"}   │
-    │  }                                                          │
-    └───────────────────────┬─────────────────────────────────────┘
-                            │
-                            ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │                YOUR CODE EXECUTES TOOL                      │
-    │         result = get_weather("Paris", "celsius")            │
-    └───────────────────────┬─────────────────────────────────────┘
-                            │
-                            ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │               TOOL RESULT → BACK TO LLM                     │
-    │            {"temp": 18, "condition": "sunny"}               │
-    └───────────────────────┬─────────────────────────────────────┘
-                            │
-                            ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │                   FINAL RESPONSE                            │
-    │     "It's currently 18°C and sunny in Paris!"              │
-    └─────────────────────────────────────────────────────────────┘`
+      mermaid: `flowchart TB
+    user[User Message] --> llm[LLM + Tools]
+    llm --> toolcall[Tool Call JSON]
+    toolcall --> execute[Execute Tool]
+    execute --> result[Tool Result]
+    result --> llm2[Back to LLM]
+    llm2 --> response[Final Response]
+
+    style llm fill:#3b82f6,color:#fff
+    style execute fill:#ff9500,color:#000
+    style response fill:#00d084,color:#000`
     },
 
     keyTakeaways: [
@@ -801,46 +769,15 @@ for block in response.content:
     diagrams: [
       {
         title: "Structured Output Constraint Flow",
-        type: "ascii",
-        content: `
-    ┌─────────────────────────────────────────────────────────────┐
-    │                    YOUR SCHEMA                              │
-    │  {                                                          │
-    │    "type": "object",                                        │
-    │    "properties": {                                          │
-    │      "name": {"type": "string"},                           │
-    │      "age": {"type": "integer"}                            │
-    │    }                                                        │
-    │  }                                                          │
-    └───────────────────────┬─────────────────────────────────────┘
-                            │
-                            ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │                 CONSTRAINED DECODING                        │
-    │                                                             │
-    │  Token generation is RESTRICTED at each step:               │
-    │                                                             │
-    │  After '{"name": "John", '                                  │
-    │  ┌─────────────────────────────────────────┐                │
-    │  │ ALLOWED tokens:  "age"                   │                │
-    │  │ BLOCKED tokens:  "foo", "xyz", "}"      │                │
-    │  └─────────────────────────────────────────┘                │
-    │                                                             │
-    │  After '"age": '                                            │
-    │  ┌─────────────────────────────────────────┐                │
-    │  │ ALLOWED tokens:  0, 1, 2, 3, 4...       │                │
-    │  │ BLOCKED tokens:  "abc", true, null      │                │
-    │  └─────────────────────────────────────────┘                │
-    │                                                             │
-    └───────────────────────┬─────────────────────────────────────┘
-                            │
-                            ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │                GUARANTEED VALID OUTPUT                      │
-    │                                                             │
-    │  {"name": "John", "age": 34}  ← Always valid JSON!         │
-    │                                                             │
-    └─────────────────────────────────────────────────────────────┘`,
+        type: "mermaid",
+        mermaid: `flowchart TB
+    schema[Your Schema] --> decode[Constrained Decoding]
+    decode --> filter[Token Filter]
+    filter --> output[Valid JSON Output]
+
+    style schema fill:#3b82f6,color:#fff
+    style decode fill:#ff9500,color:#000
+    style output fill:#00d084,color:#000`,
         caption: "Structured outputs constrain token generation to guarantee schema-valid JSON"
       }
     ],

@@ -64,39 +64,18 @@ print(result.final_output)
     },
 
     diagram: {
-      type: "flow",
+      type: "mermaid",
       title: "OpenAI Agents SDK Core Flow",
-      ascii: `
-    ┌─────────────────────────────────────────────────────────────┐
-    │                    OPENAI AGENTS SDK                        │
-    │            (Lightweight Multi-Agent Framework)              │
-    └───────────────────────────┬─────────────────────────────────┘
-                                │
-                                ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │                         AGENT                                │
-    │  ┌─────────────────┐  ┌─────────────────┐                   │
-    │  │  Instructions   │  │     Tools       │                   │
-    │  │  (System Prompt)│  │  (Functions)    │                   │
-    │  └─────────────────┘  └─────────────────┘                   │
-    │                                                              │
-    │  ┌─────────────────┐  ┌─────────────────┐                   │
-    │  │    Handoffs     │  │   Guardrails    │                   │
-    │  │  (Other Agents) │  │  (Validation)   │                   │
-    │  └─────────────────┘  └─────────────────┘                   │
-    └───────────────────────────┬─────────────────────────────────┘
-                                │
-                                ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │                      AGENT LOOP                              │
-    │                                                              │
-    │    User Input ──► LLM ──► Tool Call? ──► Execute Tool        │
-    │         ▲                    │                  │            │
-    │         │                    No                 │            │
-    │         │                    │                  │            │
-    │         │                    ▼                  │            │
-    │         └─────────── Final Response ◄───────────┘            │
-    └─────────────────────────────────────────────────────────────┘`
+      mermaid: `flowchart LR
+    input[User Input] --> agent[Agent]
+    agent --> llm[LLM]
+    llm --> decision{Tool?}
+    decision -->|Yes| tool[Execute Tool]
+    tool --> llm
+    decision -->|No| output[Final Response]
+
+    style agent fill:#10a37f,color:#fff
+    style output fill:#10a37f,color:#fff`
     },
 
     keyTakeaways: [
@@ -676,81 +655,35 @@ asyncio.run(stream_story())`,
     diagrams: [
       {
         title: "Agents SDK Architecture",
-        type: "architecture",
-        ascii: `
-    ┌─────────────────────────────────────────────────────────────┐
-    │                    YOUR APPLICATION                          │
-    └───────────────────────────┬─────────────────────────────────┘
-                                │
-                                ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │                         RUNNER                               │
-    │           (Orchestrates the agent loop)                      │
-    │                                                              │
-    │    run_sync() │ run() │ run_streamed()                       │
-    └───────────────────────────┬─────────────────────────────────┘
-                                │
-           ┌────────────────────┼────────────────────┐
-           │                    │                    │
-           ▼                    ▼                    ▼
-    ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-    │   INPUT     │      │    AGENT    │      │   OUTPUT    │
-    │ GUARDRAILS  │─────►│             │─────►│ GUARDRAILS  │
-    │             │      │ • name      │      │             │
-    │ Validate    │      │ • instruct  │      │ Validate    │
-    │ user input  │      │ • tools     │      │ responses   │
-    └─────────────┘      │ • model     │      └─────────────┘
-                         └──────┬──────┘
-                                │
-              ┌─────────────────┼─────────────────┐
-              │                 │                 │
-              ▼                 ▼                 ▼
-        ┌───────────┐     ┌───────────┐     ┌───────────┐
-        │   TOOLS   │     │  HANDOFFS │     │  SESSION  │
-        │           │     │           │     │           │
-        │ Functions │     │ Transfer  │     │ Persist   │
-        │ you define│     │ to other  │     │ history   │
-        │           │     │ agents    │     │           │
-        └───────────┘     └───────────┘     └───────────┘`,
-        caption: "The Runner orchestrates agents through a loop of LLM calls and tool executions. Guardrails validate inputs and outputs. Tools extend capabilities; handoffs enable multi-agent workflows."
+        type: "mermaid",
+        mermaid: `flowchart LR
+    app[Your App] --> runner[Runner]
+    runner --> guard1[Input Guardrail]
+    guard1 --> agent[Agent]
+    agent --> tools[Tools]
+    agent --> handoff[Handoffs]
+    agent --> guard2[Output Guardrail]
+    guard2 --> response[Response]
+
+    style runner fill:#10a37f,color:#fff
+    style agent fill:#10a37f,color:#fff`,
+        caption: "Runner orchestrates the agent loop. Guardrails validate I/O. Tools and handoffs extend capabilities."
       },
       {
         title: "Multi-Agent Handoff Flow",
-        type: "flow",
-        ascii: `
-    ┌─────────────────────────────────────────────────────────────┐
-    │                      USER MESSAGE                            │
-    │                "I need help with my bill"                    │
-    └───────────────────────────┬─────────────────────────────────┘
-                                │
-                                ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │                     TRIAGE AGENT                             │
-    │                                                              │
-    │   Instructions: "Route to the right specialist"              │
-    │   Tools: [transfer_sales, transfer_support, transfer_billing]│
-    │                                                              │
-    │   Decision: "Billing question → transfer_to_billing()"       │
-    └───────────────────────────┬─────────────────────────────────┘
-                                │
-                         HANDOFF (context preserved)
-                                │
-                                ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │                     BILLING AGENT                            │
-    │                                                              │
-    │   Instructions: "Handle payment and invoice questions"       │
-    │   Tools: [lookup_invoice, process_refund, ...]               │
-    │                                                              │
-    │   Response: "I can help with your bill. Let me look that up."│
-    └───────────────────────────┬─────────────────────────────────┘
-                                │
-                                ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │                      USER RESPONSE                           │
-    │          (Continues conversation with Billing Agent)         │
-    └─────────────────────────────────────────────────────────────┘`,
-        caption: "Handoffs transfer the conversation to specialist agents while preserving full context. The triage agent routes based on intent; specialists handle domain-specific tasks."
+        type: "mermaid",
+        mermaid: `flowchart LR
+    user[User] --> triage[Triage Agent]
+    triage --> decision{Intent?}
+    decision -->|Sales| sales[Sales Agent]
+    decision -->|Support| support[Support Agent]
+    decision -->|Billing| billing[Billing Agent]
+
+    style triage fill:#10a37f,color:#fff
+    style sales fill:#6366f1,color:#fff
+    style support fill:#f59e0b,color:#000
+    style billing fill:#ec4899,color:#fff`,
+        caption: "Triage routes to specialists via handoffs. Context is preserved across transfers."
       }
     ],
     keyTakeaways: [

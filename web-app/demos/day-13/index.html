@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 13: PydanticAI - Type-Safe Agents</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="../../#day/13" class="back-link">&larr; Back to Day 13</a>
+      <h1>PydanticAI</h1>
+      <p class="subtitle">Type-safe agents with dependency injection and validation</p>
+    </header>
+
+    <section class="demo-explanation">
+      <h2>What This Demo Teaches</h2>
+      <p>
+        PydanticAI brings the <strong>FastAPI philosophy</strong> to AI agents: type hints drive validation,
+        schemas, and IDE support. This demo lets you explore each core concept interactively.
+      </p>
+      <div class="explanation-grid">
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128272;</div>
+          <h3>Type-Safe Agents</h3>
+          <p>Agents generic over DepsT and OutputT with full static typing.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128736;</div>
+          <h3>Tools & Schemas</h3>
+          <p>Auto-generate JSON schemas from type hints and docstrings.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128268;</div>
+          <h3>Dependencies</h3>
+          <p>Inject and test dependencies via RunContext pattern.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#10003;</div>
+          <h3>Validation</h3>
+          <p>Automatic output validation with retry on failure.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo Tabs -->
+    <nav class="demo-tabs">
+      <button class="tab-btn active" data-tab="type-safety">
+        <span class="tab-icon">&#128272;</span>
+        <span class="tab-label">Type Safety</span>
+      </button>
+      <button class="tab-btn" data-tab="tools">
+        <span class="tab-icon">&#128736;</span>
+        <span class="tab-label">Tools</span>
+      </button>
+      <button class="tab-btn" data-tab="dependencies">
+        <span class="tab-icon">&#128268;</span>
+        <span class="tab-label">Dependencies</span>
+      </button>
+      <button class="tab-btn" data-tab="validation">
+        <span class="tab-icon">&#10003;</span>
+        <span class="tab-label">Validation</span>
+      </button>
+      <button class="tab-btn" data-tab="builder">
+        <span class="tab-icon">&#128187;</span>
+        <span class="tab-label">Code Builder</span>
+      </button>
+    </nav>
+
+    <!-- Type Safety Tab -->
+    <section id="type-safety" class="tab-content active">
+      <div class="panel">
+        <h3>Type-Parameterized Agents</h3>
+        <p class="panel-description">
+          Every PydanticAI agent is generic over two types: <code>DepsT</code> (dependencies) and
+          <code>OutputT</code> (result type). Your IDE and type checker enforce these contracts.
+        </p>
+
+        <div class="type-demo">
+          <div class="type-config">
+            <h4>Configure Agent Types</h4>
+
+            <div class="form-group">
+              <label for="output-type">Output Type</label>
+              <select id="output-type">
+                <option value="str">str (plain text)</option>
+                <option value="weather" selected>WeatherReport (structured)</option>
+                <option value="review">MovieReview (validated)</option>
+                <option value="union">Union[Success, Error]</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="deps-type">Dependencies Type</label>
+              <select id="deps-type">
+                <option value="none">None</option>
+                <option value="simple">str (API key)</option>
+                <option value="dataclass" selected>AppDeps (dataclass)</option>
+              </select>
+            </div>
+
+            <button id="show-types" class="btn-primary">Show Type Flow</button>
+          </div>
+
+          <div class="type-visualization" id="type-viz">
+            <div class="type-box agent-type">
+              <div class="type-label">Agent Definition</div>
+              <pre><code id="agent-def-code">Agent[AppDeps, WeatherReport](
+    'openai:gpt-4o',
+    deps_type=AppDeps,
+    output_type=WeatherReport
+)</code></pre>
+            </div>
+
+            <div class="type-arrow">&#8595;</div>
+
+            <div class="type-box result-type">
+              <div class="type-label">Run Result</div>
+              <pre><code id="result-type-code">result: AgentRunResult[WeatherReport]
+
+# Type-safe access:
+result.output.temperature  # int
+result.output.condition    # str</code></pre>
+            </div>
+
+            <div class="type-benefits">
+              <div class="benefit">
+                <span class="benefit-icon">&#10004;</span>
+                <span>IDE autocompletion on result.output</span>
+              </div>
+              <div class="benefit">
+                <span class="benefit-icon">&#10004;</span>
+                <span>Type errors caught at write-time</span>
+              </div>
+              <div class="benefit">
+                <span class="benefit-icon">&#10004;</span>
+                <span>Pydantic validates at runtime</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tools Tab -->
+    <section id="tools" class="tab-content">
+      <div class="panel">
+        <h3>Tools with Automatic Schema Generation</h3>
+        <p class="panel-description">
+          Decorate functions with <code>@agent.tool</code> and PydanticAI auto-generates JSON schemas
+          from type hints. Docstrings become parameter descriptions.
+        </p>
+
+        <div class="tools-demo">
+          <div class="tool-input">
+            <h4>Define a Tool</h4>
+
+            <div class="form-group">
+              <label for="tool-name">Function Name</label>
+              <input type="text" id="tool-name" value="search_products" placeholder="e.g., get_weather">
+            </div>
+
+            <div class="form-group">
+              <label for="tool-params">Parameters (name: type)</label>
+              <textarea id="tool-params" rows="3" placeholder="query: str&#10;category: str = 'all'&#10;limit: int = 10">query: str
+category: str = "all"
+limit: int = 10</textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="tool-docstring">Docstring</label>
+              <textarea id="tool-docstring" rows="4" placeholder="Description and Args...">Search the product catalog.
+
+Args:
+    query: Search terms to find products
+    category: Product category filter
+    limit: Maximum results to return</textarea>
+            </div>
+
+            <button id="generate-schema" class="btn-primary">Generate Schema</button>
+          </div>
+
+          <div class="schema-output">
+            <h4>Generated JSON Schema</h4>
+            <pre id="schema-result"><code>{
+  "name": "search_products",
+  "description": "Search the product catalog.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "query": {
+        "type": "string",
+        "description": "Search terms to find products"
+      },
+      "category": {
+        "type": "string",
+        "description": "Product category filter",
+        "default": "all"
+      },
+      "limit": {
+        "type": "integer",
+        "description": "Maximum results to return",
+        "default": 10
+      }
+    },
+    "required": ["query"]
+  }
+}</code></pre>
+
+            <div class="schema-notes">
+              <div class="note">
+                <span class="note-icon">&#128161;</span>
+                <span><strong>No decorators needed</strong> - type hints are the schema</span>
+              </div>
+              <div class="note">
+                <span class="note-icon">&#128161;</span>
+                <span><strong>Docstrings parsed</strong> - Google, NumPy, or Sphinx format</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dependencies Tab -->
+    <section id="dependencies" class="tab-content">
+      <div class="panel">
+        <h3>Dependency Injection</h3>
+        <p class="panel-description">
+          Follow the FastAPI pattern: define dependencies as dataclasses, pass the type to the agent,
+          and access via <code>RunContext</code>. Override for testing without changing agent code.
+        </p>
+
+        <div class="deps-demo">
+          <div class="deps-flow">
+            <div class="deps-step define">
+              <div class="step-number">1</div>
+              <h4>Define Dependencies</h4>
+              <pre><code>@dataclass
+class AppDeps:
+    http_client: httpx.AsyncClient
+    api_key: str
+    user_id: str</code></pre>
+            </div>
+
+            <div class="deps-arrow">&#8594;</div>
+
+            <div class="deps-step inject">
+              <div class="step-number">2</div>
+              <h4>Inject via Agent</h4>
+              <pre><code>agent = Agent(
+    'openai:gpt-4o',
+    deps_type=AppDeps
+)</code></pre>
+            </div>
+
+            <div class="deps-arrow">&#8594;</div>
+
+            <div class="deps-step access">
+              <div class="step-number">3</div>
+              <h4>Access in Tools</h4>
+              <pre><code>@agent.tool
+async def fetch(ctx: RunContext[AppDeps]):
+    return await ctx.deps.http_client.get(
+        headers={"Auth": ctx.deps.api_key}
+    )</code></pre>
+            </div>
+          </div>
+
+          <div class="deps-testing">
+            <h4>Testing with Override</h4>
+            <div class="test-scenario">
+              <div class="scenario-label">Production</div>
+              <div class="scenario-box production">
+                <code>deps = AppDeps(client=RealClient(), api_key="sk-xxx")</code>
+              </div>
+            </div>
+            <div class="test-scenario">
+              <div class="scenario-label">Testing</div>
+              <div class="scenario-box testing">
+                <code>with agent.override(deps=MockDeps()):</code>
+                <br>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;result = agent.run_sync("test")</code>
+              </div>
+            </div>
+            <div class="deps-benefit">
+              <span class="benefit-icon">&#10004;</span>
+              Same agent code, different dependencies. No mocking frameworks needed.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Validation Tab -->
+    <section id="validation" class="tab-content">
+      <div class="panel">
+        <h3>Output Validation with Automatic Retry</h3>
+        <p class="panel-description">
+          When you specify an <code>output_type</code>, PydanticAI validates LLM responses against the schema.
+          Failed validation triggers retry with the error message, letting the model self-correct.
+        </p>
+
+        <div class="validation-demo">
+          <div class="validation-config">
+            <h4>Pydantic Model</h4>
+            <pre><code>class MovieReview(BaseModel):
+    title: str
+    rating: int = Field(ge=1, le=10)
+    summary: str = Field(max_length=200)
+    recommend: bool</code></pre>
+
+            <div class="form-group">
+              <label for="llm-output">Simulate LLM Output</label>
+              <select id="llm-output">
+                <option value="valid">Valid output (rating: 8)</option>
+                <option value="invalid-rating">Invalid rating (15 > 10)</option>
+                <option value="invalid-summary">Summary too long (300+ chars)</option>
+                <option value="missing-field">Missing required field</option>
+              </select>
+            </div>
+
+            <button id="run-validation" class="btn-primary">Run Validation</button>
+            <button id="reset-validation" class="btn-secondary">Reset</button>
+          </div>
+
+          <div class="validation-flow" id="validation-flow">
+            <div class="flow-placeholder">Select an output scenario and click "Run Validation"</div>
+          </div>
+        </div>
+
+        <div class="retry-explanation">
+          <h4>How Retry Works</h4>
+          <div class="retry-steps">
+            <div class="retry-step">
+              <span class="retry-num">1</span>
+              <span>LLM generates structured output</span>
+            </div>
+            <div class="retry-step">
+              <span class="retry-num">2</span>
+              <span>Pydantic validates against schema</span>
+            </div>
+            <div class="retry-step">
+              <span class="retry-num">3</span>
+              <span>If invalid, error feeds back to LLM</span>
+            </div>
+            <div class="retry-step">
+              <span class="retry-num">4</span>
+              <span>LLM corrects and retries (up to retries=N)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Code Builder Tab -->
+    <section id="builder" class="tab-content">
+      <div class="panel">
+        <h3>PydanticAI Code Builder</h3>
+        <p class="panel-description">Configure your agent setup and generate ready-to-use Python code.</p>
+
+        <div class="builder-grid">
+          <div class="builder-config">
+            <h4>Configuration</h4>
+
+            <div class="config-section">
+              <h5>Model Provider</h5>
+              <div class="form-group">
+                <select id="model-select">
+                  <option value="openai:gpt-4o">OpenAI GPT-4o</option>
+                  <option value="openai:gpt-4o-mini">OpenAI GPT-4o-mini</option>
+                  <option value="anthropic:claude-sonnet-4-20250514">Anthropic Claude Sonnet</option>
+                  <option value="google:gemini-2.0-flash">Google Gemini Flash</option>
+                  <option value="groq:llama-3.3-70b">Groq Llama 3.3</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="config-section">
+              <h5>Pattern</h5>
+              <div class="pattern-select">
+                <label class="pattern-option">
+                  <input type="radio" name="pattern" value="basic" checked>
+                  <span class="pattern-label">Basic Agent</span>
+                  <span class="pattern-desc">Simple agent with tools</span>
+                </label>
+                <label class="pattern-option">
+                  <input type="radio" name="pattern" value="structured">
+                  <span class="pattern-label">Structured Output</span>
+                  <span class="pattern-desc">Validated Pydantic output</span>
+                </label>
+                <label class="pattern-option">
+                  <input type="radio" name="pattern" value="deps">
+                  <span class="pattern-label">With Dependencies</span>
+                  <span class="pattern-desc">Dependency injection</span>
+                </label>
+                <label class="pattern-option">
+                  <input type="radio" name="pattern" value="streaming">
+                  <span class="pattern-label">Streaming</span>
+                  <span class="pattern-desc">Stream structured output</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="config-section" id="tools-section">
+              <h5>Tools</h5>
+              <div class="checkbox-group">
+                <label><input type="checkbox" id="tool-search" checked> search_database(query)</label>
+                <label><input type="checkbox" id="tool-fetch"> fetch_user(user_id)</label>
+                <label><input type="checkbox" id="tool-calc"> calculate(expression)</label>
+              </div>
+            </div>
+
+            <button id="generate-code" class="btn-primary">Generate Code</button>
+          </div>
+
+          <div class="builder-output">
+            <div class="output-header">
+              <h4>Generated Code</h4>
+              <button id="copy-code" class="btn-copy">Copy to Clipboard</button>
+            </div>
+            <pre id="generated-code"><code># Configure your settings and click "Generate Code"
+
+from pydantic_ai import Agent
+
+# Your code will appear here...</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="key-insights">
+      <h2>Key Insights</h2>
+      <ul>
+        <li><strong>Type hints are the contract</strong>&mdash;DepsT and OutputT are enforced by IDE and type checker.</li>
+        <li><strong>Tools auto-generate schemas</strong>&mdash;no decorators or manual registration needed.</li>
+        <li><strong>Dependencies are injectable</strong>&mdash;override() swaps them for testing without code changes.</li>
+        <li><strong>Validation triggers retry</strong>&mdash;errors feed back to the LLM for self-correction.</li>
+        <li><strong>Model agnostic</strong>&mdash;50+ providers: OpenAI, Anthropic, Google, Groq, and more.</li>
+      </ul>
+    </section>
+  </div>
+
+  <script src="demo.js"></script>
+</body>
+</html>

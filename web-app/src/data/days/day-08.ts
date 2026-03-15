@@ -1044,170 +1044,54 @@ print(result["messages"][-1].content[:200])`,
     diagrams: [
       {
         title: "Checkpoint Architecture",
-        type: "architecture",
-        ascii: `
-┌────────────────────────────────────────────────────────────────────┐
-│                     CHECKPOINTING SYSTEM                            │
-├────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌─────────────┐    invoke()     ┌─────────────────────────────┐   │
-│  │   Client    │ ──────────────► │        LangGraph Agent       │   │
-│  │ (thread_id) │                 │                              │   │
-│  └─────────────┘                 │  ┌────────┐    ┌────────┐    │   │
-│        │                         │  │ Node A │───►│ Node B │    │   │
-│        │                         │  └────┬───┘    └────┬───┘    │   │
-│        │                         │       │             │        │   │
-│        │                         │       ▼ save        ▼ save   │   │
-│        │                         │  ┌─────────────────────────┐ │   │
-│        │                         │  │     CHECKPOINTER        │ │   │
-│        │                         │  │  ┌─────────────────┐    │ │   │
-│        │                         │  │  │  Save state     │    │ │   │
-│        │                         │  │  │  after each     │    │ │   │
-│        │                         │  │  │  node execution │    │ │   │
-│        │                         │  │  └────────┬────────┘    │ │   │
-│        │                         │  └───────────┼─────────────┘ │   │
-│        │                         └──────────────┼───────────────┘   │
-│        │                                        │                   │
-│        │         ┌──────────────────────────────┘                   │
-│        │         ▼                                                  │
-│  ┌─────┴─────────────────────────────────────────────────────┐      │
-│  │                    CHECKPOINT STORAGE                      │      │
-│  │                                                            │      │
-│  │  Thread: user-123       Thread: user-456                   │      │
-│  │  ┌──────────────┐       ┌──────────────┐                   │      │
-│  │  │ Checkpoint 1 │       │ Checkpoint 1 │                   │      │
-│  │  │ - state: {}  │       │ - state: {}  │                   │      │
-│  │  │ - next: [A]  │       │ - next: [A]  │                   │      │
-│  │  ├──────────────┤       ├──────────────┤                   │      │
-│  │  │ Checkpoint 2 │       │ Checkpoint 2 │                   │      │
-│  │  │ - state: {}  │       │ - state: {}  │                   │      │
-│  │  │ - next: [B]  │       │ - next: []   │                   │      │
-│  │  └──────────────┘       └──────────────┘                   │      │
-│  │                                                            │      │
-│  │  Storage Options:                                          │      │
-│  │  • MemorySaver  (dict in RAM)                              │      │
-│  │  • SqliteSaver  (local file)                               │      │
-│  │  • PostgresSaver (network database)                        │      │
-│  └────────────────────────────────────────────────────────────┘      │
-│                                                                     │
-└────────────────────────────────────────────────────────────────────┘`,
+        type: "mermaid",
+        mermaid: `flowchart TB
+    client[Client] --> agent[LangGraph Agent]
+    agent --> nodeA[Node A]
+    nodeA --> nodeB[Node B]
+    nodeA --> cp[Checkpointer]
+    nodeB --> cp
+    cp --> storage[Checkpoint Storage]
+    storage --> t1[Thread 1]
+    storage --> t2[Thread 2]
+
+    style agent fill:#3b82f6,color:#fff
+    style cp fill:#8b5cf6,color:#fff
+    style storage fill:#00d084,color:#000`,
         caption: "Checkpointing saves state after each node. Each thread_id gets isolated storage. Different backends offer different persistence guarantees."
       },
       {
         title: "Human-in-the-Loop Flow",
-        type: "flow",
-        ascii: `
-┌──────────────────────────────────────────────────────────────────┐
-│               HUMAN-IN-THE-LOOP WORKFLOW                          │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│    ┌──────────┐                                                   │
-│    │  START   │                                                   │
-│    └────┬─────┘                                                   │
-│         │                                                         │
-│         ▼                                                         │
-│    ┌──────────────┐                                               │
-│    │   GENERATE   │  AI creates draft/proposal                    │
-│    │   (AI Node)  │                                               │
-│    └──────┬───────┘                                               │
-│           │                                                       │
-│           ▼                                                       │
-│    ┌──────────────────────────────────────────────────────┐       │
-│    │              CHECKPOINT SAVED                         │       │
-│    │      approval_status = "pending"                      │       │
-│    │      Workflow PAUSED - waiting for human              │       │
-│    └──────────────────────────────────────────────────────┘       │
-│                        ║                                          │
-│    ════════════════════╬══════════════════════════════════        │
-│         EXTERNAL       ║      Human reviews in web app,           │
-│         WORLD          ║      email, Slack, etc.                  │
-│    ════════════════════╬══════════════════════════════════        │
-│                        ║                                          │
-│                        ▼                                          │
-│    ┌──────────────────────────────────────────────────────┐       │
-│    │           update_state(config, {...})                 │       │
-│    │                                                       │       │
-│    │   Option A: {"approval_status": "approved"}           │       │
-│    │   Option B: {"approval_status": "rejected",           │       │
-│    │              "feedback": "needs more detail"}         │       │
-│    └──────────────────────────────────────────────────────┘       │
-│                        │                                          │
-│                        ▼                                          │
-│    ┌──────────────────────────────────────────────────────┐       │
-│    │              invoke(None, config)                     │       │
-│    │              Resume from checkpoint                   │       │
-│    └──────────────────────────────────────────────────────┘       │
-│                        │                                          │
-│         ┌──────────────┴──────────────┐                           │
-│         │                             │                           │
-│    ┌────▼─────┐                 ┌─────▼────┐                      │
-│    │ APPROVED │                 │ REJECTED │                      │
-│    └────┬─────┘                 └─────┬────┘                      │
-│         │                             │                           │
-│         ▼                             ▼                           │
-│    ┌──────────┐                 ┌──────────┐                      │
-│    │ FINALIZE │                 │  REVISE  │──────┐               │
-│    └────┬─────┘                 └──────────┘      │               │
-│         │                                         │               │
-│         │                              ┌──────────┘               │
-│         ▼                              ▼                          │
-│    ┌──────────┐                 ┌──────────────┐                  │
-│    │   END    │                 │   GENERATE   │ (loop back)      │
-│    └──────────┘                 └──────────────┘                  │
-│                                                                   │
-└──────────────────────────────────────────────────────────────────┘`,
+        type: "mermaid",
+        mermaid: `flowchart TB
+    start[Start] --> generate[Generate Draft]
+    generate --> pause[Checkpoint - Waiting]
+    pause --> human[Human Review]
+    human --> decision{Decision}
+    decision -->|Approved| finalize[Finalize]
+    decision -->|Rejected| revise[Revise]
+    revise --> generate
+    finalize --> done[End]
+
+    style pause fill:#ff9500,color:#000
+    style human fill:#8b5cf6,color:#fff
+    style done fill:#00d084,color:#000`,
         caption: "Human-in-the-loop: Agent pauses at checkpoint, external system notifies human, human updates state via API, agent resumes and routes based on decision."
       },
       {
         title: "Thread Isolation",
-        type: "architecture",
-        ascii: `
-┌──────────────────────────────────────────────────────────────────┐
-│                    THREAD ISOLATION                               │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                   │
-│   User A                           User B                         │
-│   ┌───────────────────────┐       ┌───────────────────────┐      │
-│   │ "I need help with X"  │       │ "My account is locked" │      │
-│   └───────────┬───────────┘       └───────────┬───────────┘      │
-│               │                               │                   │
-│               ▼                               ▼                   │
-│   thread_id: "user-A-001"        thread_id: "user-B-001"         │
-│               │                               │                   │
-│               ▼                               ▼                   │
-│   ┌───────────────────────────────────────────────────────┐      │
-│   │                    LANGGRAPH AGENT                     │      │
-│   │                   (Same code/graph)                    │      │
-│   └───────────────────────┬───────────────────────────────┘      │
-│                           │                                       │
-│       ┌───────────────────┼───────────────────┐                  │
-│       │                   │                   │                  │
-│       ▼                   │                   ▼                  │
-│   ┌────────────────┐      │      ┌────────────────┐              │
-│   │ Thread: A-001  │      │      │ Thread: B-001  │              │
-│   ├────────────────┤      │      ├────────────────┤              │
-│   │ messages:      │      │      │ messages:      │              │
-│   │  - "help X"    │  ISOLATED   │  - "locked"    │              │
-│   │  - "Sure..."   │◄────┼─────► │  - "Let me..." │              │
-│   │ user_context:  │     │       │ user_context:  │              │
-│   │  - account_A   │   NO DATA   │  - account_B   │              │
-│   │ iteration: 3   │   SHARING   │ iteration: 1   │              │
-│   └────────────────┘      │      └────────────────┘              │
-│                           │                                       │
-│                           │                                       │
-│   User A continues:       │      User B continues:                │
-│   "What about Y?"         │      "Can you reset it?"              │
-│           │               │               │                       │
-│           ▼               │               ▼                       │
-│   Uses thread A-001       │      Uses thread B-001                │
-│   (has full context)      │      (has full context)               │
-│                           │                                       │
-│                           │                                       │
-│   GUARANTEE: User A cannot see User B's data                      │
-│              User B cannot see User A's data                      │
-│              Each thread is completely independent                │
-│                                                                   │
-└──────────────────────────────────────────────────────────────────┘`,
+        type: "mermaid",
+        mermaid: `flowchart TB
+    userA[User A] --> agent[LangGraph Agent]
+    userB[User B] --> agent
+    agent --> threadA[Thread A-001]
+    agent --> threadB[Thread B-001]
+    threadA --> stateA[State A]
+    threadB --> stateB[State B]
+
+    style agent fill:#3b82f6,color:#fff
+    style threadA fill:#00d084,color:#000
+    style threadB fill:#00d084,color:#000`,
         caption: "Thread IDs provide complete isolation. The same agent code serves multiple users, but each user's state is stored separately and cannot leak to other threads."
       }
     ],

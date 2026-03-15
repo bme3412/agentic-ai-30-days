@@ -66,38 +66,18 @@ user_proxy.initiate_chat(
     },
 
     diagram: {
-      type: "flow",
+      type: "mermaid",
       title: "AutoGen Two-Agent Conversation",
-      ascii: `
-    ┌─────────────────────────────────────────────────────────────┐
-    │                    AUTOGEN CONVERSATION                      │
-    │                   (Message-Based Collaboration)              │
-    └───────────────────────────┬─────────────────────────────────┘
-                                │
-         ┌──────────────────────┴──────────────────────┐
-         │                                             │
-         ▼                                             ▼
-    ┌───────────────────┐                    ┌───────────────────┐
-    │  USER PROXY AGENT │                    │  ASSISTANT AGENT  │
-    │  ───────────────  │                    │  ───────────────  │
-    │  • Execute code   │◄──── messages ────►│  • LLM-powered    │
-    │  • Human input    │                    │  • Generate code  │
-    │  • Termination    │                    │  • Suggest fixes  │
-    └───────────────────┘                    └───────────────────┘
-              │                                       │
-              │    "Calculate Fibonacci..."           │
-              │────────────────────────────────────►  │
-              │                                       │
-              │    "Here's Python code:..."          │
-              │ ◄────────────────────────────────────│
-              │                                       │
-              │    [executes] "Result: 6765"          │
-              │────────────────────────────────────►  │
-              │                                       │
-              │    "The 20th Fibonacci is 6765"       │
-              │ ◄────────────────────────────────────│
-              │                                       │
-         TERMINATE                                    │`
+      mermaid: `flowchart LR
+    user[User Proxy] -->|message| assistant[Assistant]
+    assistant -->|code| user
+    user -->|execute| result[Result]
+    result --> assistant
+    assistant -->|TERMINATE| done[Done]
+
+    style user fill:#0078d4,color:#fff
+    style assistant fill:#50e6ff,color:#000
+    style done fill:#00d084,color:#000`
     },
 
     keyTakeaways: [
@@ -696,74 +676,36 @@ user_proxy.initiate_chat(
     diagrams: [
       {
         title: "AutoGen Agent Hierarchy",
-        type: "architecture",
-        ascii: `
-    ┌─────────────────────────────────────────────────────────────┐
-    │                    CONVERSABLE AGENT                         │
-    │         (Base class: send/receive messages)                  │
-    │                                                              │
-    │    • name: str                                               │
-    │    • llm_config: Optional[dict]                              │
-    │    • human_input_mode: ALWAYS | TERMINATE | NEVER            │
-    │    • is_termination_msg: Callable                            │
-    └───────────────────────────┬─────────────────────────────────┘
-                                │
-              ┌─────────────────┴─────────────────┐
-              ▼                                   ▼
-    ┌───────────────────────┐         ┌───────────────────────┐
-    │   ASSISTANT AGENT     │         │   USER PROXY AGENT    │
-    │   ─────────────────   │         │   ─────────────────   │
-    │                       │         │                       │
-    │   + LLM capabilities  │         │   + Code execution    │
-    │   + Code generation   │         │   + Human interaction │
-    │   + System message    │         │   + Tool execution    │
-    │   + Suggests tools    │         │   + Runs tools        │
-    │                       │         │                       │
-    │   llm_config REQUIRED │         │   llm_config=False    │
-    └───────────────────────┘         └───────────────────────┘`,
-        caption: "ConversableAgent is the foundation. AssistantAgent adds LLM capabilities; UserProxyAgent adds execution capabilities."
+        type: "mermaid",
+        mermaid: `flowchart TB
+    base[ConversableAgent] --> assistant[AssistantAgent]
+    base --> proxy[UserProxyAgent]
+    assistant --> llm[LLM + Code Gen]
+    proxy --> exec[Code Execution]
+    proxy --> human[Human Input]
+
+    style base fill:#0078d4,color:#fff
+    style assistant fill:#50e6ff,color:#000
+    style proxy fill:#50e6ff,color:#000`,
+        caption: "ConversableAgent is the foundation. AssistantAgent adds LLM; UserProxyAgent adds execution."
       },
       {
-        title: "GroupChat Flow with Manager",
-        type: "flow",
-        ascii: `
-    ┌─────────────────────────────────────────────────────────────┐
-    │                    GROUP CHAT MANAGER                        │
-    │              (LLM-based speaker selection)                   │
-    │                                                              │
-    │   "Based on the conversation, who should speak next?"        │
-    └───────────────────────────┬─────────────────────────────────┘
-                                │
-                                ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │                       GROUP CHAT                             │
-    │                    agents=[A, B, C, D]                       │
-    │                     max_round=15                             │
-    └─────────────────────────────────────────────────────────────┘
-         │                │                │                │
-         ▼                ▼                ▼                ▼
-    ┌─────────┐      ┌─────────┐      ┌─────────┐      ┌─────────┐
-    │  User   │      │  Coder  │      │ Reviewer│      │ Tester  │
-    │  Proxy  │      │         │      │         │      │         │
-    └─────────┘      └─────────┘      └─────────┘      └─────────┘
-         │
-         │ initiate_chat(manager, message)
-         ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │                  CONVERSATION FLOW                           │
-    │                                                              │
-    │  User: "Build a sorting function"                            │
-    │     ↓ [Manager selects: Coder]                               │
-    │  Coder: "Here's quicksort:..."                               │
-    │     ↓ [Manager selects: Reviewer]                            │
-    │  Reviewer: "Edge case issue with empty list..."              │
-    │     ↓ [Manager selects: Coder]                               │
-    │  Coder: "Fixed version:..."                                  │
-    │     ↓ [Manager selects: Tester]                              │
-    │  Tester: "Test cases:..."                                    │
-    │     ↓ [Manager selects: User (TERMINATE)]                    │
-    └─────────────────────────────────────────────────────────────┘`,
-        caption: "GroupChatManager uses an LLM to dynamically select the next speaker based on conversation context."
+        title: "GroupChat Flow",
+        type: "mermaid",
+        mermaid: `flowchart LR
+    user[User] --> manager[GroupChat Manager]
+    manager --> coder[Coder]
+    manager --> reviewer[Reviewer]
+    manager --> tester[Tester]
+    coder -.-> manager
+    reviewer -.-> manager
+    tester -.-> manager
+
+    style manager fill:#0078d4,color:#fff
+    style coder fill:#6366f1,color:#fff
+    style reviewer fill:#f59e0b,color:#000
+    style tester fill:#00d084,color:#000`,
+        caption: "GroupChatManager dynamically selects speakers based on conversation context."
       }
     ],
     keyTakeaways: [

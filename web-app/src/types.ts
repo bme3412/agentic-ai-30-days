@@ -41,6 +41,7 @@ export interface Diagram {
   type?: string;
   content?: string;
   ascii?: string;
+  mermaid?: string;
   caption?: string;
 }
 
@@ -98,7 +99,8 @@ export interface Lesson {
   diagram?: {
     type?: string;
     title?: string;
-    ascii: string;
+    ascii?: string;
+    mermaid?: string;
   };
   keyTakeaways?: string[];
   resources?: Resource[];

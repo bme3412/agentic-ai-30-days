@@ -535,7 +535,7 @@ function renderLearnContentSimple(learn: Learn, d: Day): string {
           ${learn.diagrams.map(diag => `
             <figure>
               ${diag.title ? `<figcaption>${diag.title}</figcaption>` : ''}
-              <pre>${escapeHtml(diag.ascii || diag.content || '')}</pre>
+              ${renderDiagram(diag)}
             </figure>
           `).join('')}
         </section>
@@ -853,7 +853,7 @@ function renderLearnContentV2(learn: Learn, d: Day): string {
             ${learn.diagrams.map(diag => `
               <figure class="diagram-figure">
                 <figcaption>${diag.title || 'Diagram'}</figcaption>
-                <pre class="diagram-pre">${escapeHtml(diag.ascii || diag.content || '')}</pre>
+                ${renderDiagram(diag, 'diagram-pre')}
               </figure>
             `).join('')}
           </div>
@@ -1157,7 +1157,9 @@ function convertLessonToLearn(lesson: Lesson | undefined): Learn | null {
     diagrams: lesson.diagram ? [{
       title: lesson.diagram.title,
       type: lesson.diagram.type,
-      content: lesson.diagram.ascii
+      content: lesson.diagram.ascii,
+      ascii: lesson.diagram.ascii,
+      mermaid: lesson.diagram.mermaid
     }] : [],
     keyTakeaways: lesson.keyTakeaways || [],
     resources: lesson.resources || []
@@ -1191,7 +1193,7 @@ function renderLearnOverviewTab(learn: Learn, d: Day): string {
           ${learn.diagrams.map(diag => `
             <div class="learn-diagram">
               <h5>${diag.title || 'Diagram'}</h5>
-              <pre class="diagram-ascii">${escapeHtml(diag.ascii || diag.content || '')}</pre>
+              ${renderDiagram(diag)}
               ${diag.caption ? `<p class="diagram-caption">${diag.caption}</p>` : ''}
             </div>
           `).join('')}
@@ -1481,7 +1483,9 @@ function renderLessonContent(lesson: Lesson): string {
       ${lesson.diagram ? `
         <div class="lesson-diagram">
           <h4>${lesson.diagram.title || "Diagram"}</h4>
-          <pre class="diagram-ascii">${escapeHtml(lesson.diagram.ascii)}</pre>
+          ${lesson.diagram.mermaid
+            ? `<pre class="mermaid">${lesson.diagram.mermaid}</pre>`
+            : `<pre class="diagram-ascii">${escapeHtml(lesson.diagram.ascii || '')}</pre>`}
         </div>
       ` : ""}
 
@@ -2375,6 +2379,9 @@ function setupScrollSpy(): void {
 
 // ── Event Delegation ───────────────────────────────
 function bindEvents(): void {
+  // Render any mermaid diagrams on the page (with small delay for DOM)
+  setTimeout(() => renderMermaidDiagrams(), 100);
+
   // Navigate to day page
   document.querySelectorAll<HTMLElement>("[data-action='go-to-day']").forEach(el => {
     el.addEventListener("click", (e) => {
@@ -2900,6 +2907,85 @@ function bindLearnTabs(): void {
 }
 
 // ── Utilities ──────────────────────────────────────
+
+// Declare mermaid global from CDN
+declare const mermaid: {
+  initialize: (config: object) => void;
+  run: (config?: { nodes?: HTMLElement[]; querySelector?: string }) => Promise<void>;
+};
+
+// Initialize mermaid with config
+let mermaidInitialized = false;
+function initMermaid(): void {
+  if (mermaidInitialized || typeof mermaid === 'undefined') return;
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#e8ddd4',
+      primaryTextColor: '#1a1a1a',
+      primaryBorderColor: '#c4b5a5',
+      lineColor: '#8b7355',
+      secondaryColor: '#f5f0eb',
+      tertiaryColor: '#fff',
+      fontFamily: 'JetBrains Mono, monospace',
+      fontSize: '14px'
+    },
+    flowchart: {
+      curve: 'basis',
+      padding: 20
+    }
+  });
+  mermaidInitialized = true;
+}
+
+// Wait for mermaid to load
+function waitForMermaid(maxWait = 5000): Promise<boolean> {
+  return new Promise(resolve => {
+    if (typeof mermaid !== 'undefined') {
+      resolve(true);
+      return;
+    }
+    const start = Date.now();
+    const check = () => {
+      if (typeof mermaid !== 'undefined') {
+        resolve(true);
+      } else if (Date.now() - start > maxWait) {
+        resolve(false);
+      } else {
+        setTimeout(check, 100);
+      }
+    };
+    check();
+  });
+}
+
+// Render mermaid diagrams on page
+async function renderMermaidDiagrams(): Promise<void> {
+  const mermaidElements = document.querySelectorAll('.mermaid:not([data-processed="true"])');
+  if (mermaidElements.length === 0) return;
+
+  const loaded = await waitForMermaid();
+  if (!loaded) return;
+
+  initMermaid();
+
+  try {
+    await mermaid.run();
+  } catch (err) {
+    console.error('Mermaid error:', err);
+  }
+}
+
+// Helper to render a diagram (ascii or mermaid)
+function renderDiagram(diag: { title?: string; ascii?: string; mermaid?: string; content?: string; caption?: string }, className = 'diagram-ascii'): string {
+  if (diag.mermaid) {
+    // Don't escape mermaid content - it needs raw syntax
+    return `<pre class="mermaid">${diag.mermaid}</pre>`;
+  }
+  return `<pre class="${className}">${escapeHtml(diag.ascii || diag.content || '')}</pre>`;
+}
+
 function escapeHtml(str: string): string {
   const div = document.createElement("div");
   div.textContent = str;

@@ -306,88 +306,37 @@ print(response.tool_calls[0]["args"])
     diagrams: [
       {
         title: "Tool Calling Flow",
-        type: "flow",
-        ascii: `
-+-----------------------------------------------------------------------+
-|                      LANGCHAIN TOOL CALLING FLOW                       |
-+-----------------------------------------------------------------------+
-|                                                                        |
-|    +------------+                                                      |
-|    | User Input |                                                      |
-|    +-----+------+                                                      |
-|          v                                                             |
-|    +------------+    +------------+                                    |
-|    |bind_tools()|--->|   Model    |                                    |
-|    | [tool1,    |    |  Reasons   |                                    |
-|    |  tool2]    |    +-----+------+                                    |
-|    +------------+          |                                           |
-|                            v                                           |
-|               +---------------------+                                  |
-|               | Tool calls needed?  |                                  |
-|               +----------+----------+                                  |
-|                          |                                             |
-|         +----------------+----------------+                            |
-|         v Yes                             v No                         |
-|    +------------+                   +------------+                     |
-|    | tool_calls:|                   |Final Answer|                     |
-|    |[{name,args,|                   |   (text)   |                     |
-|    |  id}, ...] |                   +------------+                     |
-|    +-----+------+                                                      |
-|          v                                                             |
-|    +------------+                                                      |
-|    |Execute Each|                                                      |
-|    |   Tool     |                                                      |
-|    +-----+------+                                                      |
-|          v                                                             |
-|    +------------+                                                      |
-|    |ToolMessage |-------+                                              |
-|    | (results)  |       |                                              |
-|    +------------+       +------> Model (loop back)                     |
-|                                                                        |
-+-----------------------------------------------------------------------+`,
+        type: "mermaid",
+        mermaid: `flowchart TB
+    input[User Input] --> model[Model + Tools]
+    model --> check{Tools Needed?}
+    check -->|Yes| execute[Execute Tools]
+    check -->|No| answer[Final Answer]
+    execute --> result[ToolMessage]
+    result --> model
+
+    style model fill:#3b82f6,color:#fff
+    style execute fill:#00d084,color:#000
+    style answer fill:#8b5cf6,color:#fff`,
         caption: "The tool calling loop: Model decides, Tools execute, Results feed back, Repeat until complete"
       },
       {
         title: "LangChain vs LangGraph Agents",
-        type: "comparison",
-        ascii: `
-+-----------------------------------------------------------------------+
-|                   LANGCHAIN AGENTS (AgentExecutor)                     |
-+-----------------------------------------------------------------------+
-|                                                                        |
-|   Input --> Agent --> Tool --> Agent --> Tool --> Agent --> Output     |
-|                                                                        |
-|   [+] Simple setup                   [-] No cycles/loops in flow       |
-|   [+] Quick prototyping              [-] Limited state management      |
-|   [+] Built-in error handling        [-] No checkpointing              |
-|   [+] Works with any tools           [-] No human-in-the-loop          |
-|                                                                        |
-|   Best for: Prototypes, simple Q&A, straightforward tool use           |
-+-----------------------------------------------------------------------+
+        type: "mermaid",
+        mermaid: `flowchart LR
+    subgraph LangChain
+        lc1[Agent] --> lc2[Tool] --> lc3[Agent] --> lc4[Output]
+    end
+    subgraph LangGraph
+        lg1[Node] --> lg2[Node]
+        lg2 --> lg3[Node]
+        lg2 --> lg1
+        lg3 --> state[State]
+    end
 
-+-----------------------------------------------------------------------+
-|                    LANGGRAPH AGENTS (StateGraph)                       |
-+-----------------------------------------------------------------------+
-|                                                                        |
-|   +---------+     +---------+     +---------+                          |
-|   |  Node   |---->|  Node   |---->|  Node   |                          |
-|   +----+----+     +----+----+     +----+----+                          |
-|        |              |              |                                 |
-|        |   +----------+--------------+                                 |
-|        |   |                                                           |
-|        +---+-----> (conditional edges, cycles)                         |
-|            v                                                           |
-|   +-----------------+                                                  |
-|   |  Centralized    |                                                  |
-|   |     State       |                                                  |
-|   +-----------------+                                                  |
-|                                                                        |
-|   [+] Cycles and loops             [+] Checkpointing/persistence       |
-|   [+] Rich state management        [+] Human-in-the-loop               |
-|   [+] Conditional branching        [+] Production-grade                |
-|                                                                        |
-|   Best for: Production agents, complex workflows, multi-agent          |
-+-----------------------------------------------------------------------+`,
+    style lc1 fill:#3b82f6,color:#fff
+    style lg1 fill:#00d084,color:#000
+    style state fill:#8b5cf6,color:#fff`,
         caption: "Start with LangChain agents for speed, graduate to LangGraph for control and production needs."
       }
     ],

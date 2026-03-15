@@ -78,32 +78,19 @@ result = crew.kickoff(inputs={"topic": "AI agents"})`
     },
 
     diagram: {
-      type: "flow",
+      type: "mermaid",
       title: "CrewAI Task Flow",
-      ascii: `
-    ┌─────────────────────────────────────────────────────────────┐
-    │                         CREW                                 │
-    └───────────────────────────┬─────────────────────────────────┘
-                                │
-            ┌───────────────────┼───────────────────┐
-            ▼                   ▼                   ▼
-    ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-    │  RESEARCHER   │   │   ANALYST     │   │    WRITER     │
-    │  Role + Goal  │   │  Role + Goal  │   │  Role + Goal  │
-    │  + Backstory  │   │  + Backstory  │   │  + Backstory  │
-    └───────┬───────┘   └───────┬───────┘   └───────┬───────┘
-            │                   │                   │
-            ▼                   ▼                   ▼
-    ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-    │   TASK 1      │──▶│   TASK 2      │──▶│   TASK 3      │
-    │   Research    │   │   Analyze     │   │   Write       │
-    │               │   │  context=[1]  │   │ context=[1,2] │
-    └───────────────┘   └───────────────┘   └───────────────┘
-                                                    │
-                                                    ▼
-                                            ┌──────────────┐
-                                            │ FINAL OUTPUT │
-                                            └──────────────┘`
+      mermaid: `flowchart LR
+    crew[Crew] --> r[Researcher]
+    crew --> a[Analyst]
+    crew --> w[Writer]
+    r --> t1[Task 1]
+    t1 --> t2[Task 2]
+    t2 --> t3[Task 3]
+    t3 --> output[Output]
+
+    style crew fill:#ff5a1f,color:#fff
+    style output fill:#00d084,color:#000`
     },
 
     keyTakeaways: [
@@ -495,37 +482,20 @@ result = crew.kickoff(inputs={"ticker": "TSLA"})`,
     diagrams: [
       {
         title: "CrewAI Architecture",
-        type: "architecture",
-        ascii: `
-    ┌─────────────────────────────────────────────────────────────┐
-    │                         CREW                                 │
-    │              (Orchestrator + Process Type)                   │
-    └───────────────────────────┬─────────────────────────────────┘
-                                │
-            ┌───────────────────┼───────────────────┐
-            │                   │                   │
-            ▼                   ▼                   ▼
-    ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-    │   AGENT 1     │   │   AGENT 2     │   │   AGENT 3     │
-    │   ─────────   │   │   ─────────   │   │   ─────────   │
-    │   Role        │   │   Role        │   │   Role        │
-    │   Goal        │   │   Goal        │   │   Goal        │
-    │   Backstory   │   │   Backstory   │   │   Backstory   │
-    │   Tools       │   │   Tools       │   │   Tools       │
-    └───────┬───────┘   └───────┬───────┘   └───────┬───────┘
-            │                   │                   │
-            ▼                   ▼                   ▼
-    ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-    │   TASK 1      │   │   TASK 2      │   │   TASK 3      │
-    │   ─────────   │──▶│   ─────────   │──▶│   ─────────   │
-    │   description │   │   description │   │   description │
-    │   output      │   │   context     │   │   context     │
-    └───────────────┘   └───────────────┘   └───────────────┘
-                                                    │
-                                                    ▼
-                                            ┌──────────────┐
-                                            │ FINAL OUTPUT │
-                                            └──────────────┘`,
+        type: "mermaid",
+        mermaid: `flowchart TB
+    crew[Crew] --> a1[Agent 1]
+    crew --> a2[Agent 2]
+    crew --> a3[Agent 3]
+    a1 --> t1[Task 1]
+    a2 --> t2[Task 2]
+    a3 --> t3[Task 3]
+    t1 --> t2
+    t2 --> t3
+    t3 --> output[Final Output]
+
+    style crew fill:#ff5a1f,color:#fff
+    style output fill:#00d084,color:#000`,
         caption: "Crew orchestrates Agents assigned to Tasks. Context flows between tasks, enabling collaboration."
       }
     ],
