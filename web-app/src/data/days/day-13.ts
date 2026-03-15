@@ -125,17 +125,9 @@ print(result.output.recommendation)  # Type-safe access`
 
 **Built by the Source**: Pydantic is the validation library that powers OpenAI's SDK, Anthropic's SDK, LangChain, and most Python AI tools. PydanticAI represents the creators' vision for how validation should integrate with agent development—not as an add-on, but as the foundation.
 
-**The Core Problem**: LLMs are unreliable. They return malformed JSON, hallucinate fields, and ignore constraints. Most frameworks treat this as the developer's problem. PydanticAI makes validation automatic:
-- Output types are Pydantic models—validated before reaching your code
-- Failed validation triggers retry with error feedback
-- Tools validate arguments and return structured errors to the model
+**The Core Problem**: LLMs are unreliable. They return malformed JSON, hallucinate fields, and ignore constraints. Most frameworks treat this as the developer's problem. PydanticAI makes validation automatic. Output types are Pydantic models that are validated before reaching your code. Failed validation triggers automatic retry with error feedback. Tools validate arguments and return structured errors to the model.
 
-**What You'll Learn**:
-1. Creating type-parameterized agents with DepsT and OutputT
-2. Defining tools with automatic schema generation from type hints
-3. Injecting dependencies for testable, modular agents
-4. Validating structured outputs with automatic retry
-5. Streaming validated structured data
+**What You'll Learn**: Creating type-parameterized agents with DepsT and OutputT. Defining tools with automatic schema generation from type hints. Injecting dependencies for testable, modular agents. Validating structured outputs with automatic retry. Streaming validated structured data.
 
 By the end, you'll understand how to build agents that catch errors at write-time, not runtime.`,
       prerequisites: ["Day 2: Structured Outputs & Function Calling", "Python type hints and Pydantic basics", "Understanding of dependency injection patterns"],
@@ -641,15 +633,15 @@ asyncio.run(stream_blog_post("AI in 2025"))`,
         title: "PydanticAI Type System",
         type: "mermaid",
         mermaid: `flowchart LR
-    deps[DepsT] --> agent["Agent[DepsT, OutputT]"]
-    agent --> tools[@agent.tool]
+    deps[DepsT] --> agent[Agent]
+    agent --> tools[Tools]
     tools --> ctx[RunContext]
     agent --> llm[LLM Call]
-    llm --> pydantic[Pydantic Validation]
-    pydantic --> result[OutputT]
+    llm --> validate[Validation]
+    validate --> result[OutputT]
 
     style agent fill:#9d4edd,color:#fff
-    style pydantic fill:#ff9500,color:#000
+    style validate fill:#ff9500,color:#000
     style result fill:#00d084,color:#000`,
         caption: "Type parameters flow through the agent: DepsT types dependencies accessed via RunContext; OutputT types the validated result."
       },
@@ -680,7 +672,7 @@ asyncio.run(stream_blog_post("AI in 2025"))`,
     resources: [
       { title: "PydanticAI Documentation", url: "https://ai.pydantic.dev/", type: "docs", description: "Official docs with guides and API reference", summaryPath: "data/day-13/summary-pydantic-ai.md" },
       { title: "PydanticAI GitHub", url: "https://github.com/pydantic/pydantic-ai", type: "github", description: "Source code and examples", summaryPath: "data/day-13/summary-github.md" },
-      { title: "Pydantic Logfire", url: "https://pydantic.dev/logfire", type: "docs", description: "Observability platform for PydanticAI" },
+      { title: "Pydantic Logfire", url: "https://pydantic.dev/logfire", type: "docs", description: "Observability platform for PydanticAI", summaryPath: "data/day-13/summary-logfire.md" },
       { title: "PydanticAI Examples", url: "https://ai.pydantic.dev/examples/", type: "tutorial", description: "Flight booking, RAG, and more", summaryPath: "data/day-13/summary-examples.md" }
     ],
     faq: [
