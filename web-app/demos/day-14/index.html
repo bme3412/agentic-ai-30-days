@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 14: Vector Databases for Agents</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="../../#day/14" class="back-link">&larr; Back to Day 14</a>
+      <h1>Vector Databases</h1>
+      <p class="subtitle">Semantic search and agent memory with Weaviate</p>
+    </header>
+
+    <section class="demo-explanation">
+      <h2>What This Demo Teaches</h2>
+      <p>
+        Vector databases enable <strong>semantic search</strong>—finding content by meaning rather than keywords.
+        This demo explores how embeddings work, how similarity is calculated, and how to design agent memory systems.
+      </p>
+      <div class="explanation-grid">
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128290;</div>
+          <h3>Embeddings</h3>
+          <p>See how text becomes high-dimensional vectors that encode meaning.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128269;</div>
+          <h3>Similarity</h3>
+          <p>Compare texts using cosine similarity to find semantic matches.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128451;</div>
+          <h3>Collections</h3>
+          <p>Design Weaviate schemas with properties and vectorizers.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128200;</div>
+          <h3>Search Types</h3>
+          <p>Compare keyword, semantic, and hybrid search results.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo Tabs -->
+    <nav class="demo-tabs">
+      <button class="tab-btn active" data-tab="embeddings">
+        <span class="tab-icon">&#128290;</span>
+        <span class="tab-label">Embeddings</span>
+      </button>
+      <button class="tab-btn" data-tab="similarity">
+        <span class="tab-icon">&#128269;</span>
+        <span class="tab-label">Similarity</span>
+      </button>
+      <button class="tab-btn" data-tab="collections">
+        <span class="tab-icon">&#128451;</span>
+        <span class="tab-label">Collections</span>
+      </button>
+      <button class="tab-btn" data-tab="search">
+        <span class="tab-icon">&#128200;</span>
+        <span class="tab-label">Search</span>
+      </button>
+      <button class="tab-btn" data-tab="builder">
+        <span class="tab-icon">&#128187;</span>
+        <span class="tab-label">Code Builder</span>
+      </button>
+    </nav>
+
+    <!-- Embeddings Tab -->
+    <section id="embeddings" class="tab-content active">
+      <div class="panel">
+        <h3>Embedding Explorer</h3>
+        <p class="panel-description">
+          Embedding models convert text into vectors—lists of numbers that capture semantic meaning.
+          Enter text below to see a simulated embedding visualization.
+        </p>
+
+        <div class="embedding-demo">
+          <div class="input-section">
+            <label for="embedding-input">Enter text to embed:</label>
+            <textarea id="embedding-input" rows="3" placeholder="How do I debug Python code?">How do I debug Python code?</textarea>
+            <button id="generate-embedding" class="btn-primary">Generate Embedding</button>
+          </div>
+
+          <div class="embedding-output">
+            <div class="embedding-stats">
+              <div class="stat-card">
+                <span class="stat-value" id="dim-count">1536</span>
+                <span class="stat-label">Dimensions</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-value" id="model-name">text-embedding-3-small</span>
+                <span class="stat-label">Model</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-value" id="token-count">6</span>
+                <span class="stat-label">Tokens</span>
+              </div>
+            </div>
+
+            <div class="vector-visualization">
+              <h4>Vector Visualization (first 50 dimensions)</h4>
+              <div id="vector-bars" class="vector-bars"></div>
+              <p class="viz-note">Each bar represents one dimension. Height and color show the value (positive = blue, negative = red).</p>
+            </div>
+
+            <div class="raw-vector">
+              <h4>Raw Vector (first 20 values)</h4>
+              <pre id="raw-vector-output">[0.0234, -0.0156, 0.0412, -0.0089, 0.0567, ...]</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="concept-box">
+          <h4>How Embeddings Capture Meaning</h4>
+          <ul>
+            <li><strong>Semantic proximity:</strong> Similar meanings produce similar vectors</li>
+            <li><strong>Fixed size:</strong> Any text length maps to the same vector dimensions</li>
+            <li><strong>Learned features:</strong> Each dimension captures some aspect of meaning (not human-interpretable)</li>
+            <li><strong>Model-specific:</strong> Different models produce incompatible embeddings</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Similarity Tab -->
+    <section id="similarity" class="tab-content">
+      <div class="panel">
+        <h3>Similarity Calculator</h3>
+        <p class="panel-description">
+          Cosine similarity measures the angle between vectors—closer to 1.0 means more similar.
+          Compare a query against multiple documents to see which are semantically closest.
+        </p>
+
+        <div class="similarity-demo">
+          <div class="query-section">
+            <label for="query-input">Query:</label>
+            <input type="text" id="query-input" value="How do I fix errors in my Python code?" placeholder="Enter your search query">
+          </div>
+
+          <div class="documents-section">
+            <h4>Documents to Compare</h4>
+            <div class="document-inputs">
+              <div class="doc-input-row">
+                <span class="doc-label">Doc 1:</span>
+                <input type="text" class="doc-input" data-doc="1" value="Debugging Python: using print statements and breakpoints">
+              </div>
+              <div class="doc-input-row">
+                <span class="doc-label">Doc 2:</span>
+                <input type="text" class="doc-input" data-doc="2" value="Best restaurants in San Francisco">
+              </div>
+              <div class="doc-input-row">
+                <span class="doc-label">Doc 3:</span>
+                <input type="text" class="doc-input" data-doc="3" value="Python exception handling and error tracing">
+              </div>
+              <div class="doc-input-row">
+                <span class="doc-label">Doc 4:</span>
+                <input type="text" class="doc-input" data-doc="4" value="JavaScript async/await patterns">
+              </div>
+            </div>
+            <button id="calculate-similarity" class="btn-primary">Calculate Similarity</button>
+          </div>
+
+          <div class="similarity-results" id="similarity-results">
+            <h4>Results (sorted by similarity)</h4>
+            <div class="result-bars"></div>
+          </div>
+        </div>
+
+        <div class="concept-box">
+          <h4>Understanding Cosine Similarity</h4>
+          <ul>
+            <li><strong>Range:</strong> -1.0 (opposite) to 1.0 (identical)</li>
+            <li><strong>Threshold:</strong> Typically &gt;0.7 indicates strong similarity</li>
+            <li><strong>Weaviate returns distance:</strong> distance = 1 - similarity (so 0 = identical)</li>
+            <li><strong>Ignores magnitude:</strong> Only measures the angle between vectors</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Collections Tab -->
+    <section id="collections" class="tab-content">
+      <div class="panel">
+        <h3>Collection Designer</h3>
+        <p class="panel-description">
+          Weaviate collections define the schema for your data—properties, types, and vectorization settings.
+          Design a collection and see the generated Python code.
+        </p>
+
+        <div class="collection-designer">
+          <div class="designer-form">
+            <div class="form-group">
+              <label for="collection-name">Collection Name:</label>
+              <input type="text" id="collection-name" value="AgentMemory" placeholder="PascalCase name">
+            </div>
+
+            <div class="form-group">
+              <label for="vectorizer-select">Vectorizer:</label>
+              <select id="vectorizer-select">
+                <option value="text2vec-openai" selected>text2vec-openai (OpenAI)</option>
+                <option value="text2vec-cohere">text2vec-cohere (Cohere)</option>
+                <option value="text2vec-huggingface">text2vec-huggingface (HuggingFace)</option>
+                <option value="none">None (bring your own vectors)</option>
+              </select>
+            </div>
+
+            <div class="properties-section">
+              <h4>Properties</h4>
+              <div id="properties-list" class="properties-list">
+                <!-- Properties added dynamically -->
+              </div>
+              <button id="add-property" class="btn-secondary">+ Add Property</button>
+            </div>
+          </div>
+
+          <div class="generated-code">
+            <h4>Generated Python Code</h4>
+            <pre id="collection-code"></pre>
+            <button id="copy-collection-code" class="btn-copy">Copy Code</button>
+          </div>
+        </div>
+
+        <div class="concept-box">
+          <h4>Schema Design Tips</h4>
+          <ul>
+            <li><strong>TEXT properties:</strong> Automatically vectorized (unless skip_vectorization=True)</li>
+            <li><strong>Filter properties:</strong> Add user_id, session_id, timestamp for scoped queries</li>
+            <li><strong>PascalCase names:</strong> Collection names must be PascalCase (AgentMemory, not agent_memory)</li>
+            <li><strong>Plan for filtering:</strong> Properties enable filtered search within semantic results</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search Tab -->
+    <section id="search" class="tab-content">
+      <div class="panel">
+        <h3>Search Comparison</h3>
+        <p class="panel-description">
+          Compare keyword (BM25), semantic (vector), and hybrid search on the same query.
+          See how each approach handles different types of queries.
+        </p>
+
+        <div class="search-demo">
+          <div class="search-input-section">
+            <label for="search-query">Search Query:</label>
+            <input type="text" id="search-query" value="How to write concurrent Python code" placeholder="Enter search query">
+            <button id="run-search" class="btn-primary">Run All Searches</button>
+          </div>
+
+          <div class="search-dataset">
+            <h4>Sample Dataset</h4>
+            <div class="dataset-info">
+              <span class="dataset-count">8 documents</span>
+              <button id="show-dataset" class="btn-link">View documents</button>
+            </div>
+            <div id="dataset-modal" class="dataset-modal hidden">
+              <div class="modal-content">
+                <button class="close-modal">&times;</button>
+                <h4>Sample Documents</h4>
+                <ul id="dataset-list"></ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="search-results-grid">
+            <div class="search-column">
+              <h4>&#128273; Keyword (BM25)</h4>
+              <p class="search-desc">Matches exact terms, ranks by frequency</p>
+              <div id="keyword-results" class="search-results-list"></div>
+            </div>
+            <div class="search-column">
+              <h4>&#129520; Semantic (Vector)</h4>
+              <p class="search-desc">Matches by meaning, ignores exact words</p>
+              <div id="semantic-results" class="search-results-list"></div>
+            </div>
+            <div class="search-column">
+              <h4>&#128256; Hybrid (alpha=0.5)</h4>
+              <p class="search-desc">Combines both approaches</p>
+              <div id="hybrid-results" class="search-results-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="concept-box">
+          <h4>When to Use Each Search Type</h4>
+          <ul>
+            <li><strong>Keyword (BM25):</strong> Exact terms, code snippets, proper nouns, product codes</li>
+            <li><strong>Semantic:</strong> Conceptual queries, "how to" questions, varied phrasing</li>
+            <li><strong>Hybrid:</strong> General-purpose, RAG retrieval—best default for most cases</li>
+            <li><strong>Alpha parameter:</strong> 0 = pure keyword, 1 = pure vector, 0.5 = balanced</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Code Builder Tab -->
+    <section id="builder" class="tab-content">
+      <div class="panel">
+        <h3>Weaviate Code Builder</h3>
+        <p class="panel-description">
+          Generate complete Python code for connecting to Weaviate, creating collections,
+          inserting data, and querying. Customize the settings below.
+        </p>
+
+        <div class="code-builder">
+          <div class="builder-options">
+            <div class="option-group">
+              <h4>1. Connection</h4>
+              <div class="form-group">
+                <label>
+                  <input type="radio" name="connection" value="cloud" checked>
+                  Weaviate Cloud (recommended)
+                </label>
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="radio" name="connection" value="local">
+                  Local Docker
+                </label>
+              </div>
+            </div>
+
+            <div class="option-group">
+              <h4>2. Collection Setup</h4>
+              <div class="form-group">
+                <label for="builder-collection">Collection Name:</label>
+                <input type="text" id="builder-collection" value="Memory">
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" id="include-create" checked>
+                  Include collection creation
+                </label>
+              </div>
+            </div>
+
+            <div class="option-group">
+              <h4>3. Operations</h4>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" id="include-insert" checked>
+                  Include data insertion
+                </label>
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" id="include-query" checked>
+                  Include query examples
+                </label>
+              </div>
+              <div class="form-group">
+                <label for="query-type">Query Type:</label>
+                <select id="query-type">
+                  <option value="hybrid">Hybrid Search</option>
+                  <option value="near_text">Semantic (near_text)</option>
+                  <option value="bm25">Keyword (BM25)</option>
+                </select>
+              </div>
+            </div>
+
+            <button id="generate-code" class="btn-primary">Generate Code</button>
+          </div>
+
+          <div class="generated-output">
+            <div class="output-header">
+              <h4>Generated Python Code</h4>
+              <button id="copy-builder-code" class="btn-copy">Copy</button>
+            </div>
+            <pre id="builder-output"></pre>
+          </div>
+        </div>
+
+        <div class="concept-box">
+          <h4>Getting Started Checklist</h4>
+          <ul>
+            <li><strong>1. Sign up:</strong> Create a free account at <a href="https://console.weaviate.cloud" target="_blank">Weaviate Cloud Console</a></li>
+            <li><strong>2. Create cluster:</strong> Provision a serverless cluster (free tier available)</li>
+            <li><strong>3. Get credentials:</strong> Copy your cluster URL and API key</li>
+            <li><strong>4. OpenAI key:</strong> Get an API key from <a href="https://platform.openai.com" target="_blank">OpenAI</a> for embeddings</li>
+            <li><strong>5. Install client:</strong> <code>pip install weaviate-client</code></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>Day 14 of 30 Days of Agentic AI &mdash; Vector Databases for Agents</p>
+    </footer>
+  </div>
+
+  <script src="demo.js"></script>
+</body>
+</html>
