@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 16: Long-Term Agent Memory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="../../#day/16" class="back-link">&larr; Back to Day 16</a>
+      <h1>Long-Term Agent Memory</h1>
+      <p class="subtitle">LangGraph checkpointing and conversation memory with LangChain</p>
+    </header>
+
+    <section class="demo-explanation">
+      <h2>What This Demo Teaches</h2>
+      <p>
+        Agent memory enables <strong>persistence across sessions</strong> and <strong>context management</strong>.
+        This demo explores LangGraph checkpointing, conversation memory strategies, and how to build production memory systems.
+      </p>
+      <div class="explanation-grid">
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128190;</div>
+          <h3>Checkpointing</h3>
+          <p>Save and restore complete agent state at every execution step.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128172;</div>
+          <h3>Memory Types</h3>
+          <p>Compare Buffer, Summary, Window, and SummaryBuffer memory strategies.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128279;</div>
+          <h3>Threads</h3>
+          <p>Organize conversations by thread ID for multi-user isolation.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128230;</div>
+          <h3>Persistence</h3>
+          <p>Compare MemorySaver, SqliteSaver, and PostgresSaver backends.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo Tabs -->
+    <nav class="demo-tabs">
+      <button class="tab-btn active" data-tab="checkpointing">
+        <span class="tab-icon">&#128190;</span>
+        <span class="tab-label">Checkpointing</span>
+      </button>
+      <button class="tab-btn" data-tab="memory">
+        <span class="tab-icon">&#128172;</span>
+        <span class="tab-label">Memory Types</span>
+      </button>
+      <button class="tab-btn" data-tab="threads">
+        <span class="tab-icon">&#128279;</span>
+        <span class="tab-label">Threads</span>
+      </button>
+      <button class="tab-btn" data-tab="persistence">
+        <span class="tab-icon">&#128230;</span>
+        <span class="tab-label">Persistence</span>
+      </button>
+      <button class="tab-btn" data-tab="builder">
+        <span class="tab-icon">&#128187;</span>
+        <span class="tab-label">Code Builder</span>
+      </button>
+    </nav>
+
+    <!-- Checkpointing Tab -->
+    <section id="checkpointing" class="tab-content active">
+      <div class="panel">
+        <h3>Checkpoint Simulator</h3>
+        <p class="panel-description">
+          LangGraph saves state after every node execution. Step through an agent execution
+          to see checkpoints being created, then time travel to earlier states.
+        </p>
+
+        <div class="checkpoint-demo">
+          <div class="graph-visualization">
+            <h4>Agent Execution Graph</h4>
+            <div class="graph-nodes">
+              <div class="graph-node" data-step="0">
+                <div class="node-icon">&#128229;</div>
+                <div class="node-label">Input</div>
+              </div>
+              <div class="graph-arrow">&rarr;</div>
+              <div class="graph-node" data-step="1">
+                <div class="node-icon">&#129302;</div>
+                <div class="node-label">Agent</div>
+              </div>
+              <div class="graph-arrow">&rarr;</div>
+              <div class="graph-node" data-step="2">
+                <div class="node-icon">&#128295;</div>
+                <div class="node-label">Tools</div>
+              </div>
+              <div class="graph-arrow">&rarr;</div>
+              <div class="graph-node" data-step="3">
+                <div class="node-icon">&#128172;</div>
+                <div class="node-label">Response</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="execution-controls">
+            <button id="step-execution" class="btn-primary">Step Forward</button>
+            <button id="reset-execution" class="btn-secondary">Reset</button>
+            <span class="step-counter">Step: <span id="current-step">0</span> / 4</span>
+          </div>
+
+          <div class="checkpoint-list">
+            <h4>Checkpoints</h4>
+            <div id="checkpoints-container" class="checkpoints-container">
+              <div class="checkpoint-item active" data-checkpoint="0">
+                <span class="checkpoint-id">CP-0</span>
+                <span class="checkpoint-state">Initial State</span>
+                <button class="btn-time-travel">Jump Here</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="state-inspector">
+            <h4>Current State</h4>
+            <pre id="state-output">{
+  "messages": [],
+  "thread_id": "demo-session-1"
+}</pre>
+          </div>
+        </div>
+
+        <div class="concept-box">
+          <h4>Checkpointing Enables</h4>
+          <ul>
+            <li><strong>Pause/Resume:</strong> Stop execution, restart later, continue exactly where you left off</li>
+            <li><strong>Time Travel:</strong> Jump to any previous state for debugging or branching</li>
+            <li><strong>Human-in-the-Loop:</strong> Interrupt before sensitive operations for approval</li>
+            <li><strong>Fault Tolerance:</strong> Recover from crashes without losing progress</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Memory Types Tab -->
+    <section id="memory" class="tab-content">
+      <div class="panel">
+        <h3>Memory Type Comparison</h3>
+        <p class="panel-description">
+          Different memory strategies trade off between context completeness and token usage.
+          Add messages to see how each memory type handles a growing conversation.
+        </p>
+
+        <div class="memory-demo">
+          <div class="conversation-input">
+            <h4>Simulate Conversation</h4>
+            <div class="message-composer">
+              <input type="text" id="user-message" placeholder="Type a message..." value="My name is Alice and I work on ML projects">
+              <button id="add-message" class="btn-primary">Add Message</button>
+              <button id="clear-messages" class="btn-secondary">Clear All</button>
+            </div>
+            <div class="message-presets">
+              <span class="preset-label">Quick add:</span>
+              <button class="preset-btn" data-msg="I'm building a customer support chatbot">Support chatbot</button>
+              <button class="preset-btn" data-msg="The project uses Python and LangChain">Tech stack</button>
+              <button class="preset-btn" data-msg="We need to handle 500 tickets per day">Scale info</button>
+              <button class="preset-btn" data-msg="Response time is our key metric">Metric</button>
+            </div>
+          </div>
+
+          <div class="memory-comparison">
+            <div class="memory-column">
+              <div class="memory-header buffer">
+                <h4>BufferMemory</h4>
+                <span class="token-badge">Tokens: <span id="buffer-tokens">0</span></span>
+              </div>
+              <div class="memory-content" id="buffer-content">
+                <p class="empty-state">No messages yet</p>
+              </div>
+            </div>
+
+            <div class="memory-column">
+              <div class="memory-header summary">
+                <h4>SummaryMemory</h4>
+                <span class="token-badge">Tokens: <span id="summary-tokens">0</span></span>
+              </div>
+              <div class="memory-content" id="summary-content">
+                <p class="empty-state">No messages yet</p>
+              </div>
+            </div>
+
+            <div class="memory-column">
+              <div class="memory-header window">
+                <h4>WindowMemory (k=3)</h4>
+                <span class="token-badge">Tokens: <span id="window-tokens">0</span></span>
+              </div>
+              <div class="memory-content" id="window-content">
+                <p class="empty-state">No messages yet</p>
+              </div>
+            </div>
+
+            <div class="memory-column">
+              <div class="memory-header summary-buffer">
+                <h4>SummaryBufferMemory</h4>
+                <span class="token-badge">Tokens: <span id="summary-buffer-tokens">0</span></span>
+              </div>
+              <div class="memory-content" id="summary-buffer-content">
+                <p class="empty-state">No messages yet</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="concept-box">
+          <h4>Choosing a Memory Type</h4>
+          <ul>
+            <li><strong>BufferMemory:</strong> Complete history, best for short conversations (&lt;10 turns)</li>
+            <li><strong>SummaryMemory:</strong> Fixed tokens, good for long chats but loses details</li>
+            <li><strong>WindowMemory:</strong> Simple and predictable, but forgets early context</li>
+            <li><strong>SummaryBufferMemory:</strong> Best balance - summarizes old, keeps recent verbatim</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Threads Tab -->
+    <section id="threads" class="tab-content">
+      <div class="panel">
+        <h3>Thread Manager</h3>
+        <p class="panel-description">
+          Thread IDs organize conversations. Each thread maintains isolated state,
+          enabling multi-user systems where contexts don't leak between users.
+        </p>
+
+        <div class="threads-demo">
+          <div class="thread-controls">
+            <div class="form-group">
+              <label for="new-thread-id">New Thread ID:</label>
+              <input type="text" id="new-thread-id" placeholder="user-123-session-1">
+            </div>
+            <button id="create-thread" class="btn-primary">Create Thread</button>
+          </div>
+
+          <div class="threads-container">
+            <div class="thread-list">
+              <h4>Active Threads</h4>
+              <div id="thread-list-items" class="thread-list-items">
+                <div class="thread-item active" data-thread="user-alice-session-1">
+                  <span class="thread-name">user-alice-session-1</span>
+                  <span class="thread-msg-count">0 messages</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="thread-chat">
+              <h4>Thread: <span id="active-thread-name">user-alice-session-1</span></h4>
+              <div id="thread-messages" class="thread-messages">
+                <p class="empty-state">No messages in this thread</p>
+              </div>
+              <div class="thread-input">
+                <input type="text" id="thread-message-input" placeholder="Type a message...">
+                <button id="send-thread-message" class="btn-primary">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="concept-box">
+          <h4>Thread ID Patterns</h4>
+          <ul>
+            <li><strong>User + Session:</strong> <code>user-{'{user_id}'}-session-{'{session_id}'}</code></li>
+            <li><strong>With Timestamp:</strong> <code>user-{'{user_id}'}-{'{YYYYMMDD-HHMMSS}'}</code></li>
+            <li><strong>Anonymous:</strong> <code>anon-{'{uuid}'}</code></li>
+            <li><strong>Isolation:</strong> Different thread IDs = completely separate conversations</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Persistence Tab -->
+    <section id="persistence" class="tab-content">
+      <div class="panel">
+        <h3>Persistence Comparison</h3>
+        <p class="panel-description">
+          Different checkpointer backends have different persistence characteristics.
+          See what happens to your state when the application "restarts".
+        </p>
+
+        <div class="persistence-demo">
+          <div class="persistence-grid">
+            <div class="persistence-card memory-saver">
+              <div class="card-header">
+                <h4>MemorySaver</h4>
+                <span class="persistence-tag dev">Development Only</span>
+              </div>
+              <div class="card-content">
+                <div class="state-indicator">
+                  <span class="indicator-label">State:</span>
+                  <span class="indicator-value" id="memory-saver-state">Active</span>
+                </div>
+                <div class="message-count">
+                  <span>Messages: <span id="memory-saver-count">0</span></span>
+                </div>
+                <p class="persistence-note">Stored in RAM only. Lost on restart.</p>
+              </div>
+              <div class="card-actions">
+                <button class="btn-add-msg" data-saver="memory">Add Message</button>
+              </div>
+            </div>
+
+            <div class="persistence-card sqlite-saver">
+              <div class="card-header">
+                <h4>SqliteSaver</h4>
+                <span class="persistence-tag prod">Single Instance</span>
+              </div>
+              <div class="card-content">
+                <div class="state-indicator">
+                  <span class="indicator-label">State:</span>
+                  <span class="indicator-value" id="sqlite-saver-state">Active</span>
+                </div>
+                <div class="message-count">
+                  <span>Messages: <span id="sqlite-saver-count">0</span></span>
+                </div>
+                <p class="persistence-note">Stored in file: checkpoints.db</p>
+              </div>
+              <div class="card-actions">
+                <button class="btn-add-msg" data-saver="sqlite">Add Message</button>
+              </div>
+            </div>
+
+            <div class="persistence-card postgres-saver">
+              <div class="card-header">
+                <h4>PostgresSaver</h4>
+                <span class="persistence-tag enterprise">Production</span>
+              </div>
+              <div class="card-content">
+                <div class="state-indicator">
+                  <span class="indicator-label">State:</span>
+                  <span class="indicator-value" id="postgres-saver-state">Active</span>
+                </div>
+                <div class="message-count">
+                  <span>Messages: <span id="postgres-saver-count">0</span></span>
+                </div>
+                <p class="persistence-note">Stored in PostgreSQL database</p>
+              </div>
+              <div class="card-actions">
+                <button class="btn-add-msg" data-saver="postgres">Add Message</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="restart-simulation">
+            <button id="simulate-restart" class="btn-warning">Simulate Application Restart</button>
+            <p class="restart-note">Watch what happens to each checkpointer's state after restart</p>
+          </div>
+        </div>
+
+        <div class="concept-box">
+          <h4>Choosing a Checkpointer</h4>
+          <ul>
+            <li><strong>MemorySaver:</strong> Fast, no setup, but loses everything on restart. Dev only.</li>
+            <li><strong>SqliteSaver:</strong> File-based persistence, survives restarts. Single server.</li>
+            <li><strong>PostgresSaver:</strong> Database persistence, multi-instance support. Production.</li>
+            <li><strong>AsyncPostgresSaver:</strong> Same as above with async support. High traffic.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Code Builder Tab -->
+    <section id="builder" class="tab-content">
+      <div class="panel">
+        <h3>Memory Code Builder</h3>
+        <p class="panel-description">
+          Generate production-ready Python code for LangGraph agents with memory.
+          Configure checkpointing, memory type, and features below.
+        </p>
+
+        <div class="code-builder">
+          <div class="builder-options">
+            <div class="option-group">
+              <h4>1. Checkpointer</h4>
+              <div class="form-group">
+                <label>
+                  <input type="radio" name="checkpointer" value="memory" checked>
+                  MemorySaver (development)
+                </label>
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="radio" name="checkpointer" value="sqlite">
+                  SqliteSaver (single instance)
+                </label>
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="radio" name="checkpointer" value="postgres">
+                  PostgresSaver (production)
+                </label>
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" id="use-async">
+                  Use async (recommended for production)
+                </label>
+              </div>
+            </div>
+
+            <div class="option-group">
+              <h4>2. Memory Strategy</h4>
+              <div class="form-group">
+                <label for="memory-type">Conversation Memory:</label>
+                <select id="memory-type">
+                  <option value="none">None (checkpointing only)</option>
+                  <option value="buffer">ConversationBufferMemory</option>
+                  <option value="summary">ConversationSummaryMemory</option>
+                  <option value="window">ConversationBufferWindowMemory</option>
+                  <option value="summary-buffer" selected>ConversationSummaryBufferMemory</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="option-group">
+              <h4>3. Features</h4>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" id="include-hitl">
+                  Human-in-the-loop (interrupt_before)
+                </label>
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" id="include-tools">
+                  Include tool calling
+                </label>
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" id="include-vector">
+                  Long-term vector memory
+                </label>
+              </div>
+            </div>
+
+            <button id="generate-code" class="btn-primary">Generate Code</button>
+          </div>
+
+          <div class="generated-output">
+            <div class="output-header">
+              <h4>Generated Python Code</h4>
+              <button id="copy-code" class="btn-copy">Copy</button>
+            </div>
+            <pre id="code-output"></pre>
+          </div>
+        </div>
+
+        <div class="concept-box">
+          <h4>Getting Started Checklist</h4>
+          <ul>
+            <li><strong>1. Install packages:</strong> <code>pip install langgraph langchain-openai</code></li>
+            <li><strong>2. For SQLite:</strong> <code>pip install langgraph-checkpoint-sqlite</code></li>
+            <li><strong>3. For PostgreSQL:</strong> <code>pip install langgraph-checkpoint-postgres psycopg[binary]</code></li>
+            <li><strong>4. For vector memory:</strong> <code>pip install chromadb</code></li>
+            <li><strong>5. Set OPENAI_API_KEY:</strong> Required for LLM and embeddings</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="key-insights">
+      <h2>Key Insights</h2>
+      <ul>
+        <li>LLMs are stateless by default - all memory must be managed by your application</li>
+        <li>LangGraph checkpointing saves full graph state at every step, enabling pause/resume and time travel</li>
+        <li>Thread IDs organize conversations - same thread_id = continued conversation</li>
+        <li>Use MemorySaver for development, SqliteSaver for single-instance, PostgresSaver for production</li>
+        <li>Conversation memory (Buffer, Summary, Window, SummaryBuffer) manages token usage</li>
+        <li>SummaryBufferMemory offers the best balance of context retention and token efficiency</li>
+        <li>Production agents often combine checkpointing, conversation memory, AND vector stores</li>
+      </ul>
+    </section>
+
+    <footer>
+      <p>Day 16 of 30 Days of Agentic AI &mdash; Long-Term Agent Memory with LangChain</p>
+    </footer>
+  </div>
+
+  <script src="demo.js"></script>
+</body>
+</html>

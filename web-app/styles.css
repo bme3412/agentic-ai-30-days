@@ -2694,18 +2694,18 @@ body {
 
 /* Code example tab */
 .code-example {
-  background: #f8f9fc;
+  background: #1e1e2e;
   border-radius: var(--radius);
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid #2d2d3d;
 }
 
 .code-header {
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  background: #eef1f6;
-  border-bottom: 1px solid var(--border);
+  background: #16161e;
+  border-bottom: 1px solid #2d2d3d;
   gap: 12px;
 }
 
@@ -2714,8 +2714,8 @@ body {
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
-  color: var(--accent);
-  background: rgba(102, 126, 234, 0.1);
+  color: #60a5fa;
+  background: rgba(96, 165, 250, 0.15);
   padding: 4px 8px;
   border-radius: 4px;
 }
@@ -2724,14 +2724,14 @@ body {
   flex: 1;
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  color: var(--ink-2);
+  color: #9ca3af;
 }
 
 .btn-copy-code {
   padding: 6px 12px;
-  border: 1px solid var(--border);
-  background: white;
-  color: var(--ink-2);
+  border: 1px solid #3d3d4d;
+  background: #2d2d3d;
+  color: #9ca3af;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   border-radius: 4px;
@@ -2745,19 +2745,24 @@ body {
   border-color: var(--accent);
 }
 
-.code-block {
-  padding: 20px;
+.code-block,
+pre.code-block {
+  padding: 16px 20px !important;
   margin: 0;
   overflow-x: auto;
-  background: #f8f9fc;
+  background: #1e1e2e !important;
+  border-radius: 8px;
 }
 
-.code-block code {
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-  line-height: 1.6;
-  color: #1a1a2e;
+.code-block code,
+pre.code-block code {
+  font-family: 'SF Mono', 'Fira Code', var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #e4e4e7 !important;
   white-space: pre;
+  background: transparent !important;
+  display: block;
 }
 
 /* Resources tab */
@@ -5499,18 +5504,45 @@ body {
   border-radius: 3px;
 }
 
-.resource-summary-dropdown .summary-content pre {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 12px 16px;
-  overflow-x: auto;
-  margin: 1em 0;
+/* Code block pre styling consolidated with syntax highlighting section */
+
+/* Agent trace highlighting for dropdown summaries */
+.resource-summary-dropdown .summary-content pre .trace-thought {
+  color: #a78bfa;
+  font-weight: 500;
 }
 
-.resource-summary-dropdown .summary-content pre code {
-  background: none;
-  padding: 0;
+.resource-summary-dropdown .summary-content pre .trace-action {
+  color: #34d399;
+  font-weight: 500;
+}
+
+.resource-summary-dropdown .summary-content pre .trace-observation {
+  color: #60a5fa;
+  font-weight: 500;
+}
+
+.resource-summary-dropdown .summary-content pre .trace-line {
+  display: block;
+  padding: 4px 0;
+  border-left: 3px solid transparent;
+  padding-left: 12px;
+  margin-left: -12px;
+}
+
+.resource-summary-dropdown .summary-content pre .trace-line.thought-line {
+  border-left-color: #a78bfa;
+  background: rgba(167, 139, 250, 0.08);
+}
+
+.resource-summary-dropdown .summary-content pre .trace-line.action-line {
+  border-left-color: #34d399;
+  background: rgba(52, 211, 153, 0.08);
+}
+
+.resource-summary-dropdown .summary-content pre .trace-line.observation-line {
+  border-left-color: #60a5fa;
+  background: rgba(96, 165, 250, 0.08);
 }
 
 .resource-summary-dropdown .summary-content table {
@@ -6644,9 +6676,9 @@ body {
 
 /* Code Blocks */
 .markdown-body pre.code-block {
-  background: #f8f9fc;
+  background: #1e1e2e;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 8px;
   padding: 20px 24px;
   margin: 20px 0;
   overflow-x: auto;
@@ -6655,10 +6687,49 @@ body {
 .markdown-body pre.code-block code {
   font-family: var(--font-mono);
   font-size: 0.85rem;
-  line-height: 1.6;
-  color: #1a1a2e;
+  line-height: 1.8;
+  color: #e4e4e7;
   background: none;
   padding: 0;
+}
+
+/* Agent trace highlighting for markdown body */
+.markdown-body pre.code-block .trace-thought {
+  color: #a78bfa;
+  font-weight: 500;
+}
+
+.markdown-body pre.code-block .trace-action {
+  color: #34d399;
+  font-weight: 500;
+}
+
+.markdown-body pre.code-block .trace-observation {
+  color: #60a5fa;
+  font-weight: 500;
+}
+
+.markdown-body pre.code-block .trace-line {
+  display: block;
+  padding: 4px 0;
+  border-left: 3px solid transparent;
+  padding-left: 12px;
+  margin-left: -12px;
+}
+
+.markdown-body pre.code-block .trace-line.thought-line {
+  border-left-color: #a78bfa;
+  background: rgba(167, 139, 250, 0.08);
+}
+
+.markdown-body pre.code-block .trace-line.action-line {
+  border-left-color: #34d399;
+  background: rgba(52, 211, 153, 0.08);
+}
+
+.markdown-body pre.code-block .trace-line.observation-line {
+  border-left-color: #60a5fa;
+  background: rgba(96, 165, 250, 0.08);
 }
 
 /* Tables */
@@ -7790,22 +7861,148 @@ body {
   margin-top: 0;
 }
 
-.resource-item-simple .summary-content pre {
-  background: #1e1e2e;
+/* Code block styles consolidated below with syntax highlighting */
+
+/* Agent trace highlighting (Thought/Action/Observation patterns) */
+.resource-item-simple .summary-content pre .trace-thought,
+.markdown-body pre .trace-thought {
+  color: #a78bfa;
+  font-weight: 500;
+}
+
+.resource-item-simple .summary-content pre .trace-action,
+.markdown-body pre .trace-action {
+  color: #34d399;
+  font-weight: 500;
+}
+
+.resource-item-simple .summary-content pre .trace-observation,
+.markdown-body pre .trace-observation {
+  color: #60a5fa;
+  font-weight: 500;
+}
+
+.resource-item-simple .summary-content pre .trace-label,
+.markdown-body pre .trace-label {
+  opacity: 0.7;
+}
+
+.resource-item-simple .summary-content pre .trace-line,
+.markdown-body pre .trace-line {
+  display: block;
+  padding: 4px 0;
+  border-left: 3px solid transparent;
+  padding-left: 12px;
+  margin-left: -12px;
+}
+
+.resource-item-simple .summary-content pre .trace-line.thought-line,
+.markdown-body pre .trace-line.thought-line {
+  border-left-color: #a78bfa;
+  background: rgba(167, 139, 250, 0.08);
+}
+
+.resource-item-simple .summary-content pre .trace-line.action-line,
+.markdown-body pre .trace-line.action-line {
+  border-left-color: #34d399;
+  background: rgba(52, 211, 153, 0.08);
+}
+
+.resource-item-simple .summary-content pre .trace-line.observation-line,
+.markdown-body pre .trace-line.observation-line {
+  border-left-color: #60a5fa;
+  background: rgba(96, 165, 250, 0.08);
+}
+
+/* Syntax highlighting for code blocks in resource summaries (dark theme) */
+.resource-item-simple .summary-content pre .keyword,
+.resource-summary-dropdown .summary-content pre .keyword,
+.markdown-body pre.code-block .keyword {
+  color: #c084fc;  /* purple - def, class, if, return, import, from */
+}
+
+.resource-item-simple .summary-content pre .string,
+.resource-summary-dropdown .summary-content pre .string,
+.markdown-body pre.code-block .string {
+  color: #34d399;  /* green - strings */
+}
+
+.resource-item-simple .summary-content pre .comment,
+.resource-summary-dropdown .summary-content pre .comment,
+.markdown-body pre.code-block .comment {
+  color: #9ca3af;  /* gray - comments */
+  font-style: italic;
+}
+
+.resource-item-simple .summary-content pre .function,
+.resource-summary-dropdown .summary-content pre .function,
+.markdown-body pre.code-block .function {
+  color: #60a5fa;  /* blue - function names */
+}
+
+.resource-item-simple .summary-content pre .number,
+.resource-summary-dropdown .summary-content pre .number,
+.markdown-body pre.code-block .number {
+  color: #fbbf24;  /* amber - numbers */
+}
+
+.resource-item-simple .summary-content pre .builtin,
+.resource-summary-dropdown .summary-content pre .builtin,
+.markdown-body pre.code-block .builtin {
+  color: #22d3ee;  /* cyan - built-in functions */
+}
+
+.resource-item-simple .summary-content pre .decorator,
+.resource-summary-dropdown .summary-content pre .decorator,
+.markdown-body pre.code-block .decorator {
+  color: #fb923c;  /* orange - decorators */
+}
+
+.resource-item-simple .summary-content pre .class-name,
+.resource-summary-dropdown .summary-content pre .class-name,
+.markdown-body pre.code-block .class-name {
+  color: #facc15;  /* yellow - class names */
+}
+
+/* Docstrings - triple-quoted strings */
+.resource-item-simple .summary-content pre .docstring,
+.resource-summary-dropdown .summary-content pre .docstring,
+.markdown-body pre.code-block .docstring {
+  color: #9ca3af;  /* gray - docstrings */
+  font-style: italic;
+}
+
+/* Code block styling for resource summaries */
+.resource-item-simple .summary-content pre,
+.resource-summary-dropdown .summary-content pre {
+  background: #1a1a24;
+  border: 1px solid #2d2d3d;
   border-radius: 8px;
-  padding: 16px;
-  overflow-x: auto;
+  padding: 16px 20px;
   margin: 1em 0;
+  overflow-x: auto;
 }
 
-.resource-item-simple .summary-content pre code {
+.resource-item-simple .summary-content pre code,
+.resource-summary-dropdown .summary-content pre code {
   color: #e4e4e7;
-  font-family: var(--font-mono);
-  font-size: 0.85em;
+  font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  white-space: pre;
+  display: block;
 }
 
-.resource-item-simple .summary-content code {
-  background: var(--bg-hover, #f5f5f5);
+/* Inline code (not inside pre blocks) */
+.resource-item-simple .summary-content > p code,
+.resource-item-simple .summary-content > li code,
+.resource-item-simple .summary-content > h1 code,
+.resource-item-simple .summary-content > h2 code,
+.resource-item-simple .summary-content > h3 code,
+.resource-summary-dropdown .summary-content > p code,
+.resource-summary-dropdown .summary-content > li code {
+  background: rgba(139, 92, 246, 0.15);
+  color: #c084fc;
   padding: 2px 6px;
   border-radius: 4px;
   font-family: var(--font-mono);
