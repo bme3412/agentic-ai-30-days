@@ -337,9 +337,24 @@ Graph-based knowledge representation for complex reasoning. Knowledge graphs cap
 #### Day 18: Semantic Caching for Agents
 **Partner:** Redis | **Difficulty:** Intermediate
 
-Caching similar queries to reduce latency and costs. Semantic caching recognizes when a new query is similar enough to a cached one, avoiding redundant LLM calls. Critical for production cost control.
+Caching similar queries to reduce latency and costs using vector similarity. Traditional caching requires exact key matches, but semantic caching uses embeddings to recognize when a new query is similar enough to a cached one, returning stored responses for semantically equivalent questions.
 
-**Key concepts:** Similarity thresholds, cache invalidation, cost optimization
+**Core Principles:**
+- **Similarity over equality** — Match queries by meaning, not exact text
+- **Threshold tuning is critical** — Too high misses valid hits, too low returns wrong answers
+- **Cache invalidation strategies** — TTL, versioning, tagging, semantic invalidation
+- **Embedding model consistency** — Same model for caching and lookup
+- **Measure before optimizing** — Track hit rate, precision, and ROI
+
+**Key Patterns:**
+- **Redis Vector Search** — HNSW index for sub-millisecond similarity lookup
+- **LangChain RedisSemanticCache** — Drop-in caching with similarity threshold
+- **GPTCache** — Specialized library with multiple backends and custom similarity logic
+- **Production monitoring** — Hit rate, latency savings, cost tracking
+
+**Key concepts:** Vector similarity, HNSW indexing, similarity thresholds, cache invalidation, hit rate optimization, cost-benefit analysis
+
+**What you'll build:** Semantic cache with Redis, custom invalidation strategies, production monitoring dashboard
 
 ---
 
