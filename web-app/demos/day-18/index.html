@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 18: Semantic Caching for Agents</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="../../#day/18" class="back-link">&larr; Back to Day 18</a>
+      <h1>Semantic Caching for Agents</h1>
+      <p class="subtitle">Redis vector search, LangChain caching, and cost optimization</p>
+    </header>
+
+    <section class="demo-explanation">
+      <h2>What This Demo Teaches</h2>
+      <p>
+        Semantic caching uses <strong>vector similarity</strong> to return cached LLM responses for semantically similar queries,
+        dramatically reducing API costs and latency for AI agents.
+      </p>
+      <div class="explanation-grid">
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128176;</div>
+          <h3>Cost Savings</h3>
+          <p>Reduce LLM API calls by 40-80% with intelligent caching.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#9889;</div>
+          <h3>Low Latency</h3>
+          <p>Sub-millisecond cache hits vs. seconds for LLM calls.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128269;</div>
+          <h3>Semantic Matching</h3>
+          <p>Match similar questions, not just exact duplicates.</p>
+        </div>
+        <div class="explanation-card">
+          <div class="explanation-icon">&#128736;</div>
+          <h3>Redis Vectors</h3>
+          <p>Fast vector similarity search with Redis Stack.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo Tabs -->
+    <nav class="demo-tabs">
+      <button class="tab-btn active" data-tab="simulator">
+        <span class="tab-icon">&#128200;</span>
+        <span class="tab-label">Cache Simulator</span>
+      </button>
+      <button class="tab-btn" data-tab="similarity">
+        <span class="tab-icon">&#128269;</span>
+        <span class="tab-label">Similarity Explorer</span>
+      </button>
+      <button class="tab-btn" data-tab="strategies">
+        <span class="tab-icon">&#128218;</span>
+        <span class="tab-label">Cache Strategies</span>
+      </button>
+      <button class="tab-btn" data-tab="redis">
+        <span class="tab-icon">&#127992;</span>
+        <span class="tab-label">Redis Commands</span>
+      </button>
+      <button class="tab-btn" data-tab="builder">
+        <span class="tab-icon">&#128187;</span>
+        <span class="tab-label">Code Builder</span>
+      </button>
+    </nav>
+
+    <!-- Cache Simulator Tab -->
+    <section id="simulator" class="tab-content active">
+      <div class="panel">
+        <h3>Interactive Cache Simulator</h3>
+        <p class="panel-description">
+          Test how semantic caching handles similar queries. Watch cache hits save money and time.
+        </p>
+
+        <div class="simulator-container">
+          <div class="query-input-section">
+            <div class="query-header">
+              <h4>Enter Query</h4>
+              <div class="threshold-control">
+                <label>Similarity Threshold:</label>
+                <input type="range" id="threshold-slider" min="0.7" max="0.99" step="0.01" value="0.92">
+                <span id="threshold-value">0.92</span>
+              </div>
+            </div>
+            <textarea id="query-input" class="query-editor" placeholder="Ask a question...">What is the capital of France?</textarea>
+            <div class="query-actions">
+              <button class="action-btn primary" id="submit-query">
+                <span>&#9654;</span> Submit Query
+              </button>
+              <button class="action-btn" id="clear-cache">
+                <span>&#128465;</span> Clear Cache
+              </button>
+            </div>
+          </div>
+
+          <div class="example-queries">
+            <h4>Try These Variations:</h4>
+            <div class="query-chips">
+              <button class="query-chip" data-query="What is the capital of France?">What is the capital of France?</button>
+              <button class="query-chip" data-query="What's France's capital city?">What's France's capital city?</button>
+              <button class="query-chip" data-query="Tell me the capital of France">Tell me the capital of France</button>
+              <button class="query-chip" data-query="Which city is the capital of France?">Which city is the capital of France?</button>
+              <button class="query-chip" data-query="What is the capital of Germany?">What is the capital of Germany?</button>
+              <button class="query-chip" data-query="How do I make pasta?">How do I make pasta?</button>
+            </div>
+          </div>
+
+          <div class="results-grid">
+            <div class="result-card">
+              <h4>Cache Status</h4>
+              <div class="status-indicator" id="cache-status">
+                <span class="status-icon">&#10067;</span>
+                <span class="status-text">Waiting for query...</span>
+              </div>
+              <div class="cache-details" id="cache-details">
+                <!-- Will be populated dynamically -->
+              </div>
+            </div>
+
+            <div class="result-card">
+              <h4>Response</h4>
+              <div class="response-content" id="response-content">
+                <p class="placeholder-text">Submit a query to see the response...</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="stats-panel">
+            <h4>Session Statistics</h4>
+            <div class="stats-grid">
+              <div class="stat-box">
+                <div class="stat-value" id="total-queries">0</div>
+                <div class="stat-label">Total Queries</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-value" id="cache-hits">0</div>
+                <div class="stat-label">Cache Hits</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-value" id="cache-misses">0</div>
+                <div class="stat-label">Cache Misses</div>
+              </div>
+              <div class="stat-box highlight">
+                <div class="stat-value" id="hit-rate">0%</div>
+                <div class="stat-label">Hit Rate</div>
+              </div>
+              <div class="stat-box savings">
+                <div class="stat-value" id="cost-saved">$0.00</div>
+                <div class="stat-label">Est. Cost Saved</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-value" id="time-saved">0ms</div>
+                <div class="stat-label">Time Saved</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cache-contents">
+            <h4>Cache Contents (<span id="cache-size">0</span> entries)</h4>
+            <div class="cache-table" id="cache-table">
+              <p class="placeholder-text">Cache is empty. Submit queries to populate.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Similarity Explorer Tab -->
+    <section id="similarity" class="tab-content">
+      <div class="panel">
+        <h3>Query Similarity Explorer</h3>
+        <p class="panel-description">
+          Compare two queries and see how similar they are semantically.
+          This helps you understand when cache hits will occur.
+        </p>
+
+        <div class="similarity-demo">
+          <div class="comparison-inputs">
+            <div class="comparison-box">
+              <h4>Query A</h4>
+              <textarea id="query-a" class="comparison-input" placeholder="Enter first query...">What is machine learning?</textarea>
+            </div>
+            <div class="comparison-arrow">&#8596;</div>
+            <div class="comparison-box">
+              <h4>Query B</h4>
+              <textarea id="query-b" class="comparison-input" placeholder="Enter second query...">Explain ML to me</textarea>
+            </div>
+          </div>
+
+          <button class="action-btn primary" id="compare-queries">
+            <span>&#128270;</span> Compare Similarity
+          </button>
+
+          <div class="similarity-result" id="similarity-result">
+            <div class="similarity-meter">
+              <div class="meter-track">
+                <div class="meter-fill" id="similarity-fill" style="width: 0%"></div>
+                <div class="meter-threshold" id="meter-threshold" style="left: 92%"></div>
+              </div>
+              <div class="meter-labels">
+                <span>0.0</span>
+                <span>Different</span>
+                <span>Threshold</span>
+                <span>Similar</span>
+                <span>1.0</span>
+              </div>
+            </div>
+            <div class="similarity-score">
+              <span class="score-label">Similarity Score:</span>
+              <span class="score-value" id="similarity-score">--</span>
+            </div>
+            <div class="cache-verdict" id="cache-verdict">
+              <span class="verdict-icon">&#10067;</span>
+              <span class="verdict-text">Click "Compare" to check if these would be a cache hit</span>
+            </div>
+          </div>
+
+          <div class="similarity-examples">
+            <h4>Example Comparisons:</h4>
+            <div class="example-pairs">
+              <button class="example-pair" data-a="What is the weather today?" data-b="How's the weather looking?">
+                <span class="pair-label">High Similarity</span>
+                <span class="pair-queries">"Weather today?" vs "How's the weather?"</span>
+              </button>
+              <button class="example-pair" data-a="What is Python?" data-b="Explain the Python programming language">
+                <span class="pair-label">Medium-High</span>
+                <span class="pair-queries">"What is Python?" vs "Explain Python"</span>
+              </button>
+              <button class="example-pair" data-a="Best restaurants in NYC" data-b="Good places to eat in New York">
+                <span class="pair-label">Semantic Match</span>
+                <span class="pair-queries">"Restaurants NYC" vs "Places to eat NY"</span>
+              </button>
+              <button class="example-pair" data-a="What is AI?" data-b="How do I cook rice?">
+                <span class="pair-label">No Match</span>
+                <span class="pair-queries">"What is AI?" vs "Cook rice?"</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cache Strategies Tab -->
+    <section id="strategies" class="tab-content">
+      <div class="panel">
+        <h3>Caching Strategies Comparison</h3>
+        <p class="panel-description">
+          Compare different caching approaches: exact match, semantic, and hybrid strategies.
+        </p>
+
+        <div class="strategies-grid">
+          <div class="strategy-card">
+            <div class="strategy-header exact">
+              <h4>Exact Match</h4>
+              <span class="strategy-badge">Simple</span>
+            </div>
+            <div class="strategy-content">
+              <p>Cache based on exact query string matching.</p>
+              <div class="pros-cons">
+                <div class="pros">
+                  <h5>Pros</h5>
+                  <ul>
+                    <li>Zero false positives</li>
+                    <li>Fast lookup (O(1))</li>
+                    <li>Easy to implement</li>
+                  </ul>
+                </div>
+                <div class="cons">
+                  <h5>Cons</h5>
+                  <ul>
+                    <li>Low hit rate</li>
+                    <li>Misses paraphrases</li>
+                    <li>Case/punctuation sensitive</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="strategy-example">
+                <code>"What is AI?" = "What is AI?"</code>
+                <span class="hit">HIT</span>
+              </div>
+              <div class="strategy-example">
+                <code>"What is AI?" ≠ "what is ai?"</code>
+                <span class="miss">MISS</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="strategy-card featured">
+            <div class="strategy-header semantic">
+              <h4>Semantic Cache</h4>
+              <span class="strategy-badge">Recommended</span>
+            </div>
+            <div class="strategy-content">
+              <p>Cache based on meaning similarity using embeddings.</p>
+              <div class="pros-cons">
+                <div class="pros">
+                  <h5>Pros</h5>
+                  <ul>
+                    <li>High hit rate (40-80%)</li>
+                    <li>Handles paraphrases</li>
+                    <li>Language-agnostic</li>
+                  </ul>
+                </div>
+                <div class="cons">
+                  <h5>Cons</h5>
+                  <ul>
+                    <li>Embedding compute cost</li>
+                    <li>Tunable threshold needed</li>
+                    <li>Possible false positives</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="strategy-example">
+                <code>"What is AI?" ~ "Explain artificial intelligence"</code>
+                <span class="hit">HIT (0.94)</span>
+              </div>
+              <div class="strategy-example">
+                <code>"What is AI?" ~ "How to code in Python?"</code>
+                <span class="miss">MISS (0.31)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="strategy-card">
+            <div class="strategy-header hybrid">
+              <h4>Hybrid Cache</h4>
+              <span class="strategy-badge">Advanced</span>
+            </div>
+            <div class="strategy-content">
+              <p>Combine exact match first, then semantic fallback.</p>
+              <div class="pros-cons">
+                <div class="pros">
+                  <h5>Pros</h5>
+                  <ul>
+                    <li>Best of both worlds</li>
+                    <li>Exact match is instant</li>
+                    <li>Highest overall hit rate</li>
+                  </ul>
+                </div>
+                <div class="cons">
+                  <h5>Cons</h5>
+                  <ul>
+                    <li>More complex logic</li>
+                    <li>Two storage systems</li>
+                    <li>Higher memory usage</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="strategy-flow">
+                <div class="flow-step">Query</div>
+                <div class="flow-arrow">&#8594;</div>
+                <div class="flow-step">Exact?</div>
+                <div class="flow-arrow">&#8594;</div>
+                <div class="flow-step">Semantic?</div>
+                <div class="flow-arrow">&#8594;</div>
+                <div class="flow-step">LLM</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="threshold-guide">
+          <h4>Similarity Threshold Guide</h4>
+          <div class="threshold-scale">
+            <div class="threshold-segment" style="left: 0; width: 70%;">
+              <div class="segment-bar low"></div>
+              <div class="segment-label">0.0 - 0.70: Too Different</div>
+              <div class="segment-desc">Queries have different intent</div>
+            </div>
+            <div class="threshold-segment" style="left: 70%; width: 15%;">
+              <div class="segment-bar medium"></div>
+              <div class="segment-label">0.70 - 0.85: Risky Zone</div>
+              <div class="segment-desc">May have false positives</div>
+            </div>
+            <div class="threshold-segment" style="left: 85%; width: 10%;">
+              <div class="segment-bar good"></div>
+              <div class="segment-label">0.85 - 0.95: Sweet Spot</div>
+              <div class="segment-desc">Good balance of hits/accuracy</div>
+            </div>
+            <div class="threshold-segment" style="left: 95%; width: 5%;">
+              <div class="segment-bar strict"></div>
+              <div class="segment-label">0.95 - 1.0: Very Strict</div>
+              <div class="segment-desc">Nearly identical only</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Redis Commands Tab -->
+    <section id="redis" class="tab-content">
+      <div class="panel">
+        <h3>Redis Vector Search Commands</h3>
+        <p class="panel-description">
+          Learn the Redis Stack commands for building semantic caches with vector similarity search.
+        </p>
+
+        <div class="redis-demo">
+          <div class="command-section">
+            <h4>1. Create Vector Index</h4>
+            <div class="command-block">
+              <pre><code>FT.CREATE cache_idx ON HASH PREFIX 1 cache:
+SCHEMA
+  query TEXT
+  response TEXT
+  embedding VECTOR HNSW 6
+    TYPE FLOAT32
+    DIM 1536
+    DISTANCE_METRIC COSINE</code></pre>
+              <button class="copy-btn" data-code="create-index">Copy</button>
+            </div>
+            <div class="command-explanation">
+              <strong>HNSW</strong>: Fast approximate search algorithm<br>
+              <strong>DIM 1536</strong>: OpenAI text-embedding-3-small dimension<br>
+              <strong>COSINE</strong>: Best for normalized embeddings
+            </div>
+          </div>
+
+          <div class="command-section">
+            <h4>2. Store Cache Entry</h4>
+            <div class="command-block">
+              <pre><code>HSET cache:12345
+  query "What is machine learning?"
+  response "Machine learning is a subset of AI..."
+  embedding <binary_vector_data>
+  timestamp 1709856000
+  model "gpt-4o"</code></pre>
+              <button class="copy-btn" data-code="store-entry">Copy</button>
+            </div>
+            <div class="command-explanation">
+              Store query, response, and embedding vector together.<br>
+              Add metadata like timestamp and model for cache management.
+            </div>
+          </div>
+
+          <div class="command-section">
+            <h4>3. KNN Similarity Search</h4>
+            <div class="command-block">
+              <pre><code>FT.SEARCH cache_idx
+  "*=>[KNN 3 @embedding $vec AS score]"
+  PARAMS 2 vec <query_embedding_bytes>
+  RETURN 3 query response score
+  SORTBY score
+  LIMIT 0 1
+  DIALECT 2</code></pre>
+              <button class="copy-btn" data-code="knn-search">Copy</button>
+            </div>
+            <div class="command-explanation">
+              <strong>KNN 3</strong>: Find 3 nearest neighbors<br>
+              <strong>score</strong>: Cosine distance (0 = identical, 2 = opposite)<br>
+              <strong>DIALECT 2</strong>: Required for vector queries
+            </div>
+          </div>
+
+          <div class="command-section">
+            <h4>4. Check Cache Hit (Threshold Filter)</h4>
+            <div class="command-block">
+              <pre><code># In Python, check if score meets threshold:
+similarity = 1 - (score / 2)  # Convert distance to similarity
+if similarity >= 0.92:
+    return cached_response
+else:
+    call_llm_and_cache()</code></pre>
+              <button class="copy-btn" data-code="threshold-check">Copy</button>
+            </div>
+            <div class="command-explanation">
+              Redis returns cosine <em>distance</em>, not similarity.<br>
+              Convert: <code>similarity = 1 - (distance / 2)</code>
+            </div>
+          </div>
+
+          <div class="command-section">
+            <h4>5. Cache Expiration (TTL)</h4>
+            <div class="command-block">
+              <pre><code># Set TTL on cache entries
+EXPIRE cache:12345 86400  # 24 hours
+
+# Or use HSET with EXAT
+HSET cache:12345 ... EXAT 1709942400</code></pre>
+              <button class="copy-btn" data-code="ttl">Copy</button>
+            </div>
+            <div class="command-explanation">
+              Use TTL for time-sensitive data or to manage cache size.<br>
+              Common TTLs: 1 hour (3600s), 24 hours (86400s), 7 days (604800s)
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Code Builder Tab -->
+    <section id="builder" class="tab-content">
+      <div class="panel">
+        <h3>Semantic Cache Code Builder</h3>
+        <p class="panel-description">
+          Configure your semantic caching setup and generate production-ready Python code.
+        </p>
+
+        <div class="builder-container">
+          <div class="builder-options">
+            <div class="option-group">
+              <h4>Framework</h4>
+              <div class="option-item">
+                <label>Cache Library:</label>
+                <select id="cache-library">
+                  <option value="langchain">LangChain (RedisSemanticCache)</option>
+                  <option value="gptcache">GPTCache</option>
+                  <option value="custom">Custom Redis Implementation</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="option-group">
+              <h4>Embeddings</h4>
+              <div class="option-item">
+                <label>Embedding Model:</label>
+                <select id="embedding-model">
+                  <option value="openai">OpenAI (text-embedding-3-small)</option>
+                  <option value="openai-large">OpenAI (text-embedding-3-large)</option>
+                  <option value="cohere">Cohere (embed-english-v3.0)</option>
+                  <option value="local">Local (sentence-transformers)</option>
+                </select>
+              </div>
+              <div class="option-item" id="local-model-option" style="display: none;">
+                <label>Local Model:</label>
+                <select id="local-model">
+                  <option value="all-MiniLM-L6-v2">all-MiniLM-L6-v2 (Fast)</option>
+                  <option value="all-mpnet-base-v2">all-mpnet-base-v2 (Better)</option>
+                  <option value="bge-small-en-v1.5">bge-small-en-v1.5 (SOTA)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="option-group">
+              <h4>Redis Configuration</h4>
+              <div class="option-item">
+                <label>Redis Instance:</label>
+                <select id="redis-instance">
+                  <option value="local">Local (localhost:6379)</option>
+                  <option value="cloud">Redis Cloud</option>
+                  <option value="docker">Docker Container</option>
+                </select>
+              </div>
+              <div class="option-item">
+                <label>Authentication:</label>
+                <select id="redis-auth">
+                  <option value="none">No Authentication</option>
+                  <option value="password">Password Only</option>
+                  <option value="env">Environment Variables</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="option-group">
+              <h4>Cache Settings</h4>
+              <div class="option-item">
+                <label>Similarity Threshold:</label>
+                <input type="number" id="code-threshold" min="0.7" max="0.99" step="0.01" value="0.92">
+              </div>
+              <div class="option-item">
+                <label>
+                  <input type="checkbox" id="add-ttl" checked>
+                  Add TTL (Time-To-Live)
+                </label>
+              </div>
+              <div class="option-item" id="ttl-option">
+                <label>TTL Duration:</label>
+                <select id="ttl-duration">
+                  <option value="3600">1 Hour</option>
+                  <option value="86400" selected>24 Hours</option>
+                  <option value="604800">7 Days</option>
+                  <option value="2592000">30 Days</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="option-group">
+              <h4>Advanced Options</h4>
+              <div class="option-item">
+                <label>
+                  <input type="checkbox" id="add-fallback">
+                  Add exact-match fallback
+                </label>
+              </div>
+              <div class="option-item">
+                <label>
+                  <input type="checkbox" id="add-stats" checked>
+                  Add hit/miss statistics
+                </label>
+              </div>
+              <div class="option-item">
+                <label>
+                  <input type="checkbox" id="add-logging">
+                  Add logging
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="builder-output">
+            <div class="output-header">
+              <h4>Generated Code</h4>
+              <button class="copy-btn" id="copy-code">
+                <span>&#128203;</span> Copy
+              </button>
+            </div>
+            <pre class="code-output" id="generated-code"><code># Configure your options to generate code...</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>Day 18 of 30 Days of Agentic AI &bull; Semantic Caching with Redis</p>
+    </footer>
+  </div>
+
+  <script src="demo.js"></script>
+</body>
+</html>
