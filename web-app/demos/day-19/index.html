@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 19: MCP Fundamentals - Interactive Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="demo-container">
+        <header class="demo-header">
+            <div class="header-content">
+                <a href="../../" class="back-link">← Back to Course</a>
+                <h1>MCP: Model Context Protocol</h1>
+                <p class="subtitle">Interactive Explorer - Day 19</p>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="architecture">
+                <span class="tab-icon">🏗️</span>
+                <span class="tab-label">Architecture</span>
+            </button>
+            <button class="tab-btn" data-tab="protocol">
+                <span class="tab-icon">🔄</span>
+                <span class="tab-label">Protocol</span>
+            </button>
+            <button class="tab-btn" data-tab="tools">
+                <span class="tab-icon">🔧</span>
+                <span class="tab-label">Tool Builder</span>
+            </button>
+            <button class="tab-btn" data-tab="messages">
+                <span class="tab-icon">📨</span>
+                <span class="tab-label">Messages</span>
+            </button>
+            <button class="tab-btn" data-tab="config">
+                <span class="tab-icon">⚙️</span>
+                <span class="tab-label">Config</span>
+            </button>
+        </nav>
+
+        <main class="tab-content">
+            <!-- Architecture Tab -->
+            <section id="architecture" class="tab-panel active">
+                <div class="panel-header">
+                    <h2>MCP Architecture Visualizer</h2>
+                    <p>Click on components to learn about their role in the MCP ecosystem</p>
+                </div>
+
+                <div class="architecture-container">
+                    <div class="arch-diagram">
+                        <!-- Host Container -->
+                        <div class="arch-host" data-component="host">
+                            <div class="arch-host-header">
+                                <span class="component-icon">🖥️</span>
+                                <span>Host (AI Application)</span>
+                            </div>
+                            <div class="arch-clients">
+                                <div class="arch-client" data-component="client1">
+                                    <span class="component-icon">🔌</span>
+                                    <span>Client 1</span>
+                                </div>
+                                <div class="arch-client" data-component="client2">
+                                    <span class="component-icon">🔌</span>
+                                    <span>Client 2</span>
+                                </div>
+                                <div class="arch-client" data-component="client3">
+                                    <span class="component-icon">🔌</span>
+                                    <span>Client 3</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Connection Lines -->
+                        <div class="arch-connections">
+                            <div class="connection-line" data-connection="1"></div>
+                            <div class="connection-line" data-connection="2"></div>
+                            <div class="connection-line" data-connection="3"></div>
+                        </div>
+
+                        <!-- Servers -->
+                        <div class="arch-servers">
+                            <div class="arch-server" data-component="server-file">
+                                <span class="component-icon">📁</span>
+                                <span>File Server</span>
+                                <div class="server-capabilities">
+                                    <span class="cap-badge">resources</span>
+                                </div>
+                            </div>
+                            <div class="arch-server" data-component="server-db">
+                                <span class="component-icon">🗄️</span>
+                                <span>Database Server</span>
+                                <div class="server-capabilities">
+                                    <span class="cap-badge">tools</span>
+                                    <span class="cap-badge">resources</span>
+                                </div>
+                            </div>
+                            <div class="arch-server" data-component="server-api">
+                                <span class="component-icon">🌐</span>
+                                <span>API Server</span>
+                                <div class="server-capabilities">
+                                    <span class="cap-badge">tools</span>
+                                    <span class="cap-badge">prompts</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="arch-info-panel">
+                        <div class="info-card" id="component-info">
+                            <h3>MCP Overview</h3>
+                            <p>Click on any component in the diagram to learn more about its role in the MCP architecture.</p>
+                            <div class="info-details">
+                                <h4>Key Concepts:</h4>
+                                <ul>
+                                    <li><strong>Host:</strong> The AI application that wants to use external tools</li>
+                                    <li><strong>Client:</strong> Protocol handler within the host</li>
+                                    <li><strong>Server:</strong> Service providing tools, resources, or prompts</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="primitives-section">
+                    <h3>Three Core Primitives</h3>
+                    <div class="primitives-grid">
+                        <div class="primitive-card" data-primitive="tools">
+                            <div class="primitive-header">
+                                <span class="primitive-icon">🔧</span>
+                                <h4>Tools</h4>
+                                <span class="control-badge model">Model-Controlled</span>
+                            </div>
+                            <p>Executable actions the AI can invoke (like function calling)</p>
+                            <div class="primitive-example">
+                                <code>tools/list</code> → <code>tools/call</code>
+                            </div>
+                        </div>
+                        <div class="primitive-card" data-primitive="resources">
+                            <div class="primitive-header">
+                                <span class="primitive-icon">📦</span>
+                                <h4>Resources</h4>
+                                <span class="control-badge app">App-Controlled</span>
+                            </div>
+                            <p>Contextual data exposed to the AI (files, API responses)</p>
+                            <div class="primitive-example">
+                                <code>resources/list</code> → <code>resources/read</code>
+                            </div>
+                        </div>
+                        <div class="primitive-card" data-primitive="prompts">
+                            <div class="primitive-header">
+                                <span class="primitive-icon">💬</span>
+                                <h4>Prompts</h4>
+                                <span class="control-badge user">User-Controlled</span>
+                            </div>
+                            <p>Reusable message templates with argument substitution</p>
+                            <div class="primitive-example">
+                                <code>prompts/list</code> → <code>prompts/get</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Protocol Tab -->
+            <section id="protocol" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Protocol Lifecycle Simulator</h2>
+                    <p>Step through the MCP protocol lifecycle and see JSON-RPC messages</p>
+                </div>
+
+                <div class="protocol-container">
+                    <div class="protocol-controls">
+                        <button class="btn-primary" id="start-protocol">
+                            <span>▶</span> Start Simulation
+                        </button>
+                        <button class="btn-secondary" id="next-step" disabled>
+                            Next Step →
+                        </button>
+                        <button class="btn-secondary" id="reset-protocol">
+                            ↺ Reset
+                        </button>
+                    </div>
+
+                    <div class="protocol-visualization">
+                        <div class="protocol-actors">
+                            <div class="actor client-actor">
+                                <div class="actor-icon">🖥️</div>
+                                <div class="actor-label">Client</div>
+                            </div>
+                            <div class="protocol-timeline">
+                                <div class="timeline-line"></div>
+                                <div class="timeline-steps" id="timeline-steps">
+                                    <!-- Steps added dynamically -->
+                                </div>
+                            </div>
+                            <div class="actor server-actor">
+                                <div class="actor-icon">⚙️</div>
+                                <div class="actor-label">Server</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="message-display">
+                        <div class="message-header">
+                            <h3>Current Message</h3>
+                            <span class="message-direction" id="message-direction">—</span>
+                        </div>
+                        <pre class="message-json"><code id="current-message">// Click "Start Simulation" to begin</code></pre>
+                    </div>
+
+                    <div class="step-description" id="step-description">
+                        <h4>Protocol Overview</h4>
+                        <p>The MCP protocol uses JSON-RPC 2.0 for communication. It follows a structured lifecycle:</p>
+                        <ol>
+                            <li><strong>Initialize:</strong> Client sends capabilities, server responds with its capabilities</li>
+                            <li><strong>Initialized:</strong> Client confirms, connection is ready</li>
+                            <li><strong>Operation:</strong> Tools, resources, and prompts can be used</li>
+                            <li><strong>Shutdown:</strong> Graceful disconnection</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tool Builder Tab -->
+            <section id="tools" class="tab-panel">
+                <div class="panel-header">
+                    <h2>MCP Tool Builder</h2>
+                    <p>Design an MCP tool and see the generated schema</p>
+                </div>
+
+                <div class="tool-builder-container">
+                    <div class="tool-form">
+                        <div class="form-group">
+                            <label for="tool-name">Tool Name</label>
+                            <input type="text" id="tool-name" placeholder="get_weather" value="get_weather">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tool-description">Description</label>
+                            <textarea id="tool-description" placeholder="Describe what this tool does...">Get current weather for a location</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Parameters</label>
+                            <div class="params-list" id="params-list">
+                                <div class="param-row" data-param-index="0">
+                                    <input type="text" class="param-name" placeholder="Name" value="location">
+                                    <select class="param-type">
+                                        <option value="string" selected>string</option>
+                                        <option value="number">number</option>
+                                        <option value="boolean">boolean</option>
+                                        <option value="array">array</option>
+                                        <option value="object">object</option>
+                                    </select>
+                                    <input type="text" class="param-desc" placeholder="Description" value="City name or coordinates">
+                                    <label class="param-required">
+                                        <input type="checkbox" checked> Required
+                                    </label>
+                                    <button class="btn-icon remove-param" title="Remove">×</button>
+                                </div>
+                            </div>
+                            <button class="btn-secondary add-param" id="add-param">+ Add Parameter</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Language</label>
+                            <div class="language-toggle">
+                                <button class="lang-btn active" data-lang="python">Python</button>
+                                <button class="lang-btn" data-lang="typescript">TypeScript</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tool-preview">
+                        <div class="preview-header">
+                            <h3>Generated Code</h3>
+                            <button class="btn-icon copy-btn" id="copy-tool" title="Copy to clipboard">📋</button>
+                        </div>
+                        <pre class="tool-code"><code id="tool-output" class="language-python"></code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Messages Tab -->
+            <section id="messages" class="tab-panel">
+                <div class="panel-header">
+                    <h2>MCP Message Inspector</h2>
+                    <p>Explore different MCP message types and their JSON-RPC structure</p>
+                </div>
+
+                <div class="messages-container">
+                    <div class="message-categories">
+                        <div class="category-group">
+                            <h3>Lifecycle</h3>
+                            <button class="msg-btn active" data-msg="initialize">initialize</button>
+                            <button class="msg-btn" data-msg="initialized">initialized</button>
+                            <button class="msg-btn" data-msg="shutdown">shutdown</button>
+                        </div>
+                        <div class="category-group">
+                            <h3>Tools</h3>
+                            <button class="msg-btn" data-msg="tools-list">tools/list</button>
+                            <button class="msg-btn" data-msg="tools-call">tools/call</button>
+                            <button class="msg-btn" data-msg="tools-result">tools/call result</button>
+                        </div>
+                        <div class="category-group">
+                            <h3>Resources</h3>
+                            <button class="msg-btn" data-msg="resources-list">resources/list</button>
+                            <button class="msg-btn" data-msg="resources-read">resources/read</button>
+                            <button class="msg-btn" data-msg="resources-subscribe">resources/subscribe</button>
+                        </div>
+                        <div class="category-group">
+                            <h3>Prompts</h3>
+                            <button class="msg-btn" data-msg="prompts-list">prompts/list</button>
+                            <button class="msg-btn" data-msg="prompts-get">prompts/get</button>
+                        </div>
+                    </div>
+
+                    <div class="message-detail">
+                        <div class="detail-header">
+                            <div class="detail-title">
+                                <h3 id="msg-title">initialize</h3>
+                                <span class="msg-type-badge" id="msg-type">Request</span>
+                            </div>
+                            <button class="btn-icon copy-btn" id="copy-msg" title="Copy">📋</button>
+                        </div>
+                        <div class="detail-description" id="msg-description">
+                            Initial handshake message sent by the client to establish connection.
+                        </div>
+                        <div class="detail-tabs">
+                            <button class="detail-tab active" data-view="request">Request</button>
+                            <button class="detail-tab" data-view="response">Response</button>
+                        </div>
+                        <pre class="detail-code"><code id="msg-code" class="language-json"></code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Config Tab -->
+            <section id="config" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Configuration Generator</h2>
+                    <p>Generate MCP server configurations for Claude Desktop</p>
+                </div>
+
+                <div class="config-container">
+                    <div class="config-form">
+                        <div class="form-group">
+                            <label for="server-name">Server Name</label>
+                            <input type="text" id="server-name" placeholder="my-mcp-server" value="my-server">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Runtime</label>
+                            <div class="runtime-options">
+                                <label class="radio-option">
+                                    <input type="radio" name="runtime" value="python" checked>
+                                    <span class="radio-label">
+                                        <span class="radio-icon">🐍</span> Python
+                                    </span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="runtime" value="node">
+                                    <span class="radio-label">
+                                        <span class="radio-icon">📦</span> Node.js
+                                    </span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="runtime" value="uv">
+                                    <span class="radio-label">
+                                        <span class="radio-icon">⚡</span> UV (Python)
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="server-path">Server Path</label>
+                            <input type="text" id="server-path" placeholder="/path/to/server.py" value="/path/to/server.py">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Environment Variables (optional)</label>
+                            <div class="env-vars" id="env-vars">
+                                <div class="env-row">
+                                    <input type="text" class="env-key" placeholder="KEY" value="API_KEY">
+                                    <span class="env-equals">=</span>
+                                    <input type="text" class="env-value" placeholder="value" value="your-api-key">
+                                    <button class="btn-icon remove-env" title="Remove">×</button>
+                                </div>
+                            </div>
+                            <button class="btn-secondary add-env" id="add-env">+ Add Variable</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Additional Arguments</label>
+                            <input type="text" id="extra-args" placeholder="--verbose --port 3000">
+                        </div>
+                    </div>
+
+                    <div class="config-preview">
+                        <div class="preview-header">
+                            <h3>claude_desktop_config.json</h3>
+                            <button class="btn-icon copy-btn" id="copy-config" title="Copy">📋</button>
+                        </div>
+                        <pre class="config-code"><code id="config-output" class="language-json"></code></pre>
+
+                        <div class="config-path">
+                            <h4>Config Location</h4>
+                            <div class="path-options">
+                                <div class="path-option">
+                                    <span class="os-badge">macOS</span>
+                                    <code>~/Library/Application Support/Claude/claude_desktop_config.json</code>
+                                </div>
+                                <div class="path-option">
+                                    <span class="os-badge">Windows</span>
+                                    <code>%APPDATA%\Claude\claude_desktop_config.json</code>
+                                </div>
+                                <div class="path-option">
+                                    <span class="os-badge">Linux</span>
+                                    <code>~/.config/claude/claude_desktop_config.json</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="demo-footer">
+            <div class="footer-content">
+                <span>Day 19 of 30 Days of Agentic AI</span>
+                <span class="partner">Partner: Anthropic</span>
+            </div>
+        </footer>
+    </div>
+
+    <div class="toast" id="toast">Copied to clipboard!</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>
