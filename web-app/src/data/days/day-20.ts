@@ -44,91 +44,42 @@ By the end, you'll have templates for the most common MCP integration patterns, 
 
     codeExample: {
       language: "python",
-      title: "SQLite Database MCP Server",
+      title: "MCP Server Pattern (Minimal)",
       code: `"""
-MCP Server for SQLite Database Access
-Provides query and schema exploration tools
+MCP Server Pattern - The essential structure
+See Learn section for complete implementations
 """
 from mcp.server import Server
 from mcp.types import Tool, TextContent
-import sqlite3
-import json
-import re
 
-server = Server("sqlite-server")
-DB_PATH = "data.db"
+server = Server("my-server")
 
 @server.list_tools()
 async def list_tools() -> list[Tool]:
+    """Declare available tools with JSON schemas."""
     return [
         Tool(
-            name="query",
-            description="Execute a read-only SQL query",
+            name="my_tool",
+            description="What this tool does",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "sql": {
-                        "type": "string",
-                        "description": "SELECT query to execute"
-                    }
+                    "param": {"type": "string", "description": "Input parameter"}
                 },
-                "required": ["sql"]
-            }
-        ),
-        Tool(
-            name="list_tables",
-            description="List all tables in the database",
-            inputSchema={"type": "object", "properties": {}}
-        ),
-        Tool(
-            name="describe_table",
-            description="Get schema for a table",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "table": {"type": "string", "description": "Table name"}
-                },
-                "required": ["table"]
+                "required": ["param"]
             }
         )
     ]
 
 @server.call_tool()
 async def call_tool(name: str, arguments: dict) -> list[TextContent]:
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-
-    try:
-        if name == "query":
-            sql = arguments.get("sql", "")
-            # Security: Only allow SELECT statements
-            if not re.match(r"^\\s*SELECT\\s", sql, re.IGNORECASE):
-                return [TextContent(type="text", text="Error: Only SELECT queries allowed", isError=True)]
-
-            cursor = conn.execute(sql)
-            rows = [dict(row) for row in cursor.fetchall()]
-            return [TextContent(type="text", text=json.dumps(rows, indent=2, default=str))]
-
-        elif name == "list_tables":
-            cursor = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            )
-            tables = [row["name"] for row in cursor.fetchall()]
-            return [TextContent(type="text", text=json.dumps({"tables": tables}))]
-
-        elif name == "describe_table":
-            table = arguments.get("table", "")
-            # Security: Validate table name
-            if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", table):
-                return [TextContent(type="text", text="Invalid table name", isError=True)]
-
-            cursor = conn.execute(f"PRAGMA table_info({table})")
-            columns = [{"name": r["name"], "type": r["type"]} for r in cursor]
-            return [TextContent(type="text", text=json.dumps({"columns": columns}))]
-
-    finally:
-        conn.close()
-
+    """Handle tool calls: validate, execute, return results."""
+    if name == "my_tool":
+        # 1. Validate inputs (security!)
+        # 2. Call backend system
+        # 3. Format and return response
+        result = do_something(arguments["param"])
+        return [TextContent(type="text", text=result)]
     raise ValueError(f"Unknown tool: {name}")`
     },
 
@@ -170,11 +121,9 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     },
 
     keyTakeaways: [
-      "MCP servers act as secure adapters between AI applications and backend systems",
-      "Always validate inputs at the server boundary—treat AI requests as untrusted",
-      "Use minimal privilege: read-only access, sandboxed directories, scoped API keys",
-      "Log all operations for debugging, auditing, and monitoring AI tool usage",
-      "Design for composition: multiple focused servers > one monolithic server"
+      "MCP servers are adapters that translate between the AI's MCP protocol and backend systems",
+      "Security is paramount: validate all inputs, use minimal privileges, log everything",
+      "Design for composition—multiple focused servers beat one monolithic server"
     ],
 
     resources: [
@@ -182,19 +131,7 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
         title: "MCP Python SDK",
         url: "https://github.com/modelcontextprotocol/python-sdk",
         type: "github",
-        description: "Official Python SDK for building MCP servers"
-      },
-      {
-        title: "MCP Servers Repository",
-        url: "https://github.com/modelcontextprotocol/servers",
-        type: "github",
-        description: "Reference implementations of MCP servers for various use cases"
-      },
-      {
-        title: "FastMCP",
-        url: "https://github.com/jlowin/fastmcp",
-        type: "github",
-        description: "Pythonic framework for building MCP servers quickly with decorators"
+        description: "Official Python SDK for building MCP servers and clients. See Learn section for additional resources."
       }
     ]
   },
@@ -544,7 +481,7 @@ class PostgresServer:
       },
       {
         title: "Building an API Wrapper Server",
-        description: `External APIs are powerful capabilities for AI: weather data, geocoding, search, translation, and countless others. An API wrapper server makes these accessible through MCP while handling authentication, rate limiting, and error normalization.
+        description: `With database access established, the next common need is external services. External APIs are powerful capabilities for AI: weather data, geocoding, search, translation, and countless others. An API wrapper server makes these accessible through MCP while handling authentication, rate limiting, and error normalization.
 
 **Design Decisions**:
 
@@ -843,7 +780,15 @@ async def translate(name: str, args: dict):
         json={"text": [args["text"]], "target_lang": args["target"]}
     )
     # ... parse and format response
-\`\`\``,
+\`\`\`
+
+**Security Checklist**:
+- [ ] API keys in environment variables, never in code
+- [ ] Rate limiting (per-minute and per-day quotas)
+- [ ] Response caching with appropriate TTL
+- [ ] Timeout limits on external requests
+- [ ] Error message sanitization (no credential leaks)
+- [ ] Request/response logging for audit`,
         analogy: "An API wrapper server is like a travel agent. The travel agent (server) has accounts with airlines, hotels, and car rentals (external APIs). Customers (AI) make requests, and the agent handles the complexity: remembering frequent flyer numbers (credentials), checking prices across providers (API calls), caching recent searches, and presenting options in a consistent format.",
         gotchas: [
           "Store API keys in environment variables, never in code or tool responses",
@@ -855,7 +800,7 @@ async def translate(name: str, args: dict):
       },
       {
         title: "Building a File System Server",
-        description: `File access is essential for AI assistants working with documents, code, and data. A file system server provides this access while enforcing security boundaries—sandboxing to specific directories, filtering file types, and limiting file sizes.
+        description: `Beyond structured data (databases) and external services (APIs), AI often needs access to documents, code, and local files. File access is essential for AI assistants working with documents, code, and data. A file system server provides this access while enforcing security boundaries—sandboxing to specific directories, filtering file types, and limiting file sizes.
 
 **Design Decisions**:
 
@@ -1197,8 +1142,137 @@ if __name__ == "__main__":
         ]
       },
       {
+        title: "Building an MCP Client",
+        description: `Having built three types of servers, let's switch perspectives and build a client. While Claude Desktop and other AI hosts handle client connections automatically, understanding clients is essential for testing, automation, and building custom integrations.
+
+**Client Capabilities**:
+
+1. **Connect to Servers**: Establish connections via stdio (subprocess) or SSE (HTTP)
+2. **Discover Tools**: Query available tools with \`tools/list\`
+3. **Call Tools**: Execute tools with \`tools/call\` and handle responses
+4. **Read Resources**: Access server resources with \`resources/read\`
+
+**Basic Client Implementation**:
+
+\`\`\`python
+"""
+MCP Client - Connect to servers and call tools
+"""
+from mcp.client import Client
+from mcp.client.stdio import stdio_client
+import asyncio
+
+async def main():
+    # Create client and connect to a server via stdio
+    async with stdio_client(
+        command="python",
+        args=["-m", "my_database_server"]
+    ) as (read_stream, write_stream):
+        async with Client("my-client", read_stream, write_stream) as client:
+            # Initialize the connection
+            await client.initialize()
+
+            # Discover available tools
+            tools = await client.list_tools()
+            print(f"Available tools: {[t.name for t in tools.tools]}")
+
+            # Call a tool
+            result = await client.call_tool(
+                "query",
+                {"sql": "SELECT * FROM users LIMIT 5"}
+            )
+            print(f"Query result: {result.content[0].text}")
+
+            # Read a resource (if server provides resources)
+            resources = await client.list_resources()
+            if resources.resources:
+                resource = await client.read_resource(
+                    resources.resources[0].uri
+                )
+                print(f"Resource: {resource.contents[0].text}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+\`\`\`
+
+**Multi-Server Client**:
+
+Orchestrate multiple servers from a single client application:
+
+\`\`\`python
+"""
+Multi-Server Client - Coordinate across multiple MCP servers
+"""
+async def analyze_with_context():
+    # Connect to multiple servers
+    async with stdio_client("python", ["-m", "db_server"]) as db_conn:
+        async with stdio_client("python", ["-m", "file_server"]) as file_conn:
+            db_client = Client("db", *db_conn)
+            file_client = Client("file", *file_conn)
+
+            await db_client.initialize()
+            await file_client.initialize()
+
+            # Workflow: Get data from DB, save to file
+            data = await db_client.call_tool("query", {
+                "sql": "SELECT * FROM reports WHERE date = '2024-01-01'"
+            })
+
+            # Read template from file server
+            template = await file_client.read_resource(
+                "file://templates/report.md"
+            )
+
+            # Combine and process
+            return format_report(data, template)
+\`\`\`
+
+**Testing Your Servers**:
+
+Build test clients to validate server behavior:
+
+\`\`\`python
+import pytest
+
+@pytest.mark.asyncio
+async def test_database_server():
+    async with stdio_client("python", ["-m", "db_server"]) as conn:
+        async with Client("test", *conn) as client:
+            await client.initialize()
+
+            # Test tool discovery
+            tools = await client.list_tools()
+            assert any(t.name == "query" for t in tools.tools)
+
+            # Test query execution
+            result = await client.call_tool("list_tables", {})
+            assert "tables" in result.content[0].text
+
+            # Test error handling
+            result = await client.call_tool("query", {
+                "sql": "DROP TABLE users"  # Should be rejected
+            })
+            assert result.isError or "error" in result.content[0].text.lower()
+\`\`\`
+
+**When to Build Custom Clients**:
+
+- **Testing**: Automated tests for your MCP servers
+- **Automation**: Scripts that use MCP tools without human interaction
+- **Integration**: Embedding MCP capabilities in existing applications
+- **Orchestration**: Coordinating multiple servers for complex workflows`,
+        analogy: "An MCP client is like a universal remote control. Just as a universal remote can control any TV, DVD player, or sound system that speaks infrared, an MCP client can connect to any server that speaks MCP. You configure which devices (servers) to control, discover what buttons (tools) are available, and send commands to get things done.",
+        gotchas: [
+          "Always call initialize() after connecting—it's required by the protocol",
+          "Handle connection errors gracefully—servers may not be running",
+          "Close connections properly using async context managers",
+          "Tool results may be errors (check isError flag)",
+          "Consider connection pooling for high-throughput scenarios"
+        ]
+      },
+      {
         title: "Composing Multiple MCP Servers",
-        description: `Real-world AI applications rarely need just one capability. They need database access AND file reading AND API calls. MCP's architecture naturally supports this through multiple clients connecting to multiple servers.
+        description: `With servers and a client understanding in hand, real applications combine multiple capabilities. Real-world AI applications rarely need just one capability. They need database access AND file reading AND API calls. MCP's architecture naturally supports this through multiple clients connecting to multiple servers.
 
 **Composition Patterns**:
 
@@ -1496,7 +1570,7 @@ class PostgresServer:
                    "ALTER", "CREATE", "GRANT", "REVOKE"]
         for keyword in blocked:
             # Match keyword as whole word
-            if re.search(rf"\\b{keyword}\\b", sql_upper):
+            if re.search(rf"\b{keyword}\b", sql_upper):
                 return False, f"Blocked keyword: {keyword}"
 
         return True, ""
@@ -2077,9 +2151,9 @@ if __name__ == "__main__":
       "Database servers should be read-only by default with SQL injection prevention",
       "API wrappers benefit from caching, rate limiting, and error normalization",
       "File servers must sandbox paths and prevent directory traversal attacks",
+      "Build clients to test servers, automate workflows, and integrate MCP into applications",
       "Compose focused servers rather than building monolithic ones",
-      "FastMCP dramatically simplifies server development for quick prototypes",
-      "Test servers independently before combining them in production"
+      "FastMCP dramatically simplifies server development for quick prototypes"
     ],
 
     resources: [
