@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 20: MCP Server Builder - Interactive Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="demo-container">
+        <header class="demo-header">
+            <div class="header-content">
+                <a href="../../" class="back-link">← Back to Course</a>
+                <h1>MCP Server Builder</h1>
+                <p class="subtitle">Build Real-World Integrations - Day 20</p>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="builder">
+                <span class="tab-icon">🏗️</span>
+                <span class="tab-label">Server Builder</span>
+            </button>
+            <button class="tab-btn" data-tab="security">
+                <span class="tab-icon">🔒</span>
+                <span class="tab-label">Security</span>
+            </button>
+            <button class="tab-btn" data-tab="playground">
+                <span class="tab-icon">🧪</span>
+                <span class="tab-label">Test Playground</span>
+            </button>
+            <button class="tab-btn" data-tab="compose">
+                <span class="tab-icon">🔗</span>
+                <span class="tab-label">Compose</span>
+            </button>
+        </nav>
+
+        <main class="tab-content">
+            <!-- Server Builder Tab -->
+            <section id="builder" class="tab-panel active">
+                <div class="panel-header">
+                    <h2>MCP Server Builder</h2>
+                    <p>Choose a server type and configure it interactively</p>
+                </div>
+
+                <div class="builder-container">
+                    <div class="server-types">
+                        <div class="server-type-card active" data-type="database">
+                            <div class="type-icon">🗄️</div>
+                            <div class="type-info">
+                                <h3>Database Server</h3>
+                                <p>Query SQLite or PostgreSQL with security</p>
+                            </div>
+                            <div class="type-features">
+                                <span class="feature">SQL Validation</span>
+                                <span class="feature">Read-Only</span>
+                            </div>
+                        </div>
+                        <div class="server-type-card" data-type="api">
+                            <div class="type-icon">🌐</div>
+                            <div class="type-info">
+                                <h3>API Wrapper</h3>
+                                <p>Wrap external REST APIs with caching</p>
+                            </div>
+                            <div class="type-features">
+                                <span class="feature">Rate Limiting</span>
+                                <span class="feature">Caching</span>
+                            </div>
+                        </div>
+                        <div class="server-type-card" data-type="file">
+                            <div class="type-icon">📁</div>
+                            <div class="type-info">
+                                <h3>File System</h3>
+                                <p>Secure file access with sandboxing</p>
+                            </div>
+                            <div class="type-features">
+                                <span class="feature">Sandboxed</span>
+                                <span class="feature">Size Limits</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="builder-config" id="builder-config">
+                        <!-- Database Config -->
+                        <div class="config-panel active" data-config="database">
+                            <h3>Database Server Configuration</h3>
+                            <div class="config-grid">
+                                <div class="form-group">
+                                    <label>Database Type</label>
+                                    <select id="db-type">
+                                        <option value="sqlite">SQLite</option>
+                                        <option value="postgres">PostgreSQL</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Database Path/URL</label>
+                                    <input type="text" id="db-path" value="data.db" placeholder="data.db or postgres://...">
+                                </div>
+                                <div class="form-group">
+                                    <label>Access Mode</label>
+                                    <div class="toggle-group">
+                                        <label class="toggle active">
+                                            <input type="radio" name="db-mode" value="readonly" checked>
+                                            <span>Read-Only</span>
+                                        </label>
+                                        <label class="toggle">
+                                            <input type="radio" name="db-mode" value="readwrite">
+                                            <span>Read-Write</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Row Limit</label>
+                                    <input type="number" id="db-limit" value="100" min="1" max="1000">
+                                </div>
+                            </div>
+                            <div class="config-features">
+                                <label class="checkbox-feature">
+                                    <input type="checkbox" id="db-validate" checked>
+                                    <span>SQL Validation</span>
+                                </label>
+                                <label class="checkbox-feature">
+                                    <input type="checkbox" id="db-logging" checked>
+                                    <span>Query Logging</span>
+                                </label>
+                                <label class="checkbox-feature">
+                                    <input type="checkbox" id="db-schema" checked>
+                                    <span>Schema Tools</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- API Config -->
+                        <div class="config-panel" data-config="api">
+                            <h3>API Wrapper Configuration</h3>
+                            <div class="config-grid">
+                                <div class="form-group">
+                                    <label>API Name</label>
+                                    <input type="text" id="api-name" value="weather" placeholder="weather, geocoding, etc.">
+                                </div>
+                                <div class="form-group">
+                                    <label>Base URL</label>
+                                    <input type="text" id="api-url" value="https://api.openweathermap.org/data/2.5" placeholder="https://api.example.com">
+                                </div>
+                                <div class="form-group">
+                                    <label>Auth Type</label>
+                                    <select id="api-auth">
+                                        <option value="query">Query Parameter</option>
+                                        <option value="header">Header (Bearer)</option>
+                                        <option value="basic">Basic Auth</option>
+                                        <option value="none">None</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Cache TTL (seconds)</label>
+                                    <input type="number" id="api-cache" value="600" min="0">
+                                </div>
+                            </div>
+                            <div class="config-features">
+                                <label class="checkbox-feature">
+                                    <input type="checkbox" id="api-ratelimit" checked>
+                                    <span>Rate Limiting</span>
+                                </label>
+                                <label class="checkbox-feature">
+                                    <input type="checkbox" id="api-caching" checked>
+                                    <span>Response Caching</span>
+                                </label>
+                                <label class="checkbox-feature">
+                                    <input type="checkbox" id="api-retry" checked>
+                                    <span>Auto Retry</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- File Config -->
+                        <div class="config-panel" data-config="file">
+                            <h3>File System Configuration</h3>
+                            <div class="config-grid">
+                                <div class="form-group">
+                                    <label>Sandbox Root</label>
+                                    <input type="text" id="file-root" value="./documents" placeholder="/path/to/sandbox">
+                                </div>
+                                <div class="form-group">
+                                    <label>Max File Size (MB)</label>
+                                    <input type="number" id="file-maxsize" value="2" min="0.1" step="0.1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Allowed Extensions</label>
+                                    <input type="text" id="file-extensions" value=".txt,.md,.py,.js,.json" placeholder=".txt,.md,.py">
+                                </div>
+                                <div class="form-group">
+                                    <label>Max Lines per Read</label>
+                                    <input type="number" id="file-maxlines" value="200" min="1">
+                                </div>
+                            </div>
+                            <div class="config-features">
+                                <label class="checkbox-feature">
+                                    <input type="checkbox" id="file-search" checked>
+                                    <span>Search Tool</span>
+                                </label>
+                                <label class="checkbox-feature">
+                                    <input type="checkbox" id="file-hash" checked>
+                                    <span>File Hashing</span>
+                                </label>
+                                <label class="checkbox-feature">
+                                    <input type="checkbox" id="file-readonly" checked>
+                                    <span>Read-Only Mode</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-preview">
+                        <div class="preview-header">
+                            <h3>Generated Server Code</h3>
+                            <div class="preview-actions">
+                                <button class="btn-icon" id="copy-code" title="Copy">📋</button>
+                                <button class="btn-secondary" id="download-code">Download</button>
+                            </div>
+                        </div>
+                        <pre class="code-output"><code id="server-code" class="language-python"></code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Security Tab -->
+            <section id="security" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Security Layer Checker</h2>
+                    <p>Validate your MCP server's security posture</p>
+                </div>
+
+                <div class="security-container">
+                    <div class="security-input">
+                        <h3>Paste Your Server Code</h3>
+                        <textarea id="security-code" placeholder="Paste your MCP server code here to analyze security..."></textarea>
+                        <button class="btn-primary" id="analyze-security">
+                            <span>🔍</span> Analyze Security
+                        </button>
+                    </div>
+
+                    <div class="security-results" id="security-results">
+                        <div class="security-score">
+                            <div class="score-circle" id="score-circle">
+                                <span class="score-value" id="score-value">—</span>
+                            </div>
+                            <div class="score-label">Security Score</div>
+                        </div>
+
+                        <div class="security-checks">
+                            <h3>Security Checklist</h3>
+                            <div class="check-list" id="check-list">
+                                <div class="check-item pending" data-check="input-validation">
+                                    <span class="check-icon">⏳</span>
+                                    <div class="check-info">
+                                        <span class="check-name">Input Validation</span>
+                                        <span class="check-desc">Validates all tool arguments</span>
+                                    </div>
+                                </div>
+                                <div class="check-item pending" data-check="sql-injection">
+                                    <span class="check-icon">⏳</span>
+                                    <div class="check-info">
+                                        <span class="check-name">SQL Injection Prevention</span>
+                                        <span class="check-desc">Uses parameterized queries</span>
+                                    </div>
+                                </div>
+                                <div class="check-item pending" data-check="path-traversal">
+                                    <span class="check-icon">⏳</span>
+                                    <div class="check-info">
+                                        <span class="check-name">Path Traversal Protection</span>
+                                        <span class="check-desc">Validates file paths within sandbox</span>
+                                    </div>
+                                </div>
+                                <div class="check-item pending" data-check="credential-exposure">
+                                    <span class="check-icon">⏳</span>
+                                    <div class="check-info">
+                                        <span class="check-name">Credential Security</span>
+                                        <span class="check-desc">No hardcoded credentials</span>
+                                    </div>
+                                </div>
+                                <div class="check-item pending" data-check="error-handling">
+                                    <span class="check-icon">⏳</span>
+                                    <div class="check-info">
+                                        <span class="check-name">Error Handling</span>
+                                        <span class="check-desc">Catches and handles errors safely</span>
+                                    </div>
+                                </div>
+                                <div class="check-item pending" data-check="rate-limiting">
+                                    <span class="check-icon">⏳</span>
+                                    <div class="check-info">
+                                        <span class="check-name">Rate Limiting</span>
+                                        <span class="check-desc">Prevents resource exhaustion</span>
+                                    </div>
+                                </div>
+                                <div class="check-item pending" data-check="logging">
+                                    <span class="check-icon">⏳</span>
+                                    <div class="check-info">
+                                        <span class="check-name">Audit Logging</span>
+                                        <span class="check-desc">Logs operations for auditing</span>
+                                    </div>
+                                </div>
+                                <div class="check-item pending" data-check="resource-limits">
+                                    <span class="check-icon">⏳</span>
+                                    <div class="check-info">
+                                        <span class="check-name">Resource Limits</span>
+                                        <span class="check-desc">Limits results and file sizes</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Test Playground Tab -->
+            <section id="playground" class="tab-panel">
+                <div class="panel-header">
+                    <h2>MCP Test Playground</h2>
+                    <p>Simulate tool calls and see server responses</p>
+                </div>
+
+                <div class="playground-container">
+                    <div class="playground-servers">
+                        <h3>Available Servers</h3>
+                        <div class="server-list">
+                            <div class="playground-server active" data-server="database">
+                                <span class="server-icon">🗄️</span>
+                                <span class="server-name">Database Server</span>
+                                <span class="server-status online">Online</span>
+                            </div>
+                            <div class="playground-server" data-server="weather">
+                                <span class="server-icon">🌤️</span>
+                                <span class="server-name">Weather API</span>
+                                <span class="server-status online">Online</span>
+                            </div>
+                            <div class="playground-server" data-server="files">
+                                <span class="server-icon">📁</span>
+                                <span class="server-name">File Server</span>
+                                <span class="server-status online">Online</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="playground-tools">
+                        <h3>Tools</h3>
+                        <div class="tools-list" id="tools-list">
+                            <!-- Tools populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="playground-console">
+                        <div class="console-header">
+                            <h3>Console</h3>
+                            <button class="btn-icon" id="clear-console" title="Clear">🗑️</button>
+                        </div>
+                        <div class="console-body" id="console-output">
+                            <div class="console-welcome">
+                                <p>Welcome to the MCP Test Playground!</p>
+                                <p>Select a server and tool to begin testing.</p>
+                            </div>
+                        </div>
+                        <div class="console-input">
+                            <div class="input-form" id="tool-form">
+                                <!-- Tool arguments populated by JS -->
+                            </div>
+                            <button class="btn-primary" id="execute-tool" disabled>
+                                <span>▶</span> Execute
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Compose Tab -->
+            <section id="compose" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Multi-Server Composition</h2>
+                    <p>Design a multi-server architecture for your AI application</p>
+                </div>
+
+                <div class="compose-container">
+                    <div class="compose-palette">
+                        <h3>Server Components</h3>
+                        <div class="palette-items">
+                            <div class="palette-item" draggable="true" data-server="database">
+                                <span class="palette-icon">🗄️</span>
+                                <span>Database</span>
+                            </div>
+                            <div class="palette-item" draggable="true" data-server="api">
+                                <span class="palette-icon">🌐</span>
+                                <span>API</span>
+                            </div>
+                            <div class="palette-item" draggable="true" data-server="files">
+                                <span class="palette-icon">📁</span>
+                                <span>Files</span>
+                            </div>
+                            <div class="palette-item" draggable="true" data-server="search">
+                                <span class="palette-icon">🔍</span>
+                                <span>Search</span>
+                            </div>
+                            <div class="palette-item" draggable="true" data-server="cache">
+                                <span class="palette-icon">⚡</span>
+                                <span>Cache</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="compose-canvas">
+                        <div class="canvas-header">
+                            <div class="host-box">
+                                <span class="host-icon">🖥️</span>
+                                <span>AI Application (Host)</span>
+                            </div>
+                        </div>
+                        <div class="canvas-clients" id="canvas-clients">
+                            <div class="client-slot empty" data-slot="1">
+                                <span class="slot-label">Drop server here</span>
+                            </div>
+                            <div class="client-slot empty" data-slot="2">
+                                <span class="slot-label">Drop server here</span>
+                            </div>
+                            <div class="client-slot empty" data-slot="3">
+                                <span class="slot-label">Drop server here</span>
+                            </div>
+                        </div>
+                        <div class="canvas-actions">
+                            <button class="btn-secondary" id="add-slot">+ Add Client</button>
+                            <button class="btn-secondary" id="clear-canvas">Clear All</button>
+                        </div>
+                    </div>
+
+                    <div class="compose-config">
+                        <div class="config-header">
+                            <h3>Generated Configuration</h3>
+                            <button class="btn-icon" id="copy-config" title="Copy">📋</button>
+                        </div>
+                        <pre class="config-code"><code id="compose-output" class="language-json"></code></pre>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="demo-footer">
+            <div class="footer-content">
+                <span>Day 20 of 30 Days of Agentic AI</span>
+                <span class="partner">Partner: Anthropic / Hugging Face</span>
+            </div>
+        </footer>
+    </div>
+
+    <div class="toast" id="toast">Copied to clipboard!</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>
