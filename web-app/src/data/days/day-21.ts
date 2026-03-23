@@ -1499,25 +1499,22 @@ async def get_task(task_id: str, x_api_key: str = Header(...)):
         title: "A2A Python SDK",
         url: "https://github.com/a2aproject/a2a-python",
         type: "github",
-        description: "Official Python SDK for building A2A clients and servers"
+        description: "Official Python SDK for building A2A clients and servers",
+        summaryPath: "data/day-21/summary-a2a-python-sdk.md"
       },
       {
         title: "A2A JavaScript SDK",
         url: "https://github.com/a2aproject/a2a-js",
         type: "github",
-        description: "Official JavaScript/TypeScript SDK for A2A implementations"
-      },
-      {
-        title: "A2A Go SDK",
-        url: "https://github.com/a2aproject/a2a-go",
-        type: "github",
-        description: "Official Go SDK for high-performance A2A agents"
+        description: "Official JavaScript/TypeScript SDK for A2A implementations",
+        summaryPath: "data/day-21/summary-a2a-js-sdk.md"
       },
       {
         title: "A2A Sample Implementations",
         url: "https://github.com/a2aproject/a2a-samples",
         type: "github",
-        description: "Reference implementations and example agents"
+        description: "Reference implementations and example agents",
+        summaryPath: "data/day-21/summary-a2a-samples.md"
       },
       {
         title: "Announcing A2A - Google Developers Blog",
@@ -1531,19 +1528,15 @@ async def get_task(task_id: str, x_api_key: str = Header(...)):
         url: "https://goo.gle/dlai-a2a",
         type: "course",
         description: "Hands-on course for building A2A-compatible agents",
-        duration: "2-3 hours"
+        duration: "2-3 hours",
+        summaryPath: "data/day-21/summary-a2a-course.md"
       },
       {
         title: "A2A Google Codelab",
         url: "https://codelabs.developers.google.com/intro-a2a-purchasing-concierge",
         type: "tutorial",
-        description: "Step-by-step tutorial building a purchasing concierge with A2A"
-      },
-      {
-        title: "What is A2A Protocol? - IBM",
-        url: "https://www.ibm.com/think/topics/agent2agent-protocol",
-        type: "article",
-        description: "IBM's overview of A2A and its enterprise applications"
+        description: "Step-by-step tutorial building a purchasing concierge with A2A",
+        summaryPath: "data/day-21/summary-a2a-codelab.md"
       }
     ],
 
