@@ -1480,6 +1480,73 @@ async def get_task(task_id: str, x_api_key: str = Header(...)):
       }
     ],
 
+    resources: [
+      {
+        title: "A2A Protocol Specification",
+        url: "https://a2a-protocol.org/latest/specification/",
+        type: "docs",
+        description: "The complete official A2A specification with protocol details, message formats, and security requirements",
+        summaryPath: "data/day-21/summary-a2a-specification.md"
+      },
+      {
+        title: "A2A GitHub Repository",
+        url: "https://github.com/a2aproject/A2A",
+        type: "github",
+        description: "Official repository with specification, ADRs, and documentation",
+        summaryPath: "data/day-21/summary-a2a-github.md"
+      },
+      {
+        title: "A2A Python SDK",
+        url: "https://github.com/a2aproject/a2a-python",
+        type: "github",
+        description: "Official Python SDK for building A2A clients and servers"
+      },
+      {
+        title: "A2A JavaScript SDK",
+        url: "https://github.com/a2aproject/a2a-js",
+        type: "github",
+        description: "Official JavaScript/TypeScript SDK for A2A implementations"
+      },
+      {
+        title: "A2A Go SDK",
+        url: "https://github.com/a2aproject/a2a-go",
+        type: "github",
+        description: "Official Go SDK for high-performance A2A agents"
+      },
+      {
+        title: "A2A Sample Implementations",
+        url: "https://github.com/a2aproject/a2a-samples",
+        type: "github",
+        description: "Reference implementations and example agents"
+      },
+      {
+        title: "Announcing A2A - Google Developers Blog",
+        url: "https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/",
+        type: "article",
+        description: "Google's announcement explaining the vision, design principles, and partner ecosystem",
+        summaryPath: "data/day-21/summary-a2a-announcement.md"
+      },
+      {
+        title: "A2A DeepLearning.AI Course",
+        url: "https://goo.gle/dlai-a2a",
+        type: "course",
+        description: "Hands-on course for building A2A-compatible agents",
+        duration: "2-3 hours"
+      },
+      {
+        title: "A2A Google Codelab",
+        url: "https://codelabs.developers.google.com/intro-a2a-purchasing-concierge",
+        type: "tutorial",
+        description: "Step-by-step tutorial building a purchasing concierge with A2A"
+      },
+      {
+        title: "What is A2A Protocol? - IBM",
+        url: "https://www.ibm.com/think/topics/agent2agent-protocol",
+        type: "article",
+        description: "IBM's overview of A2A and its enterprise applications"
+      }
+    ],
+
     relatedDays: [19, 20, 22]
   }
 };
