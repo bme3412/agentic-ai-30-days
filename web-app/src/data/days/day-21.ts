@@ -337,16 +337,14 @@ A sophisticated enterprise system might use MCP to connect agents to databases a
 
 **All States**:
 
-| State | Description | Terminal? |
-|-------|-------------|-----------|
-| SUBMITTED | Task acknowledged, not yet processing | No |
-| WORKING | Agent actively processing | No |
-| COMPLETED | Successfully finished | Yes |
-| FAILED | Ended with error | Yes |
-| CANCELED | User-initiated termination | Yes |
-| REJECTED | Agent declined the task | Yes |
-| INPUT_REQUIRED | Awaiting additional user input | No |
-| AUTH_REQUIRED | Needs authorization to proceed | No |
+- **SUBMITTED**: Task acknowledged, not yet processing (non-terminal)
+- **WORKING**: Agent actively processing (non-terminal)
+- **COMPLETED**: Successfully finished (terminal)
+- **FAILED**: Ended with error (terminal)
+- **CANCELED**: User-initiated termination (terminal)
+- **REJECTED**: Agent declined the task (terminal)
+- **INPUT_REQUIRED**: Awaiting additional user input (non-terminal)
+- **AUTH_REQUIRED**: Needs authorization to proceed (non-terminal)
 
 **Task Object Structure**:
 
@@ -533,12 +531,10 @@ Clients should check capabilities before using streaming or push notifications. 
 
 **Parts** are atomic content units. Each part has one content type:
 
-| Part Type | Use Case | Example |
-|-----------|----------|---------|
-| text | Plain text content | Questions, instructions, responses |
-| data | Structured JSON | API payloads, configuration objects |
-| url | Remote resources | Images, documents, files |
-| raw | Base64 binary | Uploaded files, generated images |
+- **text**: Plain text content (questions, instructions, responses)
+- **data**: Structured JSON (API payloads, configuration objects)
+- **url**: Remote resources (images, documents, files)
+- **raw**: Base64 binary (uploaded files, generated images)
 
 \`\`\`json
 // Text part
@@ -773,14 +769,15 @@ When using push notifications, agents validate webhook URLs (rejecting private I
 
 **When to Use Each**:
 
-| Scenario | Protocol | Why |
-|----------|----------|-----|
-| Query a database | MCP | Tool access, not agent delegation |
-| Call a weather API | MCP | Structured tool invocation |
-| Ask a specialist agent to research | A2A | Agent-to-agent delegation |
-| Coordinate multi-agent workflow | A2A | Cross-agent communication |
-| Read files from disk | MCP | Resource access |
-| Hand off customer to billing agent | A2A | Agent handoff pattern |
+Use **MCP** for:
+- Querying a database (tool access, not agent delegation)
+- Calling a weather API (structured tool invocation)
+- Reading files from disk (resource access)
+
+Use **A2A** for:
+- Asking a specialist agent to research (agent-to-agent delegation)
+- Coordinating multi-agent workflows (cross-agent communication)
+- Handing off customer to billing agent (agent handoff pattern)
 
 **Using Both Together**:
 
@@ -825,14 +822,12 @@ class EnterpriseAgent:
 
 **Key Differences**:
 
-| Aspect | MCP | A2A |
-|--------|-----|-----|
-| Focus | Tool integration | Agent coordination |
-| Primitives | Tools, Resources, Prompts | Agent Cards, Tasks, Messages |
-| Discovery | Server capabilities | Agent Cards |
-| Communication | JSON-RPC | JSON-RPC, gRPC, REST |
-| State | Stateless tools | Stateful tasks |
-| Governance | Anthropic | Linux Foundation |`,
+- **Focus**: MCP = tool integration; A2A = agent coordination
+- **Primitives**: MCP = Tools, Resources, Prompts; A2A = Agent Cards, Tasks, Messages
+- **Discovery**: MCP = server capabilities; A2A = Agent Cards
+- **Communication**: MCP = JSON-RPC; A2A = JSON-RPC, gRPC, REST
+- **State**: MCP = stateless tools; A2A = stateful tasks
+- **Governance**: MCP = Anthropic; A2A = Linux Foundation`,
         analogy: "MCP is like a person's hands (how they interact with objects/tools). A2A is like their voice (how they communicate with other people). You need both: hands to use tools, voice to coordinate with others. An agent using only MCP can do things; an agent using both can do things AND collaborate.",
         gotchas: [
           "Don't use A2A for simple tool calls—MCP is more efficient for that",
