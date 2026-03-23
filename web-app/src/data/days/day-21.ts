@@ -231,76 +231,17 @@ A sophisticated enterprise system might use MCP to connect agents to databases a
     concepts: [
       {
         title: "Agent Cards: Discovery and Capabilities",
-        description: `Agent Cards are the foundation of A2A discovery. They're JSON manifests that describe what an agent can do, how to connect to it, and what security requirements it has.
+        description: `Before two agents can communicate, they need to discover each other's capabilities. How does a research agent know that a weather agent can provide forecasts? How does it know what authentication is required, or whether the agent supports streaming responses? This is the problem **Agent Cards** solve.
 
-**Card Location**: Agents serve their card at \`/.well-known/agent-card.json\`. Client agents fetch this URL to discover capabilities before initiating communication.
+An Agent Card is a JSON manifest that describes everything another agent needs to know to communicate effectively. Every A2A-compatible agent serves its card at a well-known URL: \`/.well-known/agent-card.json\`. When a client agent wants to work with a remote agent, it first fetches this card to understand what's possible.
 
-**Card Structure**:
+The card contains several key pieces of information. **Identity** tells you who the agent is—its name, description, the organization that provides it, and where to find documentation. **Capabilities** declare what interaction patterns the agent supports—can it stream responses in real-time, or does it only support request-response? Can it send push notifications for long-running tasks? **Interfaces** specify the technical details of how to connect—the protocol (JSON-RPC, gRPC, or REST) and the endpoint URL. **Security** defines authentication requirements—does the agent need an API key, OAuth tokens, or mutual TLS certificates?
 
-\`\`\`json
-{
-  "name": "Weather Agent",
-  "description": "Provides weather forecasts and historical data",
-  "provider": {
-    "organization": "WeatherCorp",
-    "url": "https://weathercorp.example.com"
-  },
-  "version": "1.0.0",
-  "documentationUrl": "https://docs.weathercorp.example.com",
+Perhaps most importantly, the card lists the agent's **skills**—the specific things it can do. Each skill has an identifier, a human-readable name and description, and metadata about what input and output formats it accepts. A weather agent might list skills for "current conditions," "weekly forecast," and "historical data." A client agent reads these skill descriptions to determine whether this agent can help with a particular task.
 
-  "capabilities": {
-    "streaming": true,
-    "pushNotifications": true,
-    "extendedCards": true
-  },
+One subtle but important feature is **extended cards**. Some agents have capabilities they don't want to advertise publicly—perhaps premium features or sensitive operations. These agents serve a basic public card, but after authentication, they provide an extended card with additional skills and details. This allows agents to maintain public discoverability while protecting proprietary capabilities.
 
-  "interfaces": [
-    {
-      "type": "JSON_RPC_2_0",
-      "url": "https://api.weathercorp.example.com/a2a"
-    }
-  ],
-
-  "securitySchemes": {
-    "apiKey": {
-      "type": "apiKey",
-      "in": "header",
-      "name": "X-API-Key"
-    }
-  },
-  "defaultSecurity": ["apiKey"],
-
-  "skills": [
-    {
-      "id": "weather-forecast",
-      "name": "Weather Forecast",
-      "description": "Get weather forecast for any location",
-      "inputModes": ["text"],
-      "outputModes": ["text", "data"],
-      "examples": [
-        {"input": "What's the weather in Tokyo?", "output": "Sunny, 72°F"}
-      ]
-    },
-    {
-      "id": "historical-weather",
-      "name": "Historical Weather Data",
-      "description": "Get past weather data for analysis"
-    }
-  ]
-}
-\`\`\`
-
-**Key Sections**:
-
-- **Identity**: Name, description, provider, version, documentation URL
-- **Capabilities**: What interaction modes the agent supports (streaming, push notifications)
-- **Interfaces**: Protocol bindings and endpoints (JSON-RPC, gRPC, REST)
-- **Security**: Authentication schemes (API keys, OAuth2, mTLS)
-- **Skills**: Specific capabilities with input/output modes and examples
-
-**Extended Agent Cards**: Some information is sensitive and shouldn't be public. Agents can serve a public card with basic info, then provide an extended card (with more skills or details) after authentication. The \`extendedCards\` capability signals this support.
-
-**Card Signatures**: For high-security environments, Agent Cards can include JWS signatures to verify authenticity. This prevents man-in-the-middle attacks where a malicious party serves a fake card.`,
+For high-security environments, Agent Cards can include cryptographic signatures using JWS (JSON Web Signature). This allows client agents to verify that the card they received is authentic and hasn't been tampered with—critical protection against man-in-the-middle attacks where a malicious party might try to impersonate a trusted agent.`,
         analogy: "Agent Cards are like LinkedIn profiles for AI agents. They advertise skills, experience (capabilities), and how to contact the agent (interfaces). Just as you'd check someone's profile before reaching out professionally, client agents check Agent Cards before delegating tasks.",
         gotchas: [
           "Cards are cached—if you update capabilities, clients may not see changes immediately",
@@ -311,87 +252,17 @@ A sophisticated enterprise system might use MCP to connect agents to databases a
       },
       {
         title: "Task Lifecycle and States",
-        description: `Tasks are the unit of work in A2A. Every interaction creates a task that progresses through defined states until completion or failure.
+        description: `In A2A, every interaction between agents is structured around **Tasks**—units of work with defined lifecycles. When a client agent sends a message to a remote agent, it creates a task. That task then progresses through various states until it reaches completion, failure, or some other terminal condition. Understanding this lifecycle is essential for building robust agent systems.
 
-**Task States**:
+When a client first sends a message, the task enters the **SUBMITTED** state—the remote agent has acknowledged receipt but hasn't started processing yet. Once processing begins, the task moves to **WORKING**, indicating the agent is actively handling the request. From WORKING, several outcomes are possible.
 
-\`\`\`
-                    ┌──────────────────┐
-                    │  TASK_STATE_     │
-                    │   SUBMITTED      │
-                    └────────┬─────────┘
-                             │
-                    ┌────────▼─────────┐
-                    │  TASK_STATE_     │
-                    │    WORKING       │◄─────────────┐
-                    └────────┬─────────┘              │
-                             │                        │
-           ┌─────────────────┼─────────────────┐      │
-           │                 │                 │      │
-  ┌────────▼───────┐  ┌──────▼───────┐  ┌─────▼──────┴──┐
-  │  TASK_STATE_   │  │ TASK_STATE_  │  │ TASK_STATE_   │
-  │   COMPLETED    │  │    FAILED    │  │INPUT_REQUIRED │
-  └────────────────┘  └──────────────┘  └───────────────┘
-    (terminal)          (terminal)       (awaits input)
-\`\`\`
+The happy path leads to **COMPLETED**—the agent finished successfully, and the task now contains artifacts with the results. But things don't always go smoothly. If something goes wrong, the task transitions to **FAILED** with an error message explaining what happened. The client might also explicitly cancel a task, leading to the **CANCELED** state. In some cases, an agent might look at a request and decide it can't or won't handle it, transitioning directly to **REJECTED**.
 
-**All States**:
+Two states deserve special attention because they're non-terminal but require client action. **INPUT_REQUIRED** means the agent needs more information to proceed—perhaps it's asking a clarifying question like "Which San Francisco did you mean, California or Philippines?" The client must respond with additional input, and then the task returns to WORKING. Similarly, **AUTH_REQUIRED** indicates the agent needs additional authorization before continuing—perhaps it needs permission to access a calendar or make a purchase.
 
-- **SUBMITTED**: Task acknowledged, not yet processing (non-terminal)
-- **WORKING**: Agent actively processing (non-terminal)
-- **COMPLETED**: Successfully finished (terminal)
-- **FAILED**: Ended with error (terminal)
-- **CANCELED**: User-initiated termination (terminal)
-- **REJECTED**: Agent declined the task (terminal)
-- **INPUT_REQUIRED**: Awaiting additional user input (non-terminal)
-- **AUTH_REQUIRED**: Needs authorization to proceed (non-terminal)
+The distinction between terminal and non-terminal states matters for client implementation. Terminal states (COMPLETED, FAILED, CANCELED, REJECTED) are final—once a task reaches one of these, it's done forever. Non-terminal states (SUBMITTED, WORKING, INPUT_REQUIRED, AUTH_REQUIRED) indicate the task is still in progress and may require attention.
 
-**Task Object Structure**:
-
-\`\`\`json
-{
-  "id": "task-uuid-12345",
-  "contextId": "conversation-uuid-789",
-  "status": {
-    "state": "TASK_STATE_WORKING",
-    "timestamp": "2025-03-23T10:30:00Z",
-    "message": {
-      "role": "ROLE_AGENT",
-      "parts": [{"text": "Searching for weather data..."}]
-    }
-  },
-  "artifacts": [],
-  "history": []
-}
-\`\`\`
-
-**Key Concepts**:
-
-- **Task ID**: Unique identifier for tracking and updates
-- **Context ID**: Groups related tasks into a conversation
-- **Status**: Current state with timestamp and optional message
-- **Artifacts**: Outputs produced by the task
-- **History**: Message exchange history (controlled by historyLength parameter)
-
-**Multi-Turn Interactions**: When an agent needs more information, it transitions to INPUT_REQUIRED with a question. The client responds by sending a new message referencing the task ID, and processing resumes.
-
-\`\`\`python
-# Agent asks for clarification
-status: {
-  "state": "TASK_STATE_INPUT_REQUIRED",
-  "message": {
-    "role": "ROLE_AGENT",
-    "parts": [{"text": "Which San Francisco? CA or Philippines?"}]
-  }
-}
-
-# Client provides follow-up
-await client.send_message({
-  "taskId": "task-uuid-12345",  # Reference existing task
-  "role": "ROLE_USER",
-  "parts": [{"text": "California"}]
-})
-\`\`\``,
+Tasks also carry important metadata. Every task has a unique **Task ID** for tracking and reference. A **Context ID** groups related tasks into a logical conversation—if you're having a multi-step interaction with an agent, all the tasks share the same context. The **Status** contains the current state plus a timestamp and optional message. **Artifacts** hold the outputs the agent produces. And **History** preserves the message exchange, allowing agents to maintain conversational context.`,
         analogy: "Tasks are like order tracking at a restaurant. SUBMITTED means the kitchen received your order. WORKING means they're cooking. INPUT_REQUIRED means the waiter came back to ask how you want your steak done. COMPLETED means your food is ready. FAILED means they ran out of ingredients.",
         gotchas: [
           "Always handle INPUT_REQUIRED—ignoring it leaves tasks stuck indefinitely",
@@ -402,104 +273,15 @@ await client.send_message({
       },
       {
         title: "Communication Patterns",
-        description: `A2A supports three communication patterns to handle different timing requirements. Agents declare which patterns they support in their Agent Card capabilities.
+        description: `Not all agent interactions have the same timing requirements. A simple calculation might complete in milliseconds, while a research task might take minutes or even hours. A2A addresses this reality by supporting three distinct communication patterns, and agents declare which patterns they support in their Agent Card.
 
-**1. Synchronous (Request-Response)**
+**Synchronous communication** is the simplest pattern. The client sends a message, waits for the task to complete, and receives the result—all in a single request-response cycle. This works beautifully for quick operations: a calculation, a simple lookup, a formatting task. The client blocks until it gets an answer, which typically takes a few seconds at most. If you've ever used a REST API, this pattern will feel immediately familiar.
 
-The simplest pattern: send a message, wait for the task to complete, receive the result.
+**Streaming** enters the picture when tasks take longer but users want visibility into progress. Instead of waiting silently for a final result, the client opens a persistent connection using Server-Sent Events (SSE), and the agent pushes updates as work proceeds. The client might receive a task snapshot first, then status updates as the task moves from SUBMITTED to WORKING, then artifact updates as partial results become available, and finally a completion event. This pattern is ideal for tasks taking ten seconds or more where users would otherwise be left staring at a spinner wondering if anything is happening.
 
-\`\`\`python
-# Synchronous call (blocks until complete)
-response = await client.send_message({
-    "message": {
-        "role": "ROLE_USER",
-        "parts": [{"text": "What's 2 + 2?"}]
-    }
-})
+**Push notifications** handle the longest-running tasks—those measured in minutes or hours rather than seconds. For these, it doesn't make sense to hold a connection open indefinitely. Instead, the client provides a webhook URL when creating the task, then goes about its business. The remote agent works asynchronously, posting updates to the webhook whenever something significant happens. The client's server receives these notifications and can update the user, trigger downstream processes, or simply log progress. This pattern is essential for complex research tasks, large data processing jobs, or any operation where you want the agent to work in the background while the user does other things.
 
-# Response contains completed task
-print(response.task.status.state)  # TASK_STATE_COMPLETED
-print(response.task.artifacts[0].parts[0].text)  # "4"
-\`\`\`
-
-Best for: Quick operations that complete in seconds.
-
-**2. Streaming (Server-Sent Events)**
-
-For real-time updates during long-running tasks. The client opens a persistent connection and receives events as the task progresses.
-
-\`\`\`python
-# Start a streaming request
-stream = await client.send_streaming_message({
-    "message": {
-        "role": "ROLE_USER",
-        "parts": [{"text": "Research AI trends in 2025"}]
-    }
-})
-
-# Receive events as they arrive
-async for event in stream:
-    if event.status_update:
-        print(f"Status: {event.status_update.status.state}")
-    if event.artifact_update:
-        print(f"Partial result: {event.artifact_update.artifact}")
-\`\`\`
-
-Event types:
-- **Task snapshot**: Initial task state
-- **Status update**: State transitions
-- **Artifact update**: New or updated outputs
-- **Error**: Problems during execution
-
-Best for: Tasks taking 10+ seconds where users want progress visibility.
-
-**3. Asynchronous (Push Notifications)**
-
-For long-running background tasks. The client provides a webhook URL, and the agent posts updates when they occur.
-
-\`\`\`python
-# Start task with webhook configuration
-response = await client.send_message({
-    "message": {...},
-    "configuration": {
-        "pushNotificationConfig": {
-            "url": "https://my-app.com/webhook/a2a",
-            "authentication": {
-                "scheme": "Bearer",
-                "credentials": "my-webhook-token"
-            }
-        }
-    }
-})
-
-# Task runs in background
-task_id = response.task.id
-
-# Later, agent POSTs to your webhook:
-# POST https://my-app.com/webhook/a2a
-# {
-#   "statusUpdate": {
-#     "taskId": "...",
-#     "status": {"state": "TASK_STATE_COMPLETED"}
-#   }
-# }
-\`\`\`
-
-Best for: Tasks taking minutes to hours (research, data processing, complex analysis).
-
-**Capability Negotiation**:
-
-\`\`\`json
-// Agent Card capabilities
-{
-  "capabilities": {
-    "streaming": true,
-    "pushNotifications": true
-  }
-}
-\`\`\`
-
-Clients should check capabilities before using streaming or push notifications. If unsupported, fall back to polling with \`get_task()\`.`,
+The choice of pattern isn't arbitrary—it's declared in the Agent Card's capabilities section. A lightweight utility agent might only support synchronous requests, while a sophisticated research agent might support all three. Clients should check these capabilities before attempting to use streaming or push notifications. If a desired pattern isn't supported, the fallback is usually polling—periodically calling get_task() to check on progress. This works but is less efficient than native streaming or push support.`,
         analogy: "Think of ordering food: Synchronous is a vending machine (insert money, get snack immediately). Streaming is a coffee shop (you watch the barista make your drink). Push notifications are delivery apps (order, go about your day, get notified when it arrives).",
         gotchas: [
           "Streaming requires keeping connections open—handle disconnects gracefully",
@@ -510,97 +292,17 @@ Clients should check capabilities before using streaming or push notifications. 
       },
       {
         title: "Messages, Parts, and Artifacts",
-        description: `A2A uses a structured content model where Messages contain Parts, and completed Tasks produce Artifacts. This enables rich, multi-modal communication.
+        description: `A2A uses a structured content model that enables rich, multi-modal communication between agents. Understanding this model—**Messages**, **Parts**, and **Artifacts**—is essential for building effective A2A integrations.
 
-**Messages** represent a single turn in the conversation:
+A **Message** represents a single turn in the conversation between agents. Every message has a role indicating whether it came from the user (the client agent) or the remote agent. Messages also carry a unique identifier, an optional reference to an existing task (for continuing conversations), and a context ID that groups related messages into a logical conversation. But the most important part of a message is its content, which is expressed through Parts.
 
-\`\`\`json
-{
-  "messageId": "msg-uuid-001",
-  "role": "ROLE_USER",  // or ROLE_AGENT
-  "parts": [
-    {"text": "Please analyze this image and data"},
-    {"data": {"type": "sales_report", "quarter": "Q1"}},
-    {"url": "https://example.com/chart.png"}
-  ],
-  "contextId": "conversation-uuid",
-  "taskId": "task-uuid",  // Optional: reference existing task
-  "metadata": {}
-}
-\`\`\`
+**Parts** are the atomic units of content within a message. Rather than treating all content as plain text, A2A recognizes that agents need to exchange diverse types of information. A text part contains plain text—questions, instructions, or responses. A data part contains structured JSON, perfect for API payloads or configuration objects that need to maintain their structure. A URL part references a remote resource like an image, document, or file, without embedding the actual bytes. And a raw part contains Base64-encoded binary data for cases where you need to embed content directly rather than reference it by URL.
 
-**Parts** are atomic content units. Each part has one content type:
+This multi-part structure enables truly multi-modal communication. A single message might contain a text instruction like "Analyze this sales data and compare it to this chart," along with a data part containing the sales numbers as structured JSON and a URL part pointing to an image of the chart. The receiving agent understands each part's type and can process them appropriately.
 
-- **text**: Plain text content (questions, instructions, responses)
-- **data**: Structured JSON (API payloads, configuration objects)
-- **url**: Remote resources (images, documents, files)
-- **raw**: Base64 binary (uploaded files, generated images)
+**Artifacts** are what agents produce as outputs. When a task completes successfully, it typically contains one or more artifacts—the deliverables of the work. Each artifact has a name, description, and its own set of parts. A research task might produce a "Summary" artifact with a text part, a "Full Report" artifact with a PDF in a raw part, and a "Data Export" artifact with structured JSON in a data part. This flexibility allows agents to return multiple outputs in appropriate formats for different use cases.
 
-\`\`\`json
-// Text part
-{"text": "What's the weather?"}
-
-// Data part (structured JSON)
-{"data": {"city": "SF", "units": "fahrenheit"}}
-
-// URL part (reference to resource)
-{"url": "https://example.com/image.png", "mediaType": "image/png"}
-
-// Raw part (binary content)
-{"raw": "base64encodeddata...", "mediaType": "application/pdf"}
-\`\`\`
-
-**Artifacts** are the outputs of a completed task:
-
-\`\`\`json
-{
-  "artifactId": "artifact-uuid-001",
-  "name": "Weather Report",
-  "description": "Current weather conditions for San Francisco",
-  "parts": [
-    {
-      "text": "San Francisco: 68°F, Partly Cloudy, Humidity 72%"
-    },
-    {
-      "data": {
-        "temperature": 68,
-        "unit": "fahrenheit",
-        "conditions": "partly_cloudy",
-        "humidity": 72
-      }
-    }
-  ],
-  "metadata": {
-    "source": "weather-api-v2",
-    "timestamp": "2025-03-23T10:30:00Z"
-  }
-}
-\`\`\`
-
-**Tasks can produce multiple artifacts**:
-
-\`\`\`python
-task.artifacts = [
-    {"name": "Summary", "parts": [{"text": "..."}]},
-    {"name": "Full Report", "parts": [{"raw": "...", "mediaType": "application/pdf"}]},
-    {"name": "Data Export", "parts": [{"data": {...}}]}
-]
-\`\`\`
-
-**Multi-Modal Example**:
-
-\`\`\`python
-# Send an image for analysis
-response = await client.send_message({
-    "message": {
-        "role": "ROLE_USER",
-        "parts": [
-            {"text": "Describe what's in this image"},
-            {"url": "https://example.com/photo.jpg", "mediaType": "image/jpeg"}
-        ]
-    }
-})
-\`\`\``,
+One subtle but important detail: artifacts can be updated during streaming. As an agent works on a long-running task, it might produce partial artifacts that get refined over time. Each artifact has a unique ID so clients can track these updates and show users incremental progress rather than waiting for final results.`,
         analogy: "Think of Messages like emails: they have a sender (role), content (parts), and can reference a thread (contextId). Parts are attachments—you can attach text, files, images, or data. Artifacts are the deliverables—the final outputs the agent produces.",
         gotchas: [
           "Always include mediaType for raw and url parts to ensure correct handling",
@@ -611,119 +313,19 @@ response = await client.send_message({
       },
       {
         title: "Security and Authentication",
-        description: `A2A builds security into the protocol at multiple layers, enabling enterprise-grade agent deployments.
+        description: `Enterprise deployments demand robust security, and A2A builds security into the protocol at multiple layers rather than treating it as an afterthought. Understanding these security mechanisms is essential for anyone deploying A2A agents in production.
 
-**Transport Security**:
+The foundation is **transport security**. All production A2A communication must use HTTPS with modern TLS (version 1.3 or higher). This encrypts data in transit, preventing eavesdropping, and authenticates server identity, preventing man-in-the-middle attacks. Never run A2A over plain HTTP in any environment where security matters.
 
-All production A2A communication MUST use HTTPS with TLS 1.3+. This encrypts data in transit and authenticates server identity.
+On top of transport security, A2A supports multiple **authentication schemes**. Agent Cards declare which authentication methods they accept in their securitySchemes section. The simplest is API key authentication—a secret token passed in a header. More sophisticated options include OAuth 2.0 with scopes that limit what authenticated clients can do, OpenID Connect for identity federation with existing identity providers, and mutual TLS where both client and server present certificates. The choice depends on your security requirements and existing infrastructure.
 
-**Authentication Schemes**:
+Authentication proves who you are; **authorization** determines what you can do. A2A servers should validate credentials on every request and enforce appropriate scoping. Just because a client has a valid API key doesn't mean they can perform any operation—the server should check whether this particular client is allowed to create tasks, access certain skills, or retrieve specific artifacts.
 
-Agent Cards declare supported authentication methods in \`securitySchemes\`:
+One particularly useful feature is **mid-task authorization**. Sometimes a task starts successfully but then needs additional permissions to continue. Perhaps the agent realizes it needs to access the user's calendar to schedule a meeting discussed in the conversation. Rather than failing, the task can transition to AUTH_REQUIRED state, providing a message explaining what permission is needed and optionally an authorization URL where the user can grant access. Once authorization is obtained, the client can resume the task.
 
-\`\`\`json
-{
-  "securitySchemes": {
-    "apiKey": {
-      "type": "apiKey",
-      "in": "header",
-      "name": "X-API-Key"
-    },
-    "oauth2": {
-      "type": "oauth2",
-      "flows": {
-        "clientCredentials": {
-          "tokenUrl": "https://auth.example.com/token",
-          "scopes": {
-            "agent:read": "Read agent capabilities",
-            "task:write": "Create and manage tasks"
-          }
-        }
-      }
-    },
-    "mtls": {
-      "type": "mutualTLS",
-      "description": "Client certificate authentication"
-    }
-  },
-  "defaultSecurity": ["oauth2"]
-}
-\`\`\`
+For high-security environments, **Agent Card signatures** provide an additional layer of protection. Cards can include JWS (JSON Web Signature) signatures that clients verify against published public keys. This ensures the card hasn't been tampered with—critical protection against attacks where a malicious actor intercepts and modifies an Agent Card to redirect tasks to a fake agent.
 
-**Supported Types**:
-- **API Key**: Simple token in header/query
-- **HTTP Basic/Bearer**: Standard HTTP auth
-- **OAuth 2.0**: Token-based with scopes
-- **OpenID Connect**: Identity federation
-- **Mutual TLS**: Certificate-based authentication
-
-**Per-Task Authorization**:
-
-Servers validate credentials on every request and enforce scoping:
-
-\`\`\`python
-# Server-side authorization check
-@app.route("/message:send")
-async def send_message(request):
-    # Validate authentication
-    credentials = extract_credentials(request)
-    if not validate_auth(credentials):
-        raise AuthenticationError("Invalid credentials")
-
-    # Check authorization for this operation
-    user_id = get_user_id(credentials)
-    if not can_create_tasks(user_id):
-        raise AuthorizationError("Insufficient permissions")
-
-    # Proceed with task creation
-    ...
-\`\`\`
-
-**Mid-Task Authorization**:
-
-Sometimes tasks need additional permissions partway through. Agents can transition to AUTH_REQUIRED:
-
-\`\`\`json
-{
-  "status": {
-    "state": "TASK_STATE_AUTH_REQUIRED",
-    "message": {
-      "role": "ROLE_AGENT",
-      "parts": [{
-        "text": "I need access to your calendar to schedule this meeting"
-      }],
-      "metadata": {
-        "authRequest": {
-          "scope": "calendar:write",
-          "authUrl": "https://example.com/oauth/authorize"
-        }
-      }
-    }
-  }
-}
-\`\`\`
-
-**Agent Card Signatures**:
-
-For high-security environments, cards can include JWS signatures:
-
-\`\`\`json
-{
-  "name": "Secure Agent",
-  "...": "...",
-  "signature": {
-    "algorithm": "RS256",
-    "keyId": "key-001",
-    "value": "base64-encoded-jws-signature"
-  }
-}
-\`\`\`
-
-Clients verify signatures against published public keys to prevent card tampering.
-
-**Webhook Security**:
-
-When using push notifications, agents validate webhook URLs (rejecting private IP ranges) and include authentication headers. Clients verify the authentication to prevent spoofed updates.`,
+Finally, **webhook security** deserves attention when using push notifications. Agents should validate webhook URLs before accepting them, rejecting private IP ranges that could enable SSRF attacks. When posting to webhooks, agents include authentication credentials that clients can verify, preventing spoofed updates from attackers who might guess webhook URLs.`,
         analogy: "A2A security is like airport security: TLS is the secure perimeter (everyone needs a ticket to enter). Authentication is the ID check (prove who you are). Authorization is the boarding pass (you can only board your specific flight). Signatures are tamper-evident seals (know if something was modified).",
         gotchas: [
           "Never transmit credentials over plain HTTP—always HTTPS",
@@ -734,100 +336,17 @@ When using push notifications, agents validate webhook URLs (rejecting private I
       },
       {
         title: "A2A vs MCP: Complementary Protocols",
-        description: `A2A and MCP are frequently mentioned together, but they solve different problems. Understanding their relationship is key to designing robust agentic systems.
+        description: `A2A and MCP are frequently mentioned in the same breath, leading some to wonder whether they compete or overlap. In fact, they solve different problems and work together beautifully. Understanding their relationship is key to designing robust agentic systems.
 
-**MCP (Model Context Protocol)** - Anthropic:
-- Connects agents to **tools** and **data sources**
-- **Vertical integration**: Agent ↔ Database, Agent ↔ API, Agent ↔ File System
-- Primitives: Tools, Resources, Prompts
-- Model decides when to use tools
+**MCP (Model Context Protocol)**, developed by Anthropic, standardizes how agents connect to **tools and data sources**. Think of it as vertical integration—connecting an agent downward to the capabilities it needs. When an agent needs to query a database, call a weather API, read files from disk, or execute code, MCP provides the standard interface. The LLM decides when to use these tools, selecting from a menu of available capabilities declared by MCP servers.
 
-**A2A (Agent-to-Agent Protocol)** - Google:
-- Connects **agents to each other**
-- **Horizontal integration**: Agent ↔ Agent ↔ Agent
-- Primitives: Agent Cards, Tasks, Messages
-- Agent decides when to delegate
+**A2A (Agent-to-Agent Protocol)**, developed by Google, standardizes how agents communicate **with each other**. Think of it as horizontal integration—connecting agents sideways to their peers. When a research agent needs help from an analytics agent, or when a customer service agent needs to hand off to a billing specialist, A2A provides the standard interface. The agent decides when to delegate, selecting from a directory of available agents discovered through Agent Cards.
 
-\`\`\`
-┌─────────────────────────────────────────────────────────────┐
-│                    Agentic AI System                        │
-│                                                             │
-│  ┌─────────────┐          A2A          ┌─────────────┐     │
-│  │   Agent A   │◄───────────────────►│   Agent B   │     │
-│  │ (Research)  │                       │ (Analytics) │     │
-│  └──────┬──────┘                       └──────┬──────┘     │
-│         │                                     │             │
-│         │ MCP                                 │ MCP         │
-│         │                                     │             │
-│  ┌──────▼──────┐                       ┌──────▼──────┐     │
-│  │  Web Search │                       │  Database   │     │
-│  │    Tool     │                       │   Tool      │     │
-│  └─────────────┘                       └─────────────┘     │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-\`\`\`
+The distinction becomes clearer with concrete examples. Querying a database is a tool call—use MCP. Calling a weather API is a tool invocation—use MCP. Reading files from disk is resource access—use MCP. But asking a specialist agent to conduct research is agent delegation—use A2A. Coordinating a multi-agent workflow where each agent has its own expertise is cross-agent communication—use A2A. Handing off a customer to a different department's agent is an agent handoff—use A2A.
 
-**When to Use Each**:
+In practice, sophisticated systems use both protocols together. An enterprise might use MCP to give each agent access to internal tools like databases, APIs, and file systems. Simultaneously, they use A2A to let these agents coordinate with each other. A research agent might use MCP to search the web and read documents, then use A2A to send its findings to an analytics agent. That analytics agent might use MCP to query sales databases, then use A2A to forward the combined analysis to a report-generation agent. Each protocol handles what it does best.
 
-Use **MCP** for:
-- Querying a database (tool access, not agent delegation)
-- Calling a weather API (structured tool invocation)
-- Reading files from disk (resource access)
-
-Use **A2A** for:
-- Asking a specialist agent to research (agent-to-agent delegation)
-- Coordinating multi-agent workflows (cross-agent communication)
-- Handing off customer to billing agent (agent handoff pattern)
-
-**Using Both Together**:
-
-A typical enterprise system might:
-1. Use **MCP** to give agents access to internal tools (databases, APIs, file systems)
-2. Use **A2A** to let agents delegate to each other (research agent → analytics agent → report agent)
-
-\`\`\`python
-# Agent using both MCP and A2A
-class EnterpriseAgent:
-    def __init__(self):
-        # MCP for tools
-        self.mcp_client = MCPClient("mcp://internal-tools")
-
-        # A2A for agent coordination
-        self.research_agent = A2AClient("https://research.internal")
-        self.analytics_agent = A2AClient("https://analytics.internal")
-
-    async def analyze_market(self, query):
-        # Use A2A to delegate research
-        research_task = await self.research_agent.send_message({
-            "parts": [{"text": f"Research: {query}"}]
-        })
-
-        # Use MCP to query internal database
-        internal_data = await self.mcp_client.call_tool(
-            "query_database",
-            {"sql": "SELECT * FROM sales WHERE quarter='Q1'"}
-        )
-
-        # Use A2A to get analysis
-        analysis_task = await self.analytics_agent.send_message({
-            "parts": [
-                {"text": "Analyze this data"},
-                {"data": research_task.artifacts},
-                {"data": internal_data}
-            ]
-        })
-
-        return analysis_task.artifacts
-\`\`\`
-
-**Key Differences**:
-
-- **Focus**: MCP = tool integration; A2A = agent coordination
-- **Primitives**: MCP = Tools, Resources, Prompts; A2A = Agent Cards, Tasks, Messages
-- **Discovery**: MCP = server capabilities; A2A = Agent Cards
-- **Communication**: MCP = JSON-RPC; A2A = JSON-RPC, gRPC, REST
-- **State**: MCP = stateless tools; A2A = stateful tasks
-- **Governance**: MCP = Anthropic; A2A = Linux Foundation`,
+The protocols differ in several key ways beyond their focus. MCP's primitives are Tools, Resources, and Prompts; A2A's primitives are Agent Cards, Tasks, and Messages. MCP discovery happens through server capability declarations; A2A discovery happens through Agent Cards. MCP tools are typically stateless—call a function, get a result. A2A tasks are stateful—they progress through lifecycles, can require input, and produce artifacts over time. MCP is governed by Anthropic; A2A is governed by the Linux Foundation under Apache 2.0 licensing.`,
         analogy: "MCP is like a person's hands (how they interact with objects/tools). A2A is like their voice (how they communicate with other people). You need both: hands to use tools, voice to coordinate with others. An agent using only MCP can do things; an agent using both can do things AND collaborate.",
         gotchas: [
           "Don't use A2A for simple tool calls—MCP is more efficient for that",
