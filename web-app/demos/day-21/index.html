@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 21: A2A Protocol - Interactive Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="demo-container">
+        <header class="demo-header">
+            <div class="header-content">
+                <a href="../../" class="back-link">← Back to Course</a>
+                <h1>A2A: Agent-to-Agent Protocol</h1>
+                <p class="subtitle">Interactive Explorer - Day 21</p>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="architecture">
+                <span class="tab-icon">🏗️</span>
+                <span class="tab-label">Architecture</span>
+            </button>
+            <button class="tab-btn" data-tab="agent-cards">
+                <span class="tab-icon">🪪</span>
+                <span class="tab-label">Agent Cards</span>
+            </button>
+            <button class="tab-btn" data-tab="tasks">
+                <span class="tab-icon">📋</span>
+                <span class="tab-label">Task States</span>
+            </button>
+            <button class="tab-btn" data-tab="messages">
+                <span class="tab-icon">💬</span>
+                <span class="tab-label">Messages</span>
+            </button>
+            <button class="tab-btn" data-tab="compare">
+                <span class="tab-icon">⚖️</span>
+                <span class="tab-label">A2A vs MCP</span>
+            </button>
+        </nav>
+
+        <main class="tab-content">
+            <!-- Architecture Tab -->
+            <section id="architecture" class="tab-panel active">
+                <div class="panel-header">
+                    <h2>A2A Architecture Visualizer</h2>
+                    <p>Click on components to learn about their role in the A2A ecosystem</p>
+                </div>
+
+                <div class="architecture-container">
+                    <div class="arch-diagram">
+                        <!-- Client Agent -->
+                        <div class="arch-section client-section">
+                            <div class="section-label">Client Agent</div>
+                            <div class="arch-agent client-agent" data-component="client">
+                                <span class="agent-icon">🤖</span>
+                                <span class="agent-name">Orchestrator</span>
+                                <div class="agent-badge">A2A Client</div>
+                            </div>
+                        </div>
+
+                        <!-- Protocol Layer -->
+                        <div class="arch-section protocol-section">
+                            <div class="section-label">A2A Protocol</div>
+                            <div class="protocol-flow">
+                                <div class="protocol-item" data-component="discovery">
+                                    <span class="protocol-icon">🔍</span>
+                                    <span>Discovery</span>
+                                </div>
+                                <div class="protocol-arrow">→</div>
+                                <div class="protocol-item" data-component="messaging">
+                                    <span class="protocol-icon">📨</span>
+                                    <span>Messaging</span>
+                                </div>
+                                <div class="protocol-arrow">→</div>
+                                <div class="protocol-item" data-component="tasks">
+                                    <span class="protocol-icon">📋</span>
+                                    <span>Tasks</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Remote Agents -->
+                        <div class="arch-section remote-section">
+                            <div class="section-label">Remote Agents</div>
+                            <div class="remote-agents">
+                                <div class="arch-agent remote-agent" data-component="research">
+                                    <span class="agent-icon">📚</span>
+                                    <span class="agent-name">Research</span>
+                                    <div class="agent-card-badge" data-component="card">Agent Card</div>
+                                </div>
+                                <div class="arch-agent remote-agent" data-component="analytics">
+                                    <span class="agent-icon">📊</span>
+                                    <span class="agent-name">Analytics</span>
+                                    <div class="agent-card-badge" data-component="card">Agent Card</div>
+                                </div>
+                                <div class="arch-agent remote-agent" data-component="booking">
+                                    <span class="agent-icon">✈️</span>
+                                    <span class="agent-name">Booking</span>
+                                    <div class="agent-card-badge" data-component="card">Agent Card</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-panel" id="arch-info">
+                        <h3>Click a component to learn more</h3>
+                        <p>Explore the A2A architecture by clicking on different components in the diagram.</p>
+                    </div>
+                </div>
+
+                <div class="flow-demo">
+                    <h3>Communication Flow Demo</h3>
+                    <div class="flow-controls">
+                        <button id="start-flow" class="btn btn-primary">▶️ Start Flow</button>
+                        <button id="reset-flow" class="btn btn-secondary">🔄 Reset</button>
+                    </div>
+                    <div class="flow-visualization">
+                        <div class="flow-step" data-step="1">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <strong>Fetch Agent Card</strong>
+                                <code>GET /.well-known/agent-card.json</code>
+                            </div>
+                        </div>
+                        <div class="flow-step" data-step="2">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <strong>Discover Skills</strong>
+                                <code>Parse capabilities & skills</code>
+                            </div>
+                        </div>
+                        <div class="flow-step" data-step="3">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <strong>Send Message</strong>
+                                <code>POST /message:send</code>
+                            </div>
+                        </div>
+                        <div class="flow-step" data-step="4">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <strong>Task Created</strong>
+                                <code>TASK_STATE_SUBMITTED</code>
+                            </div>
+                        </div>
+                        <div class="flow-step" data-step="5">
+                            <div class="step-number">5</div>
+                            <div class="step-content">
+                                <strong>Processing</strong>
+                                <code>TASK_STATE_WORKING</code>
+                            </div>
+                        </div>
+                        <div class="flow-step" data-step="6">
+                            <div class="step-number">6</div>
+                            <div class="step-content">
+                                <strong>Complete</strong>
+                                <code>TASK_STATE_COMPLETED + Artifacts</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Agent Cards Tab -->
+            <section id="agent-cards" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Agent Card Builder</h2>
+                    <p>Build and explore Agent Cards - the discovery mechanism for A2A agents</p>
+                </div>
+
+                <div class="card-builder">
+                    <div class="builder-form">
+                        <h3>Configure Your Agent</h3>
+
+                        <div class="form-group">
+                            <label for="agent-name">Agent Name</label>
+                            <input type="text" id="agent-name" value="Weather Agent" placeholder="Enter agent name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="agent-desc">Description</label>
+                            <textarea id="agent-desc" placeholder="What does your agent do?">Provides weather forecasts and historical weather data for any location worldwide.</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="agent-org">Organization</label>
+                            <input type="text" id="agent-org" value="WeatherCorp" placeholder="Organization name">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Capabilities</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="cap-streaming" checked>
+                                    <span>Streaming</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="cap-push">
+                                    <span>Push Notifications</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="cap-extended">
+                                    <span>Extended Cards</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Authentication</label>
+                            <select id="auth-type">
+                                <option value="apiKey">API Key</option>
+                                <option value="oauth2">OAuth 2.0</option>
+                                <option value="bearer">Bearer Token</option>
+                                <option value="mtls">Mutual TLS</option>
+                            </select>
+                        </div>
+
+                        <div class="skills-section">
+                            <h4>Skills</h4>
+                            <div id="skills-list">
+                                <div class="skill-item">
+                                    <input type="text" class="skill-name" value="weather-forecast" placeholder="Skill ID">
+                                    <input type="text" class="skill-display" value="Weather Forecast" placeholder="Display Name">
+                                    <button class="btn-remove-skill">×</button>
+                                </div>
+                            </div>
+                            <button id="add-skill" class="btn btn-secondary btn-sm">+ Add Skill</button>
+                        </div>
+                    </div>
+
+                    <div class="card-preview">
+                        <h3>Agent Card Preview</h3>
+                        <div class="card-location">
+                            <code>/.well-known/agent-card.json</code>
+                        </div>
+                        <pre id="card-json"><code class="language-json"></code></pre>
+                        <button id="copy-card" class="btn btn-secondary">📋 Copy JSON</button>
+                    </div>
+                </div>
+
+                <div class="card-examples">
+                    <h3>Example Agent Cards</h3>
+                    <div class="example-cards">
+                        <button class="example-card" data-example="weather">
+                            <span class="example-icon">🌤️</span>
+                            <span class="example-name">Weather Agent</span>
+                        </button>
+                        <button class="example-card" data-example="research">
+                            <span class="example-icon">📚</span>
+                            <span class="example-name">Research Agent</span>
+                        </button>
+                        <button class="example-card" data-example="booking">
+                            <span class="example-icon">✈️</span>
+                            <span class="example-name">Travel Booking</span>
+                        </button>
+                        <button class="example-card" data-example="analytics">
+                            <span class="example-icon">📊</span>
+                            <span class="example-name">Analytics Agent</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Task States Tab -->
+            <section id="tasks" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Task Lifecycle Simulator</h2>
+                    <p>Explore how tasks progress through different states in A2A</p>
+                </div>
+
+                <div class="state-machine">
+                    <div class="states-container">
+                        <div class="state-node" data-state="submitted">
+                            <div class="state-icon">📥</div>
+                            <div class="state-name">SUBMITTED</div>
+                            <div class="state-desc">Task acknowledged</div>
+                        </div>
+                        <div class="state-arrow">→</div>
+                        <div class="state-node" data-state="working">
+                            <div class="state-icon">⚙️</div>
+                            <div class="state-name">WORKING</div>
+                            <div class="state-desc">Processing</div>
+                        </div>
+                        <div class="state-branches">
+                            <div class="branch branch-success">
+                                <div class="state-arrow">↓</div>
+                                <div class="state-node terminal" data-state="completed">
+                                    <div class="state-icon">✅</div>
+                                    <div class="state-name">COMPLETED</div>
+                                    <div class="state-desc">Success</div>
+                                </div>
+                            </div>
+                            <div class="branch branch-fail">
+                                <div class="state-arrow">↓</div>
+                                <div class="state-node terminal" data-state="failed">
+                                    <div class="state-icon">❌</div>
+                                    <div class="state-name">FAILED</div>
+                                    <div class="state-desc">Error</div>
+                                </div>
+                            </div>
+                            <div class="branch branch-input">
+                                <div class="state-arrow">↓</div>
+                                <div class="state-node" data-state="input_required">
+                                    <div class="state-icon">❓</div>
+                                    <div class="state-name">INPUT_REQUIRED</div>
+                                    <div class="state-desc">Needs clarification</div>
+                                </div>
+                            </div>
+                            <div class="branch branch-auth">
+                                <div class="state-arrow">↓</div>
+                                <div class="state-node" data-state="auth_required">
+                                    <div class="state-icon">🔐</div>
+                                    <div class="state-name">AUTH_REQUIRED</div>
+                                    <div class="state-desc">Needs authorization</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="task-simulator">
+                    <h3>Interactive Task Simulation</h3>
+                    <div class="simulator-controls">
+                        <div class="scenario-select">
+                            <label for="scenario">Scenario:</label>
+                            <select id="scenario">
+                                <option value="simple">Simple Query (completes immediately)</option>
+                                <option value="clarification">Needs Clarification</option>
+                                <option value="auth">Requires Authorization</option>
+                                <option value="long-running">Long-Running Task</option>
+                                <option value="error">Error Scenario</option>
+                            </select>
+                        </div>
+                        <button id="run-scenario" class="btn btn-primary">▶️ Run Scenario</button>
+                    </div>
+
+                    <div class="task-display">
+                        <div class="task-object">
+                            <h4>Task Object</h4>
+                            <pre id="task-json"><code class="language-json">{
+  "id": "task-uuid-12345",
+  "contextId": "ctx-uuid-789",
+  "status": {
+    "state": "TASK_STATE_SUBMITTED"
+  },
+  "artifacts": [],
+  "history": []
+}</code></pre>
+                        </div>
+                        <div class="task-timeline">
+                            <h4>Event Timeline</h4>
+                            <div id="timeline-events"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Messages Tab -->
+            <section id="messages" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Message Exchange Simulator</h2>
+                    <p>See how messages flow between agents in A2A</p>
+                </div>
+
+                <div class="message-simulator">
+                    <div class="agents-panel">
+                        <div class="sim-agent client-sim">
+                            <div class="sim-agent-header">
+                                <span class="sim-agent-icon">🤖</span>
+                                <span>Client Agent</span>
+                            </div>
+                            <div class="message-input">
+                                <textarea id="user-message" placeholder="Enter your message...">What's the weather in Tokyo?</textarea>
+                                <button id="send-message" class="btn btn-primary">Send Message →</button>
+                            </div>
+                        </div>
+
+                        <div class="message-flow">
+                            <div id="message-animation" class="message-animation"></div>
+                        </div>
+
+                        <div class="sim-agent remote-sim">
+                            <div class="sim-agent-header">
+                                <span class="sim-agent-icon">🌤️</span>
+                                <span>Weather Agent</span>
+                            </div>
+                            <div class="agent-status">
+                                <span class="status-indicator" id="agent-status">Ready</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="protocol-inspector">
+                        <h3>Protocol Messages</h3>
+                        <div class="message-tabs">
+                            <button class="msg-tab active" data-msg="request">Request</button>
+                            <button class="msg-tab" data-msg="response">Response</button>
+                            <button class="msg-tab" data-msg="stream">Stream Events</button>
+                        </div>
+                        <div class="message-content">
+                            <pre id="protocol-message"><code class="language-json"></code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="parts-explorer">
+                    <h3>Message Parts</h3>
+                    <p>Messages contain Parts - atomic content units that can be text, data, URLs, or binary.</p>
+                    <div class="parts-grid">
+                        <div class="part-card" data-part="text">
+                            <div class="part-icon">📝</div>
+                            <div class="part-name">Text</div>
+                            <div class="part-desc">Plain text content</div>
+                            <code>{"text": "Hello!"}</code>
+                        </div>
+                        <div class="part-card" data-part="data">
+                            <div class="part-icon">📊</div>
+                            <div class="part-name">Data</div>
+                            <div class="part-desc">Structured JSON</div>
+                            <code>{"data": {...}}</code>
+                        </div>
+                        <div class="part-card" data-part="url">
+                            <div class="part-icon">🔗</div>
+                            <div class="part-name">URL</div>
+                            <div class="part-desc">Remote resource</div>
+                            <code>{"url": "https://..."}</code>
+                        </div>
+                        <div class="part-card" data-part="raw">
+                            <div class="part-icon">📦</div>
+                            <div class="part-name">Raw</div>
+                            <div class="part-desc">Base64 binary</div>
+                            <code>{"raw": "base64..."}</code>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Compare Tab -->
+            <section id="compare" class="tab-panel">
+                <div class="panel-header">
+                    <h2>A2A vs MCP Comparison</h2>
+                    <p>Understanding how the two protocols complement each other</p>
+                </div>
+
+                <div class="comparison-visual">
+                    <div class="protocol-box a2a-box">
+                        <div class="protocol-header">
+                            <span class="protocol-logo">A2A</span>
+                            <span class="protocol-subtitle">Agent-to-Agent</span>
+                        </div>
+                        <div class="protocol-desc">
+                            <strong>Horizontal Integration</strong>
+                            <p>Agent ↔ Agent ↔ Agent</p>
+                        </div>
+                        <ul class="protocol-features">
+                            <li>🪪 Agent Cards for discovery</li>
+                            <li>📋 Task lifecycle management</li>
+                            <li>💬 Multi-turn conversations</li>
+                            <li>🌐 Cross-framework interop</li>
+                        </ul>
+                        <div class="protocol-org">Google / Linux Foundation</div>
+                    </div>
+
+                    <div class="vs-divider">
+                        <span>+</span>
+                    </div>
+
+                    <div class="protocol-box mcp-box">
+                        <div class="protocol-header">
+                            <span class="protocol-logo">MCP</span>
+                            <span class="protocol-subtitle">Model Context Protocol</span>
+                        </div>
+                        <div class="protocol-desc">
+                            <strong>Vertical Integration</strong>
+                            <p>Agent ↔ Tools & Data</p>
+                        </div>
+                        <ul class="protocol-features">
+                            <li>🔧 Tools (executable functions)</li>
+                            <li>📁 Resources (data access)</li>
+                            <li>📝 Prompts (templates)</li>
+                            <li>🔌 Universal tool interface</li>
+                        </ul>
+                        <div class="protocol-org">Anthropic</div>
+                    </div>
+                </div>
+
+                <div class="comparison-table">
+                    <h3>Feature Comparison</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Aspect</th>
+                                <th>A2A</th>
+                                <th>MCP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Purpose</td>
+                                <td>Agent coordination</td>
+                                <td>Tool integration</td>
+                            </tr>
+                            <tr>
+                                <td>Discovery</td>
+                                <td>Agent Cards</td>
+                                <td>Server capabilities</td>
+                            </tr>
+                            <tr>
+                                <td>State</td>
+                                <td>Stateful tasks</td>
+                                <td>Stateless tools</td>
+                            </tr>
+                            <tr>
+                                <td>Transport</td>
+                                <td>HTTP, gRPC, REST</td>
+                                <td>STDIO, HTTP</td>
+                            </tr>
+                            <tr>
+                                <td>Long-running</td>
+                                <td>Native support</td>
+                                <td>Limited</td>
+                            </tr>
+                            <tr>
+                                <td>Multi-turn</td>
+                                <td>Built-in</td>
+                                <td>Via host</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="usage-scenarios">
+                    <h3>When to Use Each</h3>
+                    <div class="scenario-grid">
+                        <div class="scenario-card use-a2a">
+                            <div class="scenario-header">Use A2A</div>
+                            <ul>
+                                <li>Delegate to specialist agents</li>
+                                <li>Multi-agent workflows</li>
+                                <li>Cross-vendor coordination</li>
+                                <li>Long-running tasks</li>
+                                <li>Agent handoffs</li>
+                            </ul>
+                        </div>
+                        <div class="scenario-card use-mcp">
+                            <div class="scenario-header">Use MCP</div>
+                            <ul>
+                                <li>Query a database</li>
+                                <li>Call an API</li>
+                                <li>Read/write files</li>
+                                <li>Execute code</li>
+                                <li>Access resources</li>
+                            </ul>
+                        </div>
+                        <div class="scenario-card use-both">
+                            <div class="scenario-header">Use Both Together</div>
+                            <ul>
+                                <li>MCP for local tools</li>
+                                <li>A2A for agent coordination</li>
+                                <li>Complete interoperability</li>
+                                <li>Enterprise deployments</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="combined-architecture">
+                    <h3>Combined Architecture</h3>
+                    <div class="combined-diagram">
+                        <div class="combined-layer agent-layer">
+                            <div class="layer-label">Agents (A2A)</div>
+                            <div class="combined-agents">
+                                <div class="combined-agent">Research Agent</div>
+                                <div class="a2a-connection">←A2A→</div>
+                                <div class="combined-agent">Analytics Agent</div>
+                            </div>
+                        </div>
+                        <div class="mcp-connections">
+                            <div class="mcp-line">↓ MCP</div>
+                            <div class="mcp-line">↓ MCP</div>
+                        </div>
+                        <div class="combined-layer tools-layer">
+                            <div class="layer-label">Tools & Data (MCP)</div>
+                            <div class="combined-tools">
+                                <div class="combined-tool">🔍 Web Search</div>
+                                <div class="combined-tool">📁 Files</div>
+                                <div class="combined-tool">🗄️ Database</div>
+                                <div class="combined-tool">🌐 APIs</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>
