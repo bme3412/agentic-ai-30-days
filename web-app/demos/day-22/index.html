@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 22: ACP - Agent Communication Protocol Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="demo-container">
+        <header class="demo-header">
+            <div class="header-content">
+                <a href="../../" class="back-link">&larr; Back to Course</a>
+                <h1>ACP: Agent Communication Protocol</h1>
+                <p class="subtitle">Interactive Explorer - Day 22</p>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="architecture">
+                <span class="tab-icon">🏗️</span>
+                <span class="tab-label">Architecture</span>
+            </button>
+            <button class="tab-btn" data-tab="manifests">
+                <span class="tab-icon">📋</span>
+                <span class="tab-label">Manifests</span>
+            </button>
+            <button class="tab-btn" data-tab="runs">
+                <span class="tab-icon">▶️</span>
+                <span class="tab-label">Runs</span>
+            </button>
+            <button class="tab-btn" data-tab="rest-api">
+                <span class="tab-icon">🌐</span>
+                <span class="tab-label">REST API</span>
+            </button>
+            <button class="tab-btn" data-tab="compare">
+                <span class="tab-icon">⚖️</span>
+                <span class="tab-label">ACP vs A2A vs MCP</span>
+            </button>
+        </nav>
+
+        <main class="tab-content">
+            <!-- Architecture Tab -->
+            <section id="architecture" class="tab-panel active">
+                <div class="panel-header">
+                    <h2>ACP Architecture Visualizer</h2>
+                    <p>Click on components to learn about their role in the ACP ecosystem</p>
+                </div>
+
+                <div class="architecture-container">
+                    <div class="arch-diagram">
+                        <!-- Client Application -->
+                        <div class="arch-section client-section">
+                            <div class="section-label">Client Applications</div>
+                            <div class="client-apps">
+                                <div class="arch-client" data-component="webapp">
+                                    <span class="client-icon">🌐</span>
+                                    <span class="client-name">Web App</span>
+                                </div>
+                                <div class="arch-client" data-component="cli">
+                                    <span class="client-icon">💻</span>
+                                    <span class="client-name">BeeAI CLI</span>
+                                </div>
+                                <div class="arch-client" data-component="orchestrator">
+                                    <span class="client-icon">🤖</span>
+                                    <span class="client-name">Orchestrator</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ACP Layer -->
+                        <div class="arch-section protocol-section">
+                            <div class="section-label">ACP Protocol Layer</div>
+                            <div class="protocol-flow">
+                                <div class="protocol-item" data-component="rest">
+                                    <span class="protocol-icon">🌐</span>
+                                    <span>REST API</span>
+                                </div>
+                                <div class="protocol-item" data-component="discovery">
+                                    <span class="protocol-icon">🔍</span>
+                                    <span>Discovery</span>
+                                </div>
+                                <div class="protocol-item" data-component="sessions">
+                                    <span class="protocol-icon">💾</span>
+                                    <span>Sessions</span>
+                                </div>
+                                <div class="protocol-item" data-component="streaming">
+                                    <span class="protocol-icon">📡</span>
+                                    <span>Streaming</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ACP Agents -->
+                        <div class="arch-section agents-section">
+                            <div class="section-label">ACP Agents</div>
+                            <div class="agents-grid">
+                                <div class="arch-agent" data-component="researcher">
+                                    <span class="agent-icon">📚</span>
+                                    <span class="agent-name">GPT-Researcher</span>
+                                    <div class="manifest-badge" data-component="manifest">manifest.json</div>
+                                </div>
+                                <div class="arch-agent" data-component="coder">
+                                    <span class="agent-icon">👨‍💻</span>
+                                    <span class="agent-name">Aider</span>
+                                    <div class="manifest-badge" data-component="manifest">manifest.json</div>
+                                </div>
+                                <div class="arch-agent" data-component="summarizer">
+                                    <span class="agent-icon">📝</span>
+                                    <span class="agent-name">Summarizer</span>
+                                    <div class="manifest-badge" data-component="manifest">manifest.json</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MCP Tools -->
+                        <div class="arch-section mcp-section">
+                            <div class="section-label">MCP Tools (per agent)</div>
+                            <div class="mcp-tools">
+                                <div class="mcp-tool" data-component="mcp-search">🔍 Search</div>
+                                <div class="mcp-tool" data-component="mcp-db">🗄️ Database</div>
+                                <div class="mcp-tool" data-component="mcp-files">📁 Files</div>
+                                <div class="mcp-tool" data-component="mcp-api">🌐 APIs</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-panel" id="arch-info">
+                        <h3>Click a component to learn more</h3>
+                        <p>Explore the ACP architecture by clicking on different components in the diagram.</p>
+                    </div>
+                </div>
+
+                <div class="key-features">
+                    <h3>ACP Key Features</h3>
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">🌐</div>
+                            <div class="feature-title">REST-First</div>
+                            <div class="feature-desc">Standard HTTP methods - test with curl or Postman</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">📴</div>
+                            <div class="feature-title">Offline Discovery</div>
+                            <div class="feature-desc">Manifests embedded in packages for scale-to-zero</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">💾</div>
+                            <div class="feature-title">Stateful Sessions</div>
+                            <div class="feature-desc">Persistent context across agent interactions</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🔐</div>
+                            <div class="feature-title">Capability Tokens</div>
+                            <div class="feature-desc">Decentralized security with K8s RBAC integration</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Manifests Tab -->
+            <section id="manifests" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Agent Manifest Builder</h2>
+                    <p>Build and explore agent manifests - the discovery mechanism for ACP agents</p>
+                </div>
+
+                <div class="manifest-builder">
+                    <div class="builder-form">
+                        <h3>Configure Your Agent</h3>
+
+                        <div class="form-group">
+                            <label for="agent-name">Agent Name</label>
+                            <input type="text" id="agent-name" value="Research Agent" placeholder="Enter agent name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="agent-desc">Description</label>
+                            <textarea id="agent-desc" placeholder="What does your agent do?">Performs comprehensive research on any topic using web search and document analysis.</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="agent-version">Version</label>
+                            <input type="text" id="agent-version" value="1.0.0" placeholder="1.0.0">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Interfaces</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="int-sync" checked>
+                                    <span>Synchronous</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="int-async" checked>
+                                    <span>Asynchronous</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="int-streaming" checked>
+                                    <span>Streaming</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Capabilities</label>
+                            <div id="capabilities-list">
+                                <div class="capability-item">
+                                    <input type="text" class="capability-input" value="research" placeholder="e.g., summarization">
+                                    <button class="btn-remove">×</button>
+                                </div>
+                                <div class="capability-item">
+                                    <input type="text" class="capability-input" value="web-search" placeholder="e.g., extraction">
+                                    <button class="btn-remove">×</button>
+                                </div>
+                            </div>
+                            <button id="add-capability" class="btn btn-secondary btn-sm">+ Add Capability</button>
+                        </div>
+                    </div>
+
+                    <div class="manifest-preview">
+                        <h3>Agent Manifest Preview</h3>
+                        <div class="endpoint-badge">
+                            <code>GET /agents/research-agent</code>
+                        </div>
+                        <pre id="manifest-json"><code class="language-json"></code></pre>
+                        <button id="copy-manifest" class="btn btn-secondary">📋 Copy JSON</button>
+                    </div>
+                </div>
+
+                <div class="manifest-examples">
+                    <h3>Example Manifests</h3>
+                    <div class="example-cards">
+                        <button class="example-card" data-example="researcher">
+                            <span class="example-icon">📚</span>
+                            <span class="example-name">Research Agent</span>
+                        </button>
+                        <button class="example-card" data-example="coder">
+                            <span class="example-icon">👨‍💻</span>
+                            <span class="example-name">Code Agent</span>
+                        </button>
+                        <button class="example-card" data-example="summarizer">
+                            <span class="example-icon">📝</span>
+                            <span class="example-name">Summarizer</span>
+                        </button>
+                        <button class="example-card" data-example="analyst">
+                            <span class="example-icon">📊</span>
+                            <span class="example-name">Analyst</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Runs Tab -->
+            <section id="runs" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Run Lifecycle Simulator</h2>
+                    <p>Explore how runs progress through different states in ACP</p>
+                </div>
+
+                <div class="state-machine">
+                    <div class="states-container">
+                        <div class="state-node" data-state="pending">
+                            <div class="state-icon">⏳</div>
+                            <div class="state-name">PENDING</div>
+                            <div class="state-desc">Queued</div>
+                        </div>
+                        <div class="state-arrow">→</div>
+                        <div class="state-node" data-state="running">
+                            <div class="state-icon">⚙️</div>
+                            <div class="state-name">RUNNING</div>
+                            <div class="state-desc">Processing</div>
+                        </div>
+                        <div class="state-branches">
+                            <div class="branch branch-success">
+                                <div class="state-arrow">↓</div>
+                                <div class="state-node terminal" data-state="completed">
+                                    <div class="state-icon">✅</div>
+                                    <div class="state-name">COMPLETED</div>
+                                    <div class="state-desc">Success</div>
+                                </div>
+                            </div>
+                            <div class="branch branch-fail">
+                                <div class="state-arrow">↓</div>
+                                <div class="state-node terminal" data-state="failed">
+                                    <div class="state-icon">❌</div>
+                                    <div class="state-name">FAILED</div>
+                                    <div class="state-desc">Error</div>
+                                </div>
+                            </div>
+                            <div class="branch branch-input">
+                                <div class="state-arrow">↓</div>
+                                <div class="state-node" data-state="awaiting">
+                                    <div class="state-icon">❓</div>
+                                    <div class="state-name">AWAITING_INPUT</div>
+                                    <div class="state-desc">Needs info</div>
+                                </div>
+                            </div>
+                            <div class="branch branch-cancel">
+                                <div class="state-arrow">↓</div>
+                                <div class="state-node terminal" data-state="cancelled">
+                                    <div class="state-icon">🚫</div>
+                                    <div class="state-name">CANCELLED</div>
+                                    <div class="state-desc">Stopped</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="run-simulator">
+                    <h3>Interactive Run Simulation</h3>
+                    <div class="simulator-controls">
+                        <div class="scenario-select">
+                            <label for="scenario">Scenario:</label>
+                            <select id="scenario">
+                                <option value="simple">Simple Query (completes immediately)</option>
+                                <option value="clarification">Needs Clarification</option>
+                                <option value="streaming">Streaming Response</option>
+                                <option value="long-running">Long-Running Task</option>
+                                <option value="error">Error Scenario</option>
+                            </select>
+                        </div>
+                        <button id="run-scenario" class="btn btn-primary">▶️ Run Scenario</button>
+                    </div>
+
+                    <div class="run-display">
+                        <div class="run-object">
+                            <h4>Run Object</h4>
+                            <pre id="run-json"><code class="language-json">{
+  "id": "run-uuid-12345",
+  "agent": "researcher",
+  "status": "PENDING",
+  "created_at": "2025-03-23T10:00:00Z",
+  "input": { "role": "user", "parts": [...] },
+  "output": null
+}</code></pre>
+                        </div>
+                        <div class="run-timeline">
+                            <h4>Event Timeline</h4>
+                            <div id="timeline-events"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- REST API Tab -->
+            <section id="rest-api" class="tab-panel">
+                <div class="panel-header">
+                    <h2>REST API Explorer</h2>
+                    <p>ACP uses standard HTTP methods - test endpoints directly</p>
+                </div>
+
+                <div class="api-explorer">
+                    <div class="endpoint-list">
+                        <h3>Endpoints</h3>
+                        <div class="endpoint active" data-endpoint="list-agents">
+                            <span class="method get">GET</span>
+                            <span class="path">/agents</span>
+                        </div>
+                        <div class="endpoint" data-endpoint="get-agent">
+                            <span class="method get">GET</span>
+                            <span class="path">/agents/{name}</span>
+                        </div>
+                        <div class="endpoint" data-endpoint="create-run">
+                            <span class="method post">POST</span>
+                            <span class="path">/runs</span>
+                        </div>
+                        <div class="endpoint" data-endpoint="get-run">
+                            <span class="method get">GET</span>
+                            <span class="path">/runs/{id}</span>
+                        </div>
+                        <div class="endpoint" data-endpoint="cancel-run">
+                            <span class="method delete">DELETE</span>
+                            <span class="path">/runs/{id}</span>
+                        </div>
+                        <div class="endpoint" data-endpoint="get-session">
+                            <span class="method get">GET</span>
+                            <span class="path">/sessions/{id}</span>
+                        </div>
+                    </div>
+
+                    <div class="api-detail">
+                        <div class="api-header">
+                            <h3 id="endpoint-title">List Agents</h3>
+                            <p id="endpoint-desc">Get all available agents with their basic metadata</p>
+                        </div>
+
+                        <div class="curl-example">
+                            <h4>curl Example</h4>
+                            <pre id="curl-command"><code class="language-bash">curl -X GET http://localhost:8000/agents \
+  -H "Accept: application/json"</code></pre>
+                            <button class="btn btn-secondary btn-sm" id="copy-curl">📋 Copy</button>
+                        </div>
+
+                        <div class="response-example">
+                            <h4>Response</h4>
+                            <pre id="api-response"><code class="language-json">[
+  {
+    "name": "gpt-researcher",
+    "description": "Research agent with web search",
+    "version": "1.2.0"
+  },
+  {
+    "name": "summarizer",
+    "description": "Text summarization agent",
+    "version": "1.0.0"
+  }
+]</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rest-vs-rpc">
+                    <h3>Why REST Instead of JSON-RPC?</h3>
+                    <div class="comparison-cards">
+                        <div class="compare-card rest-card">
+                            <div class="card-header">ACP (REST)</div>
+                            <pre><code class="language-bash"># List agents
+curl GET /agents
+
+# Create run
+curl POST /runs -d '{"agent": "researcher", "input": {...}}'
+
+# Get status
+curl GET /runs/abc123</code></pre>
+                            <ul class="pros">
+                                <li>✅ Standard HTTP methods</li>
+                                <li>✅ Test with browser/Postman</li>
+                                <li>✅ Works with CDNs/proxies</li>
+                                <li>✅ No special libraries</li>
+                            </ul>
+                        </div>
+                        <div class="compare-card rpc-card">
+                            <div class="card-header">MCP/A2A (JSON-RPC)</div>
+                            <pre><code class="language-json">{
+  "jsonrpc": "2.0",
+  "method": "message/send",
+  "params": { "message": {...} },
+  "id": "req-123"
+}</code></pre>
+                            <ul class="cons">
+                                <li>⚠️ Requires parsing envelope</li>
+                                <li>⚠️ Needs dedicated SDK</li>
+                                <li>⚠️ Method in body, not URL</li>
+                                <li>⚠️ Less tooling support</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Compare Tab -->
+            <section id="compare" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Protocol Comparison</h2>
+                    <p>Understanding how ACP, A2A, and MCP work together</p>
+                </div>
+
+                <div class="triple-comparison">
+                    <div class="protocol-box acp-box">
+                        <div class="protocol-header">
+                            <span class="protocol-logo">ACP</span>
+                            <span class="protocol-subtitle">Agent Communication Protocol</span>
+                        </div>
+                        <div class="protocol-org">IBM / Linux Foundation</div>
+                        <div class="protocol-focus">REST-First Agent Interop</div>
+                        <ul class="protocol-features">
+                            <li>📋 Agent Manifests</li>
+                            <li>🌐 REST over HTTP</li>
+                            <li>📴 Offline Discovery</li>
+                            <li>💾 Stateful Sessions</li>
+                            <li>🔐 Capability Tokens</li>
+                        </ul>
+                        <div class="merged-note">Merged with A2A (Sept 2025)</div>
+                    </div>
+
+                    <div class="protocol-box a2a-box">
+                        <div class="protocol-header">
+                            <span class="protocol-logo">A2A</span>
+                            <span class="protocol-subtitle">Agent-to-Agent</span>
+                        </div>
+                        <div class="protocol-org">Google / Linux Foundation</div>
+                        <div class="protocol-focus">Agent Coordination</div>
+                        <ul class="protocol-features">
+                            <li>🪪 Agent Cards</li>
+                            <li>📋 Task Lifecycle</li>
+                            <li>💬 Multi-turn Conversations</li>
+                            <li>🌐 JSON-RPC 2.0</li>
+                            <li>📡 SSE Streaming</li>
+                        </ul>
+                        <div class="merged-note">Now unified standard</div>
+                    </div>
+
+                    <div class="protocol-box mcp-box">
+                        <div class="protocol-header">
+                            <span class="protocol-logo">MCP</span>
+                            <span class="protocol-subtitle">Model Context Protocol</span>
+                        </div>
+                        <div class="protocol-org">Anthropic</div>
+                        <div class="protocol-focus">Agent-to-Tools</div>
+                        <ul class="protocol-features">
+                            <li>🔧 Tools (functions)</li>
+                            <li>📁 Resources (data)</li>
+                            <li>📝 Prompts (templates)</li>
+                            <li>🔌 Universal interface</li>
+                            <li>📍 STDIO/HTTP transport</li>
+                        </ul>
+                        <div class="merged-note">Complementary protocol</div>
+                    </div>
+                </div>
+
+                <div class="comparison-table">
+                    <h3>Feature Comparison</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Aspect</th>
+                                <th>ACP</th>
+                                <th>A2A</th>
+                                <th>MCP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Purpose</td>
+                                <td>Agent-to-agent</td>
+                                <td>Agent-to-agent</td>
+                                <td>Agent-to-tools</td>
+                            </tr>
+                            <tr>
+                                <td>Transport</td>
+                                <td>REST/HTTP</td>
+                                <td>JSON-RPC/HTTP</td>
+                                <td>JSON-RPC/STDIO</td>
+                            </tr>
+                            <tr>
+                                <td>Discovery</td>
+                                <td>Manifests (offline)</td>
+                                <td>Agent Cards (online)</td>
+                                <td>Server capabilities</td>
+                            </tr>
+                            <tr>
+                                <td>State</td>
+                                <td>Sessions</td>
+                                <td>Tasks + History</td>
+                                <td>Typically stateless</td>
+                            </tr>
+                            <tr>
+                                <td>SDK Required</td>
+                                <td>No (REST)</td>
+                                <td>Recommended</td>
+                                <td>Recommended</td>
+                            </tr>
+                            <tr>
+                                <td>Scale-to-Zero</td>
+                                <td>Native support</td>
+                                <td>Requires adaptation</td>
+                                <td>N/A</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="stack-diagram">
+                    <h3>The Complete Agent Stack</h3>
+                    <div class="stack-visual">
+                        <div class="stack-layer application-layer">
+                            <div class="layer-label">Applications</div>
+                            <div class="layer-items">
+                                <span>Enterprise Apps</span>
+                                <span>Orchestrators</span>
+                                <span>CLI/UI</span>
+                            </div>
+                        </div>
+                        <div class="stack-connector">↓</div>
+                        <div class="stack-layer acp-layer">
+                            <div class="layer-label">ACP/A2A (Horizontal)</div>
+                            <div class="layer-desc">Agent ↔ Agent Communication</div>
+                        </div>
+                        <div class="stack-connector">↓</div>
+                        <div class="stack-layer agent-layer">
+                            <div class="layer-label">AI Agents</div>
+                            <div class="layer-items">
+                                <span>Research</span>
+                                <span>Coding</span>
+                                <span>Analysis</span>
+                            </div>
+                        </div>
+                        <div class="stack-connector">↓</div>
+                        <div class="stack-layer mcp-layer">
+                            <div class="layer-label">MCP (Vertical)</div>
+                            <div class="layer-desc">Agent ↔ Tools & Data</div>
+                        </div>
+                        <div class="stack-connector">↓</div>
+                        <div class="stack-layer tools-layer">
+                            <div class="layer-label">External Resources</div>
+                            <div class="layer-items">
+                                <span>🔍 Search</span>
+                                <span>🗄️ Databases</span>
+                                <span>📁 Files</span>
+                                <span>🌐 APIs</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>
