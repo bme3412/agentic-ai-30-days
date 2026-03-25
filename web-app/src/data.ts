@@ -131,10 +131,114 @@ export function getInProgressDays(): Set<number> {
 
 const BLOG_STORAGE_KEY = "genai30_blog";
 
+// ── Seed blog posts ──────────────────────────────────────────
+// These are pre-written posts that get injected into localStorage
+// on first load (or when seedVersion is bumped). Users can edit
+// or delete them like any other post.
+
+const SEED_POSTS_VERSION = 1;
+
+interface SeedPost {
+  id: string;
+  slug: string;
+  title: string;
+  body: string;
+  excerpt: string;
+  tags: string[];
+  linkedDay: number | null;
+  status: 'draft' | 'published';
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string | null;
+}
+
+const SEED_BLOG_POSTS: SeedPost[] = [
+  {
+    id: "seed-post-day-23",
+    slug: "day-23-browser-automation-agents-playwright",
+    title: "Day 23: Building Browser Automation Agents with Playwright",
+    linkedDay: 23,
+    tags: ["browser", "automation", "playwright", "reflection"],
+    status: "published",
+    createdAt: "2026-03-25T09:00:00.000Z",
+    updatedAt: "2026-03-25T09:00:00.000Z",
+    publishedAt: "2026-03-25T09:00:00.000Z",
+    excerpt: "Day 23 was a breakthrough moment—turning an AI agent loose on a real browser and watching it navigate, fill forms, and extract data without any hand-holding.",
+    body: `# Day 23: Browser Automation Agents with Playwright
+
+Today's topic hit differently. We've spent the last few weeks giving agents *tools*—APIs, function calls, MCP servers—but those tools all assume the world has a clean, well-designed interface. Browser automation agents are for the real world: the ancient government portal, the SaaS dashboard that predates REST APIs, the competitor pricing page that absolutely does not want you there.
+
+## What Clicked for Me
+
+The mental model that made everything snap into place: **the browser is just another tool interface, but it's the universal one**. Every system that a human uses through a web browser is now, in principle, accessible to an agent. That's enormous.
+
+The stack is surprisingly clean once you see it:
+
+1. **Playwright** handles the mechanical layer—open a real Chromium browser, click things, fill inputs, take screenshots
+2. **DOM extraction** translates the live page into something an LLM can reason about (ARIA tree, visible text, interactive elements)
+3. **LLM reasoning** looks at the page state + goal and decides the next action
+4. **Verify & loop** — after each action, check the outcome and repeat
+
+## The Element Selection Hierarchy
+
+Before today I would have reached for CSS selectors first. Now I know better. The priority order matters:
+
+- **ARIA roles + labels first**: \`get_by_role("button", name="Add to cart")\` survives redesigns because it's semantic, not positional
+- **Test IDs**: incredibly stable if the app has them (\`data-testid\`)
+- **Visible text**: readable but fragile if copy changes
+- **CSS selectors**: fine for IDs, treacherous for class names
+- **Visual grounding**: the escape hatch—when nothing else works, screenshot the page and ask a multimodal model "where is X?"
+
+That last one is what really opened my eyes. You can click on things in a PDF viewer, a Figma canvas, or any iframe-embedded widget that the DOM doesn't expose—because you're literally looking at a picture of the page.
+
+## Practical Takeaways
+
+**Wait for conditions, not clocks.** I've written so many \`time.sleep(2)\` lines in my life. Never again. \`page.wait_for_selector(".results-grid")\` is both faster (proceeds immediately when ready) and more reliable (works on any connection speed).
+
+**State tracking saves debugging time.** Treating the workflow as a state machine—\`step: "navigate"\` → \`step: "fill_form"\` → \`step: "verify_submission"\`—means that when something fails, the error tells you exactly where you were.
+
+**Human-in-the-loop before irreversible actions.** An agent that places an order or submits a form on your behalf needs a confirmation gate. The cost of that pause is low; the cost of the agent clicking "Place Order" on a $500 item you didn't intend to buy is high.
+
+## What I'm Going to Build
+
+I've been manually pulling data from a web portal at work every Monday morning—logging in, navigating three menus, selecting a date range, exporting a CSV. It takes 15 minutes and I hate it. 
+
+After today, I'm confident I can replace that with a browser agent that runs overnight Sunday and drops the file in my inbox before I wake up. The portal has reasonable ARIA labels (it's a government site, actually), and the workflow is deterministic. Perfect candidate.
+
+## The Bigger Picture
+
+Combine browser agents with yesterday's tool-calling and MCP work and you start to see the full picture: agents can now reach *everything*. Structured APIs via function calls, local files and databases via MCP, and any web interface via browser automation. The remaining blockers are mostly human ones—permissions, trust, oversight—not technical ones.
+
+That's exciting and a little unsettling in equal measure.
+
+---
+
+*Day 23/30 complete. Tomorrow: Coding Agents & Sandboxed Execution (Day 24). Looking forward to seeing how agents write and run their own code safely.*`
+  }
+];
+
 export function loadBlogData(): BlogData {
   try {
     const raw = localStorage.getItem(BLOG_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : { posts: {}, tags: [], metadata: {} };
+    const data: BlogData = raw ? JSON.parse(raw) : { posts: {}, tags: [], metadata: {} };
+
+    // Seed default posts on first load or when seed version is bumped
+    const currentVersion = (data.metadata.seedVersion as number) || 0;
+    if (currentVersion < SEED_POSTS_VERSION) {
+      for (const seed of SEED_BLOG_POSTS) {
+        // Only inject if not already present (preserves user edits/deletions)
+        if (!data.posts[seed.id]) {
+          data.posts[seed.id] = seed;
+          for (const tag of seed.tags) {
+            if (!data.tags.includes(tag)) data.tags.push(tag);
+          }
+        }
+      }
+      data.metadata.seedVersion = SEED_POSTS_VERSION;
+      localStorage.setItem(BLOG_STORAGE_KEY, JSON.stringify(data));
+    }
+
+    return data;
   } catch {
     return { posts: {}, tags: [], metadata: {} };
   }
