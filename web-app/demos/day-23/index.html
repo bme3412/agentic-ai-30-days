@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 23: Browser Automation Agents - Interactive Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="demo-container">
+        <header class="demo-header">
+            <div class="header-content">
+                <a href="../../" class="back-link">← Back to Course</a>
+                <h1>Browser Automation Agents</h1>
+                <p class="subtitle">Interactive Explorer - Day 23</p>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="basics">
+                <span class="tab-icon">🌐</span>
+                <span class="tab-label">Automation Basics</span>
+            </button>
+            <button class="tab-btn" data-tab="selectors">
+                <span class="tab-icon">🎯</span>
+                <span class="tab-label">Element Selection</span>
+            </button>
+            <button class="tab-btn" data-tab="visual">
+                <span class="tab-icon">📸</span>
+                <span class="tab-label">Visual Grounding</span>
+            </button>
+            <button class="tab-btn" data-tab="workflows">
+                <span class="tab-icon">📋</span>
+                <span class="tab-label">Workflows</span>
+            </button>
+            <button class="tab-btn" data-tab="code">
+                <span class="tab-icon">💻</span>
+                <span class="tab-label">Code Examples</span>
+            </button>
+        </nav>
+
+        <main class="tab-content">
+            <!-- ========================================
+                 Tab 1: Automation Basics
+                 ======================================== -->
+            <section id="basics" class="tab-panel active">
+                <div class="panel-header">
+                    <h2>Playwright Browser Control</h2>
+                    <p>Understanding the foundation layer for browser agents</p>
+                </div>
+
+                <!-- Browser Agent Stack -->
+                <div class="browser-stack">
+                    <h3>Browser Agent Stack</h3>
+                    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem;">
+                        Click each layer to learn how browser agents work
+                    </p>
+                    <div class="stack-layers">
+                        <div class="stack-layer" data-layer="goal">
+                            <div class="layer-header">
+                                <span class="layer-icon">🎯</span>
+                                <span>User Goal / Task</span>
+                            </div>
+                            <div class="layer-desc">Natural language instruction (e.g., "Find the top 3 AI posts")</div>
+                        </div>
+                        <div class="stack-layer" data-layer="reasoning">
+                            <div class="layer-header">
+                                <span class="layer-icon">🧠</span>
+                                <span>LLM Reasoning Layer</span>
+                            </div>
+                            <div class="layer-desc">GPT-4o/Claude decides what actions to take based on page state</div>
+                        </div>
+                        <div class="stack-layer" data-layer="grounding">
+                            <div class="layer-header">
+                                <span class="layer-icon">🔍</span>
+                                <span>DOM + Visual Grounding</span>
+                            </div>
+                            <div class="layer-desc">Understanding page structure via accessibility tree and screenshots</div>
+                        </div>
+                        <div class="stack-layer" data-layer="playwright">
+                            <div class="layer-header">
+                                <span class="layer-icon">⚡</span>
+                                <span>Playwright Actions</span>
+                            </div>
+                            <div class="layer-desc">Navigate, click, fill, wait - the execution layer</div>
+                        </div>
+                        <div class="stack-layer" data-layer="browser">
+                            <div class="layer-header">
+                                <span class="layer-icon">🌐</span>
+                                <span>Chromium / Firefox / WebKit</span>
+                            </div>
+                            <div class="layer-desc">Real browser rendering and network requests</div>
+                        </div>
+                    </div>
+                    <div id="stack-info-panel" style="display: none;" class="stack-info"></div>
+                </div>
+
+                <!-- Timeline Simulator -->
+                <div class="timeline-simulator">
+                    <h3>Action Timeline Simulator</h3>
+                    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        See how a browser agent executes a multi-step workflow
+                    </p>
+                    <div class="timeline-controls">
+                        <button class="btn btn-primary" id="timeline-play">▶ Play</button>
+                        <button class="btn btn-secondary" id="timeline-pause">⏸ Pause</button>
+                        <button class="btn btn-secondary" id="timeline-reset">↻ Reset</button>
+                    </div>
+                    <div class="timeline-steps">
+                        <div class="timeline-step" data-step="1">
+                            <div class="step-number">1</div>
+                            <div class="step-name">Navigate</div>
+                            <div class="step-code">page.goto(url)</div>
+                        </div>
+                        <div class="timeline-arrow">→</div>
+                        <div class="timeline-step" data-step="2">
+                            <div class="step-number">2</div>
+                            <div class="step-name">Wait</div>
+                            <div class="step-code">wait_for_load_state()</div>
+                        </div>
+                        <div class="timeline-arrow">→</div>
+                        <div class="timeline-step" data-step="3">
+                            <div class="step-number">3</div>
+                            <div class="step-name">Select</div>
+                            <div class="step-code">get_by_role("button")</div>
+                        </div>
+                        <div class="timeline-arrow">→</div>
+                        <div class="timeline-step" data-step="4">
+                            <div class="step-number">4</div>
+                            <div class="step-name">Execute</div>
+                            <div class="step-code">element.click()</div>
+                        </div>
+                        <div class="timeline-arrow">→</div>
+                        <div class="timeline-step" data-step="5">
+                            <div class="step-number">5</div>
+                            <div class="step-name">Verify</div>
+                            <div class="step-code">assert new_url</div>
+                        </div>
+                    </div>
+                    <div id="timeline-detail" style="display: none;" class="timeline-detail"></div>
+                </div>
+
+                <!-- Waiting Strategies -->
+                <div class="waiting-strategies">
+                    <h3>Waiting Strategies</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        How agents wait for pages to be ready - click each strategy to see the code
+                    </p>
+                    <div class="strategies-grid">
+                        <div class="strategy-card" data-strategy="networkidle">
+                            <div class="strategy-header">
+                                <span class="strategy-name">Network Idle</span>
+                                <span class="strategy-badge">✓ Best</span>
+                            </div>
+                            <p class="strategy-desc">Wait until no network requests for 500ms. Most reliable for dynamic content.</p>
+                            <div class="strategy-code">
+await page.wait_for_load_state("networkidle")
+                            </div>
+                        </div>
+                        <div class="strategy-card" data-strategy="selector">
+                            <div class="strategy-header">
+                                <span class="strategy-name">Wait for Selector</span>
+                                <span class="strategy-badge">✓ Precise</span>
+                            </div>
+                            <p class="strategy-desc">Wait for specific element to appear. Fast and precise when you know what to expect.</p>
+                            <div class="strategy-code">
+await page.wait_for_selector(".results-grid")
+                            </div>
+                        </div>
+                        <div class="strategy-card" data-strategy="function">
+                            <div class="strategy-header">
+                                <span class="strategy-name">Wait for Function</span>
+                                <span class="strategy-badge">✓ Custom</span>
+                            </div>
+                            <p class="strategy-desc">Wait for custom condition. Powerful for complex page state checks.</p>
+                            <div class="strategy-code">
+await page.wait_for_function("document.readyState === 'complete'")
+                            </div>
+                        </div>
+                        <div class="strategy-card anti-pattern" data-strategy="sleep">
+                            <div class="strategy-header">
+                                <span class="strategy-name">Fixed Sleep</span>
+                                <span class="strategy-badge bad">✗ Avoid</span>
+                            </div>
+                            <p class="strategy-desc">Fixed delays are fragile and slow. Don't use time.sleep() - wait for actual conditions!</p>
+                            <div class="strategy-code">
+time.sleep(2)  # ❌ BAD: Guessing timing
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 2: Element Selection
+                 ======================================== -->
+            <section id="selectors" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Element Selection Hierarchy</h2>
+                    <p>From most to least stable selector strategies</p>
+                </div>
+
+                <!-- Selector Hierarchy -->
+                <div class="selector-hierarchy">
+                    <h3>Selector Preference Order</h3>
+                    <div class="hierarchy-intro">
+                        <strong>Stability matters!</strong> Use the most stable selector available. Click each card to see examples.
+                    </div>
+                    <div class="selector-cards">
+                        <div class="selector-card" data-selector="aria">
+                            <div class="selector-header">
+                                <span class="selector-name">ARIA Roles</span>
+                                <span class="selector-rank">1</span>
+                            </div>
+                            <div class="stability-meter">
+                                <div class="stability-label">
+                                    <span>Stability</span>
+                                    <span>95%</span>
+                                </div>
+                                <div class="stability-bar">
+                                    <div class="stability-fill" style="width: 95%;"></div>
+                                </div>
+                            </div>
+                            <div class="selector-meta">
+                                <div class="meta-item">
+                                    <span class="speed-indicator"></span>
+                                    <span>Fast</span>
+                                </div>
+                            </div>
+                            <p class="selector-reason">Semantic, survives redesigns</p>
+                        </div>
+
+                        <div class="selector-card" data-selector="testid">
+                            <div class="selector-header">
+                                <span class="selector-name">Test IDs</span>
+                                <span class="selector-rank">2</span>
+                            </div>
+                            <div class="stability-meter">
+                                <div class="stability-label">
+                                    <span>Stability</span>
+                                    <span>98%</span>
+                                </div>
+                                <div class="stability-bar">
+                                    <div class="stability-fill" style="width: 98%;"></div>
+                                </div>
+                            </div>
+                            <div class="selector-meta">
+                                <div class="meta-item">
+                                    <span class="speed-indicator"></span>
+                                    <span>Fast</span>
+                                </div>
+                            </div>
+                            <p class="selector-reason">Explicit test markers</p>
+                        </div>
+
+                        <div class="selector-card" data-selector="text">
+                            <div class="selector-header">
+                                <span class="selector-name">Visible Text</span>
+                                <span class="selector-rank">3</span>
+                            </div>
+                            <div class="stability-meter">
+                                <div class="stability-label">
+                                    <span>Stability</span>
+                                    <span>70%</span>
+                                </div>
+                                <div class="stability-bar">
+                                    <div class="stability-fill" style="width: 70%;"></div>
+                                </div>
+                            </div>
+                            <div class="selector-meta">
+                                <div class="meta-item">
+                                    <span class="speed-indicator"></span>
+                                    <span>Fast</span>
+                                </div>
+                            </div>
+                            <p class="selector-reason">Fragile if copy changes</p>
+                        </div>
+
+                        <div class="selector-card" data-selector="css">
+                            <div class="selector-header">
+                                <span class="selector-name">CSS Selectors</span>
+                                <span class="selector-rank">4</span>
+                            </div>
+                            <div class="stability-meter">
+                                <div class="stability-label">
+                                    <span>Stability</span>
+                                    <span>60%</span>
+                                </div>
+                                <div class="stability-bar">
+                                    <div class="stability-fill" style="width: 60%;"></div>
+                                </div>
+                            </div>
+                            <div class="selector-meta">
+                                <div class="meta-item">
+                                    <span class="speed-indicator"></span>
+                                    <span>Fast</span>
+                                </div>
+                            </div>
+                            <p class="selector-reason">Breaks on class renames</p>
+                        </div>
+
+                        <div class="selector-card" data-selector="xpath">
+                            <div class="selector-header">
+                                <span class="selector-name">XPath</span>
+                                <span class="selector-rank">5</span>
+                            </div>
+                            <div class="stability-meter">
+                                <div class="stability-label">
+                                    <span>Stability</span>
+                                    <span>40%</span>
+                                </div>
+                                <div class="stability-bar">
+                                    <div class="stability-fill" style="width: 40%;"></div>
+                                </div>
+                            </div>
+                            <div class="selector-meta">
+                                <div class="meta-item">
+                                    <span class="speed-indicator medium"></span>
+                                    <span>Medium</span>
+                                </div>
+                            </div>
+                            <p class="selector-reason">Positional, very fragile</p>
+                        </div>
+
+                        <div class="selector-card" data-selector="visual">
+                            <div class="selector-header">
+                                <span class="selector-name">Visual Grounding</span>
+                                <span class="selector-rank">6</span>
+                            </div>
+                            <div class="stability-meter">
+                                <div class="stability-label">
+                                    <span>Stability</span>
+                                    <span>80%</span>
+                                </div>
+                                <div class="stability-bar">
+                                    <div class="stability-fill" style="width: 80%;"></div>
+                                </div>
+                            </div>
+                            <div class="selector-meta">
+                                <div class="meta-item">
+                                    <span class="speed-indicator slow"></span>
+                                    <span>Slow</span>
+                                </div>
+                            </div>
+                            <p class="selector-reason">Requires LLM + screenshot</p>
+                        </div>
+                    </div>
+                    <div id="selector-detail" style="display: none;" class="selector-detail"></div>
+                </div>
+
+                <!-- Interactive Selector Tester -->
+                <div class="selector-tester">
+                    <h3>Interactive Selector Tester</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        Try different selector strategies on a mock page. Which ones work reliably?
+                    </p>
+                    <div class="tester-layout">
+                        <div class="mock-webpage">
+                            <h4>Mock Web Page</h4>
+                            <div class="mock-element" data-element="submit">
+                                <button style="background: #3b82f6; color: white; padding: 0.5rem 1rem; border: none; border-radius: 4px;">
+                                    Submit Form
+                                </button>
+                            </div>
+                            <div class="mock-element" data-element="input">
+                                <input type="text" placeholder="Enter your name" style="padding: 0.5rem; width: 100%; border: 1px solid #ccc; border-radius: 4px;">
+                            </div>
+                            <div class="mock-element" data-element="link">
+                                <a href="#" style="color: #3b82f6; text-decoration: underline;">Learn More</a>
+                            </div>
+                        </div>
+                        <div class="tester-controls">
+                            <h4>Try These Selectors</h4>
+                            <div class="selector-options">
+                                <div class="selector-option" data-test="aria-submit">
+                                    get_by_role("button", name="Submit Form")
+                                </div>
+                                <div class="selector-option" data-test="text-submit">
+                                    get_by_text("Submit Form")
+                                </div>
+                                <div class="selector-option" data-test="css-submit">
+                                    locator(".submit-btn-blue-rounded")
+                                </div>
+                                <div class="selector-option" data-test="xpath-submit">
+                                    xpath("//div[2]/button[1]")
+                                </div>
+                            </div>
+                            <div id="test-result" style="display: none;" class="test-result"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 3: Visual Grounding
+                 ======================================== -->
+            <section id="visual" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Visual Grounding for Web UI</h2>
+                    <p>When DOM selectors aren't enough - use computer vision</p>
+                </div>
+
+                <!-- Visual Workflow -->
+                <div class="visual-workflow">
+                    <h3>Visual Grounding Workflow</h3>
+                    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        How agents use screenshots + LLMs to find elements
+                    </p>
+                    <div class="workflow-steps">
+                        <div class="workflow-step" data-flow="screenshot">
+                            <div class="workflow-icon">📸</div>
+                            <div class="workflow-name">Screenshot</div>
+                            <div class="workflow-detail">Capture page</div>
+                        </div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step" data-flow="encode">
+                            <div class="workflow-icon">🔢</div>
+                            <div class="workflow-name">Encode</div>
+                            <div class="workflow-detail">Base64 + resize</div>
+                        </div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step" data-flow="llm">
+                            <div class="workflow-icon">🧠</div>
+                            <div class="workflow-name">Send to LLM</div>
+                            <div class="workflow-detail">GPT-4o vision</div>
+                        </div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step" data-flow="parse">
+                            <div class="workflow-icon">🎯</div>
+                            <div class="workflow-name">Parse Coords</div>
+                            <div class="workflow-detail">(x, y) position</div>
+                        </div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step" data-flow="click">
+                            <div class="workflow-icon">👆</div>
+                            <div class="workflow-name">Click</div>
+                            <div class="workflow-detail">page.mouse.click()</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coordinate Picker Demo -->
+                <div class="coordinate-picker">
+                    <h3>Interactive Coordinate Picker</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        Click elements on the mock page to see how visual grounding works
+                    </p>
+                    <div class="picker-layout">
+                        <div class="screenshot-mock">
+                            <h4>Simulated Screenshot</h4>
+                            <div class="mock-page">
+                                <div class="mock-header">My Website</div>
+                                <div class="mock-content">
+                                    <p>Welcome to our site. Please sign in below.</p>
+                                </div>
+                                <input class="mock-input" id="username-input" type="text" placeholder="Username" data-coords="120,180">
+                                <input class="mock-input" id="password-input" type="text" placeholder="Password" data-coords="120,240">
+                                <div class="mock-button" id="signin-button" data-coords="120,300">Sign In</div>
+                            </div>
+                        </div>
+                        <div class="picker-controls">
+                            <h4>Detected Coordinates</h4>
+                            <div class="coordinate-display">
+                                <div class="coord-label">X coordinate:</div>
+                                <div class="coord-value" id="coord-x">-</div>
+                            </div>
+                            <div class="coordinate-display">
+                                <div class="coord-label">Y coordinate:</div>
+                                <div class="coord-value" id="coord-y">-</div>
+                            </div>
+                            <button class="btn btn-primary" id="ask-llm-btn" style="width: 100%; margin-top: 1rem;">
+                                🤖 Ask GPT-4o: "Where is the Sign In button?"
+                            </button>
+                            <div id="llm-simulation" style="display: none;" class="llm-simulation">
+                                <h5>LLM Response:</h5>
+                                <div class="llm-response"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DOM vs Visual Comparison -->
+                <div class="dom-visual-comparison">
+                    <h3>DOM-Based vs Visual Grounding</h3>
+                    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        When to use each approach
+                    </p>
+                    <div class="comparison-grid">
+                        <div class="comparison-column">
+                            <h4>DOM-Based (Playwright)</h4>
+                            <ul class="comparison-list">
+                                <li>Fast (< 100ms)</li>
+                                <li>No API cost</li>
+                                <li>Works with ARIA/accessibility</li>
+                                <li>Reliable on standard HTML</li>
+                                <li class="con">Fails on canvas elements</li>
+                                <li class="con">Fails on PDFs/images</li>
+                                <li class="con">Requires accessible DOM</li>
+                            </ul>
+                        </div>
+                        <div class="comparison-column">
+                            <h4>Visual Grounding (GPT-4o)</h4>
+                            <ul class="comparison-list">
+                                <li>Works on ANY visual UI</li>
+                                <li>Handles canvas/PDF/images</li>
+                                <li>No DOM required</li>
+                                <li>Natural language queries</li>
+                                <li class="con">Slow (~2-5s)</li>
+                                <li class="con">API costs ($0.01/call)</li>
+                                <li class="con">Less precise positioning</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 4: Workflows
+                 ======================================== -->
+            <section id="workflows" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Multi-Step Automation Workflows</h2>
+                    <p>State tracking, verification, and error recovery</p>
+                </div>
+
+                <!-- State Machine -->
+                <div class="state-machine">
+                    <h3>Workflow State Machine</h3>
+                    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        Click states to see transitions and code examples
+                    </p>
+                    <div class="states-container">
+                        <div class="state-node" data-state="initial">
+                            <div class="state-icon">🏁</div>
+                            <div class="state-name">Initial</div>
+                            <div class="state-desc">Start state</div>
+                        </div>
+                        <div class="state-arrow">→</div>
+                        <div class="state-node" data-state="navigate">
+                            <div class="state-icon">🌐</div>
+                            <div class="state-name">Navigate</div>
+                            <div class="state-desc">Load page</div>
+                        </div>
+                        <div class="state-arrow">→</div>
+                        <div class="state-node" data-state="extract">
+                            <div class="state-icon">📊</div>
+                            <div class="state-name">Extract</div>
+                            <div class="state-desc">Get data</div>
+                        </div>
+                        <div class="state-arrow">→</div>
+                        <div class="state-node" data-state="verify">
+                            <div class="state-icon">✓</div>
+                            <div class="state-name">Verify</div>
+                            <div class="state-desc">Check results</div>
+                        </div>
+                        <div class="state-arrow">→</div>
+                        <div class="state-node" data-state="complete">
+                            <div class="state-icon">🎉</div>
+                            <div class="state-name">Complete</div>
+                            <div class="state-desc">Done!</div>
+                        </div>
+                    </div>
+                    <div id="state-detail-panel" style="display: none;" class="state-detail-panel"></div>
+                </div>
+
+                <!-- Error Recovery -->
+                <div class="error-recovery">
+                    <h3>Error Recovery Strategies</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        How agents handle failures - click each card to see the strategy
+                    </p>
+                    <div class="error-grid">
+                        <div class="error-card" data-error="transient">
+                            <div class="error-type">⏱️ Transient Errors</div>
+                            <div class="error-example">Example: Network timeout, rate limit</div>
+                            <div class="error-strategy">
+                                <strong>Strategy:</strong> Retry with exponential backoff (wait 1s, 2s, 4s, 8s)
+                            </div>
+                        </div>
+                        <div class="error-card" data-error="recoverable">
+                            <div class="error-type">🔄 Recoverable Errors</div>
+                            <div class="error-example">Example: Element not found, stale reference</div>
+                            <div class="error-strategy">
+                                <strong>Strategy:</strong> Re-navigate to page and try again
+                            </div>
+                        </div>
+                        <div class="error-card" data-error="blocker">
+                            <div class="error-type">🚫 Blockers</div>
+                            <div class="error-example">Example: CAPTCHA, login required, paywall</div>
+                            <div class="error-strategy">
+                                <strong>Strategy:</strong> Escalate to human intervention
+                            </div>
+                        </div>
+                        <div class="error-card" data-error="logic">
+                            <div class="error-type">⚠️ Logic Errors</div>
+                            <div class="error-example">Example: Invalid state, assertion failure</div>
+                            <div class="error-strategy">
+                                <strong>Strategy:</strong> Log error details and stop gracefully
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 5: Code Examples
+                 ======================================== -->
+            <section id="code" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Playwright & browser-use Code</h2>
+                    <p>Copy-paste ready Python examples</p>
+                </div>
+
+                <div class="code-examples">
+                    <h3>Progressive Examples</h3>
+                    <div class="example-selector">
+                        <button class="example-tab active" data-example="basics">Basic</button>
+                        <button class="example-tab" data-example="aria">ARIA Selection</button>
+                        <button class="example-tab" data-example="workflow">Multi-Step</button>
+                        <button class="example-tab" data-example="visual-fallback">Visual Fallback</button>
+                        <button class="example-tab" data-example="browser-use">browser-use</button>
+                    </div>
+
+                    <!-- Example 1: Basics -->
+                    <div class="example-content" id="example-basics">
+                        <div class="example-header">
+                            <span class="example-title">Example 1: Playwright Basics</span>
+                            <button class="copy-btn" data-copy="basics">📋 Copy Code</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-python">from playwright.async_api import async_playwright
+
+async with async_playwright() as p:
+    browser = await p.chromium.launch()
+    page = await browser.new_page()
+
+    # Navigate to page
+    await page.goto("https://example.com")
+
+    # Wait for network to be idle
+    await page.wait_for_load_state("networkidle")
+
+    # Click a button
+    await page.get_by_role("button", name="Submit").click()
+
+    # Verify navigation
+    assert page.url != "https://example.com"
+
+    await browser.close()</code></pre>
+                        </div>
+                        <div class="example-notes">
+                            <h5>Key Concepts:</h5>
+                            <ul>
+                                <li>Always wait for networkidle after navigation</li>
+                                <li>Use ARIA roles for stable element selection</li>
+                                <li>Verify state changes after actions</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Example 2: ARIA Selection -->
+                    <div class="example-content" id="example-aria" style="display: none;">
+                        <div class="example-header">
+                            <span class="example-title">Example 2: ARIA-First Selection Hierarchy</span>
+                            <button class="copy-btn" data-copy="aria">📋 Copy Code</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-python"># Most stable → Least stable
+
+# 1. ARIA role + name (best - survives redesigns)
+submit = page.get_by_role("button", name="Add to cart")
+
+# 2. Test ID (very stable if app has them)
+checkout = page.get_by_test_id("checkout-btn")
+
+# 3. Visible text (readable but fragile)
+link = page.get_by_text("Sign in")
+
+# 4. CSS selector (breaks on class renames)
+element = page.locator("#submit-btn")
+
+# 5. XPath (positional - avoid!)
+xpath_elem = page.locator("//div[@class='container']/button[2]")
+
+# Example: Prioritize ARIA, fallback to CSS
+try:
+    await page.get_by_role("button", name="Submit").click()
+except:
+    await page.locator(".submit-button").click()</code></pre>
+                        </div>
+                        <div class="example-notes">
+                            <h5>Best Practices:</h5>
+                            <ul>
+                                <li>Always try ARIA first - it's semantic and stable</li>
+                                <li>Test IDs are great if your team adds them</li>
+                                <li>Avoid XPath unless absolutely necessary</li>
+                                <li>Visual grounding is the escape hatch for everything else</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Example 3: Multi-Step -->
+                    <div class="example-content" id="example-workflow" style="display: none;">
+                        <div class="example-header">
+                            <span class="example-title">Example 3: Multi-Step Workflow with State Tracking</span>
+                            <button class="copy-btn" data-copy="workflow">📋 Copy Code</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-python">from playwright.async_api import async_playwright
+
+async def search_github(query: str):
+    state = {"step": "init", "results": []}
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch()
+        page = await browser.new_page()
+
+        # Step 1: Navigate
+        state["step"] = "navigate"
+        await page.goto("https://github.com/search")
+        await page.wait_for_load_state("networkidle")
+
+        # Step 2: Fill search
+        state["step"] = "search"
+        await page.fill('input[name="q"]', query)
+        await page.get_by_role("button", name="Search").click()
+        await page.wait_for_selector(".search-results")
+
+        # Step 3: Extract results
+        state["step"] = "extract"
+        repos = await page.locator(".repo-list-item").all()
+        for repo in repos[:5]:
+            name = await repo.locator("a").first.text_content()
+            state["results"].append(name)
+
+        # Step 4: Verify
+        state["step"] = "verify"
+        assert len(state["results"]) > 0, "No results found"
+
+        state["step"] = "complete"
+        await browser.close()
+
+    return state["results"]</code></pre>
+                        </div>
+                        <div class="example-notes">
+                            <h5>State Tracking Benefits:</h5>
+                            <ul>
+                                <li>Know exactly where failures occur</li>
+                                <li>Can resume from checkpoints</li>
+                                <li>Easier debugging with step labels</li>
+                                <li>Verification at each stage</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Example 4: Visual Fallback -->
+                    <div class="example-content" id="example-visual-fallback" style="display: none;">
+                        <div class="example-header">
+                            <span class="example-title">Example 4: Visual Grounding Fallback</span>
+                            <button class="copy-btn" data-copy="visual-fallback">📋 Copy Code</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-python">from playwright.async_api import async_playwright, PlaywrightError
+from openai import OpenAI
+
+client = OpenAI()
+
+async def click_with_fallback(page, aria_label: str):
+    """Try DOM selection first, fall back to visual grounding."""
+
+    # Attempt 1: DOM-based selection (fast, cheap)
+    try:
+        await page.get_by_role("button", name=aria_label).click()
+        return {"method": "dom", "success": True}
+    except PlaywrightError:
+        pass
+
+    # Attempt 2: Visual grounding (slow, costs API credits)
+    screenshot = await page.screenshot()
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": f"Find the coordinates of the '{aria_label}' button"},
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{screenshot}"}}
+            ]
+        }]
+    )
+
+    # Parse coordinates from LLM response
+    # Expected format: "The button is at (x=120, y=300)"
+    coords_text = response.choices[0].message.content
+    x = int(coords_text.split("x=")[1].split(",")[0])
+    y = int(coords_text.split("y=")[1].split(")")[0])
+
+    # Click at coordinates
+    await page.mouse.click(x, y)
+
+    return {"method": "visual", "success": True, "coords": (x, y)}</code></pre>
+                        </div>
+                        <div class="example-notes">
+                            <h5>When Visual Grounding Shines:</h5>
+                            <ul>
+                                <li>Canvas-based UIs (Figma, Miro, graphics apps)</li>
+                                <li>PDF viewers without accessible DOM</li>
+                                <li>Shadow DOM or iframes blocking access</li>
+                                <li>Legacy apps with poor accessibility</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Example 5: browser-use -->
+                    <div class="example-content" id="example-browser-use" style="display: none;">
+                        <div class="example-header">
+                            <span class="example-title">Example 5: browser-use Agent (High-Level)</span>
+                            <button class="copy-btn" data-copy="browser-use">📋 Copy Code</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-python">from browser_use import Agent
+from langchain_openai import ChatOpenAI
+
+# Create an agent with natural language task
+agent = Agent(
+    task="Find the top 3 Hacker News posts about AI agents today and extract their titles and URLs",
+    llm=ChatOpenAI(model="gpt-4o")
+)
+
+# Run the agent - it handles all browser automation
+result = await agent.run()
+
+print("Agent completed task!")
+print(f"Posts found: {result}")
+
+# The agent autonomously:
+# 1. Navigated to news.ycombinator.com
+# 2. Searched for relevant posts
+# 3. Extracted titles and URLs
+# 4. Formatted the results
+# 5. Returned structured data</code></pre>
+                        </div>
+                        <div class="example-notes">
+                            <h5>browser-use Benefits:</h5>
+                            <ul>
+                                <li>No need to write Playwright code - just describe the task</li>
+                                <li>Automatic visual grounding with GPT-4o</li>
+                                <li>Self-correction and retry logic built-in</li>
+                                <li>Best for one-off tasks and prototyping</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>
