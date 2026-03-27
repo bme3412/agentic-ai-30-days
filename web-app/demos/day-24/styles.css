@@ -1,0 +1,1195 @@
+/* ============================================================
+   Day 24: Coding Agents & Sandboxed Execution - Demo Styles
+   ============================================================ */
+
+:root {
+    --bg-primary: #0f0f1a;
+    --bg-secondary: #1a1a2e;
+    --bg-tertiary: #252540;
+    --text-primary: #e4e4e7;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    --accent-primary: #6366f1;
+    --accent-secondary: #8b5cf6;
+    --accent-success: #22c55e;
+    --accent-warning: #f59e0b;
+    --accent-error: #ef4444;
+    --border-color: #3f3f5a;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+.demo-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Header */
+.demo-header {
+    margin-bottom: 2rem;
+}
+
+.header-content {
+    text-align: center;
+}
+
+.back-link {
+    display: inline-block;
+    color: var(--accent-primary);
+    text-decoration: none;
+    margin-bottom: 1rem;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: var(--accent-secondary);
+}
+
+.demo-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+/* Tab Navigation */
+.tab-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+}
+
+.tab-btn:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.tab-btn.active {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.tab-icon {
+    font-size: 1.2rem;
+}
+
+/* Tab Panels */
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.panel-header {
+    margin-bottom: 2rem;
+}
+
+.panel-header h2 {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.panel-header p {
+    color: var(--text-secondary);
+}
+
+/* Buttons */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--accent-secondary);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-secondary);
+}
+
+/* ============================================================
+   Tab 1: Agent Basics
+   ============================================================ */
+
+.agent-stack {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.agent-stack h3 {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.stack-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.stack-layer {
+    background: var(--bg-tertiary);
+    padding: 1.25rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.stack-layer:hover,
+.stack-layer.selected {
+    border-color: var(--accent-primary);
+    transform: translateX(4px);
+}
+
+.layer-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+}
+
+.layer-icon {
+    font-size: 1.5rem;
+}
+
+.layer-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+.stack-info {
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.stack-info h4 {
+    color: var(--accent-primary);
+    margin-bottom: 0.75rem;
+}
+
+/* Code vs Tool Comparison */
+.comparison-section {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.comparison-section h3 {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.paradigm-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.paradigm-card {
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.paradigm-card:hover,
+.paradigm-card.selected {
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+}
+
+.paradigm-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.paradigm-icon {
+    font-size: 1.5rem;
+}
+
+.paradigm-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.paradigm-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    background: var(--accent-secondary);
+    color: white;
+}
+
+.paradigm-example {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+}
+
+.paradigm-example pre {
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+.paradigm-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.paradigm-detail {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.paradigm-detail h4 {
+    color: var(--accent-primary);
+    margin-bottom: 1rem;
+}
+
+.paradigm-detail ul {
+    list-style: none;
+}
+
+.paradigm-detail li {
+    padding: 0.5rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.paradigm-detail li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--accent-success);
+}
+
+.paradigm-detail li.con::before {
+    content: '✗';
+    color: var(--accent-error);
+}
+
+/* ============================================================
+   Tab 2: Sandbox Execution
+   ============================================================ */
+
+.sandbox-simulator {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.sandbox-simulator h3 {
+    margin-bottom: 1rem;
+}
+
+.simulator-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 2rem;
+}
+
+.task-input-area h4,
+.code-output h4,
+.sandbox-terminal h4 {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+}
+
+.preset-tasks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.preset-btn {
+    padding: 0.5rem 1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.preset-btn:hover {
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+}
+
+.preset-btn.active {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+}
+
+#task-input {
+    width: 100%;
+    min-height: 80px;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.95rem;
+    resize: vertical;
+    margin-bottom: 1rem;
+}
+
+#task-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.execution-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.code-output {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.code-output pre {
+    background: var(--bg-primary);
+    border-radius: 6px;
+    padding: 1rem;
+    overflow-x: auto;
+    max-height: 200px;
+}
+
+/* Terminal Styling */
+.sandbox-terminal {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.terminal-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0.75rem;
+}
+
+.terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.terminal-dot.red { background: #ff5f56; }
+.terminal-dot.yellow { background: #ffbd2e; }
+.terminal-dot.green { background: #27c93f; }
+
+.terminal-title {
+    margin-left: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.terminal-body {
+    background: #1a1a1a;
+    border-radius: 6px;
+    padding: 1rem;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.85rem;
+    min-height: 120px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.terminal-line {
+    margin-bottom: 0.5rem;
+}
+
+.terminal-line.prompt {
+    color: var(--accent-success);
+}
+
+.terminal-line.output {
+    color: var(--text-secondary);
+}
+
+.terminal-line.error {
+    color: var(--accent-error);
+}
+
+.terminal-line.success {
+    color: var(--accent-success);
+}
+
+/* State Persistence Demo */
+.state-persistence {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.state-persistence h3 {
+    margin-bottom: 1rem;
+}
+
+.persistence-demo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.execution-block {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 1rem;
+    min-width: 220px;
+    flex: 1;
+    max-width: 280px;
+}
+
+.exec-header {
+    font-weight: 600;
+    color: var(--accent-primary);
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.execution-block pre {
+    background: var(--bg-primary);
+    border-radius: 6px;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+    overflow-x: auto;
+}
+
+.exec-output {
+    background: #1a1a1a;
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--accent-success);
+}
+
+.persistence-arrow {
+    font-size: 1.5rem;
+    color: var(--accent-primary);
+}
+
+/* ============================================================
+   Tab 3: Iteration Loop
+   ============================================================ */
+
+.iteration-walkthrough {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.iteration-walkthrough h3 {
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.walkthrough-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.iteration-timeline {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.iteration-step {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    opacity: 0.5;
+    transition: all 0.3s;
+}
+
+.iteration-step.active {
+    opacity: 1;
+    border-color: var(--accent-primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.iteration-step.completed {
+    opacity: 1;
+    border-color: var(--accent-success);
+}
+
+.iteration-step.error-step.active {
+    border-color: var(--accent-error);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.iteration-step.success-step.active,
+.iteration-step.success-step.completed {
+    border-color: var(--accent-success);
+    background: rgba(34, 197, 94, 0.1);
+}
+
+.step-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 60px;
+}
+
+.step-number {
+    width: 36px;
+    height: 36px;
+    background: var(--bg-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.step-status {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background: var(--accent-primary);
+    color: white;
+}
+
+.step-status.pending {
+    background: var(--bg-primary);
+    color: var(--text-muted);
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--accent-primary);
+}
+
+.step-text {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.step-code {
+    background: var(--bg-primary);
+    border-radius: 6px;
+    padding: 0.75rem;
+    font-size: 0.85rem;
+    overflow-x: auto;
+    margin: 0;
+}
+
+.step-error {
+    background: rgba(239, 68, 68, 0.2);
+    border-radius: 6px;
+    padding: 0.75rem;
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: var(--accent-error);
+    margin: 0;
+}
+
+.step-output {
+    background: rgba(34, 197, 94, 0.2);
+    border-radius: 6px;
+    padding: 0.75rem;
+    font-family: monospace;
+    font-size: 0.95rem;
+    color: var(--accent-success);
+}
+
+.iteration-connector {
+    width: 2px;
+    height: 20px;
+    background: var(--border-color);
+    margin: 0 auto;
+}
+
+/* Iteration Stats */
+.iteration-stats {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.iteration-stats h3 {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.stat-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* ============================================================
+   Tab 4: Security
+   ============================================================ */
+
+.threat-model {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.threat-model h3 {
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.threats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.threat-card {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.threat-card:hover,
+.threat-card.selected {
+    border-color: var(--accent-error);
+    transform: translateY(-2px);
+}
+
+.threat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+.threat-name {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.threat-example {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.threat-detail {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    border-left: 4px solid var(--accent-error);
+}
+
+.threat-detail h4 {
+    color: var(--accent-error);
+    margin-bottom: 0.75rem;
+}
+
+/* Resource Limits */
+.resource-limits {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.resource-limits h3 {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.limits-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.limit-card {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.limit-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.limit-icon {
+    font-size: 1.25rem;
+}
+
+.limit-name {
+    font-weight: 600;
+}
+
+.limit-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent-success);
+    margin-bottom: 0.5rem;
+}
+
+.limit-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Security Comparison */
+.security-comparison {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.security-comparison h3 {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.comparison-table {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table-header,
+.table-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+}
+
+.table-header {
+    background: var(--bg-primary);
+    font-weight: 600;
+}
+
+.table-row {
+    border-top: 1px solid var(--border-color);
+}
+
+.table-row.unsafe {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.table-row.recommended {
+    background: rgba(34, 197, 94, 0.1);
+}
+
+.table-cell {
+    display: flex;
+    align-items: center;
+}
+
+.rating {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.rating.good {
+    background: var(--accent-success);
+    color: white;
+}
+
+.rating.warning {
+    background: var(--accent-warning);
+    color: black;
+}
+
+.rating.danger {
+    background: var(--accent-error);
+    color: white;
+}
+
+/* ============================================================
+   Tab 5: Code Examples
+   ============================================================ */
+
+.code-examples {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.code-examples h3 {
+    margin-bottom: 1.5rem;
+}
+
+.example-selector {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.example-tab {
+    padding: 0.75rem 1.25rem;
+    background: var(--bg-tertiary);
+    border: none;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.example-tab:hover {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.example-tab.active {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.example-content {
+    position: relative;
+}
+
+.example-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.example-title {
+    font-weight: 600;
+    color: var(--accent-primary);
+}
+
+.copy-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.copy-btn:hover {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.code-block {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    padding: 1.5rem;
+    overflow-x: auto;
+}
+
+.code-block pre {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.code-block code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.example-notes {
+    background: rgba(99, 102, 241, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.example-notes h5 {
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+}
+
+.example-notes ul {
+    list-style: none;
+}
+
+.example-notes li {
+    padding: 0.25rem 0;
+    padding-left: 1.25rem;
+    position: relative;
+}
+
+.example-notes li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent-primary);
+}
+
+/* ============================================================
+   Toast Notification
+   ============================================================ */
+
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    padding: 1rem 1.5rem;
+    background: var(--accent-success);
+    color: white;
+    border-radius: 8px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s;
+    z-index: 1000;
+    box-shadow: var(--shadow);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ============================================================
+   Responsive Design
+   ============================================================ */
+
+@media (max-width: 1024px) {
+    .paradigm-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .simulator-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .threats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .limits-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .demo-container {
+        padding: 1rem;
+    }
+
+    .demo-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .tab-nav {
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+
+    .threats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .limits-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .persistence-demo {
+        flex-direction: column;
+    }
+
+    .persistence-arrow {
+        transform: rotate(90deg);
+    }
+
+    .execution-block {
+        max-width: 100%;
+    }
+
+    .iteration-step {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .step-marker {
+        flex-direction: row;
+        gap: 1rem;
+    }
+
+    .comparison-table .table-header,
+    .comparison-table .table-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+
+    .table-cell:nth-child(3),
+    .table-cell:nth-child(4) {
+        display: none;
+    }
+}

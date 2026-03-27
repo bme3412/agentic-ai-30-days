@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 24: Coding Agents & Sandboxed Execution - Interactive Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="demo-container">
+        <header class="demo-header">
+            <div class="header-content">
+                <a href="../../" class="back-link">← Back to Course</a>
+                <h1>Coding Agents & Sandboxed Execution</h1>
+                <p class="subtitle">Interactive Explorer - Day 24</p>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="basics">
+                <span class="tab-icon">🏗️</span>
+                <span class="tab-label">Agent Basics</span>
+            </button>
+            <button class="tab-btn" data-tab="sandbox">
+                <span class="tab-icon">📦</span>
+                <span class="tab-label">Sandbox Execution</span>
+            </button>
+            <button class="tab-btn" data-tab="iteration">
+                <span class="tab-icon">🔄</span>
+                <span class="tab-label">Iteration Loop</span>
+            </button>
+            <button class="tab-btn" data-tab="security">
+                <span class="tab-icon">🔒</span>
+                <span class="tab-label">Security</span>
+            </button>
+            <button class="tab-btn" data-tab="code">
+                <span class="tab-icon">💻</span>
+                <span class="tab-label">Code Examples</span>
+            </button>
+        </nav>
+
+        <main class="tab-content">
+            <!-- ========================================
+                 Tab 1: Agent Basics
+                 ======================================== -->
+            <section id="basics" class="tab-panel active">
+                <div class="panel-header">
+                    <h2>Coding Agent Architecture</h2>
+                    <p>Understanding how agents write and execute code safely</p>
+                </div>
+
+                <!-- Coding Agent Stack -->
+                <div class="agent-stack">
+                    <h3>Coding Agent Stack</h3>
+                    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem;">
+                        Click each layer to learn how coding agents work
+                    </p>
+                    <div class="stack-layers">
+                        <div class="stack-layer" data-layer="task">
+                            <div class="layer-header">
+                                <span class="layer-icon">📝</span>
+                                <span>User Task</span>
+                            </div>
+                            <div class="layer-desc">Natural language coding request (e.g., "Calculate prime numbers")</div>
+                        </div>
+                        <div class="stack-layer" data-layer="llm">
+                            <div class="layer-header">
+                                <span class="layer-icon">🧠</span>
+                                <span>LLM Code Generation</span>
+                            </div>
+                            <div class="layer-desc">GPT-4o/Claude generates Python code to solve the task</div>
+                        </div>
+                        <div class="stack-layer" data-layer="sandbox">
+                            <div class="layer-header">
+                                <span class="layer-icon">📦</span>
+                                <span>E2B Sandbox</span>
+                            </div>
+                            <div class="layer-desc">Isolated cloud VM executes the generated code safely</div>
+                        </div>
+                        <div class="stack-layer" data-layer="execution">
+                            <div class="layer-header">
+                                <span class="layer-icon">⚡</span>
+                                <span>Code Execution</span>
+                            </div>
+                            <div class="layer-desc">Python interpreter runs code with resource limits</div>
+                        </div>
+                        <div class="stack-layer" data-layer="feedback">
+                            <div class="layer-header">
+                                <span class="layer-icon">🔁</span>
+                                <span>Result / Error Feedback</span>
+                            </div>
+                            <div class="layer-desc">Output or errors flow back for iteration</div>
+                        </div>
+                    </div>
+                    <div id="stack-info-panel" style="display: none;" class="stack-info"></div>
+                </div>
+
+                <!-- Code vs Tool Calling Comparison -->
+                <div class="comparison-section">
+                    <h3>Code Agents vs Tool-Calling Agents</h3>
+                    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        Two paradigms for agent actions - click each to compare
+                    </p>
+                    <div class="paradigm-grid">
+                        <div class="paradigm-card selected" data-paradigm="code">
+                            <div class="paradigm-header">
+                                <span class="paradigm-icon">🐍</span>
+                                <span class="paradigm-name">CodeAgent</span>
+                                <span class="paradigm-badge">smolagents</span>
+                            </div>
+                            <div class="paradigm-example">
+                                <pre><code class="language-python">result = search("weather Paris")
+if "rain" in result:
+    notify("Bring umbrella!")</code></pre>
+                            </div>
+                            <p class="paradigm-desc">LLM writes Python code directly</p>
+                        </div>
+                        <div class="paradigm-card" data-paradigm="tool">
+                            <div class="paradigm-header">
+                                <span class="paradigm-icon">📋</span>
+                                <span class="paradigm-name">ToolCallingAgent</span>
+                                <span class="paradigm-badge">Traditional</span>
+                            </div>
+                            <div class="paradigm-example">
+                                <pre><code class="language-json">{"tool": "search",
+ "args": {"query": "weather Paris"}}</code></pre>
+                            </div>
+                            <p class="paradigm-desc">LLM outputs structured JSON tool calls</p>
+                        </div>
+                    </div>
+                    <div id="paradigm-detail" class="paradigm-detail"></div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 2: Sandbox Execution
+                 ======================================== -->
+            <section id="sandbox" class="tab-panel">
+                <div class="panel-header">
+                    <h2>E2B Sandbox Execution</h2>
+                    <p>Safe code execution in isolated cloud environments</p>
+                </div>
+
+                <!-- Sandbox Simulator -->
+                <div class="sandbox-simulator">
+                    <h3>Interactive Sandbox</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        Enter a coding task and watch the agent generate and execute code
+                    </p>
+                    <div class="simulator-layout">
+                        <div class="task-input-area">
+                            <h4>Coding Task</h4>
+                            <div class="preset-tasks">
+                                <button class="preset-btn active" data-task="primes">Find primes under 50</button>
+                                <button class="preset-btn" data-task="fibonacci">First 10 Fibonacci numbers</button>
+                                <button class="preset-btn" data-task="sort">Sort a list</button>
+                                <button class="preset-btn" data-task="factorial">Calculate 10!</button>
+                            </div>
+                            <textarea id="task-input" placeholder="Or type your own task...">Find all prime numbers under 50</textarea>
+                            <button class="btn btn-primary" id="run-agent-btn">▶ Run Coding Agent</button>
+                        </div>
+                        <div class="execution-area">
+                            <div class="code-output">
+                                <h4>Generated Code</h4>
+                                <pre id="generated-code"><code class="language-python"># Code will appear here...</code></pre>
+                            </div>
+                            <div class="sandbox-terminal">
+                                <h4>Sandbox Output</h4>
+                                <div class="terminal-header">
+                                    <span class="terminal-dot red"></span>
+                                    <span class="terminal-dot yellow"></span>
+                                    <span class="terminal-dot green"></span>
+                                    <span class="terminal-title">E2B Sandbox</span>
+                                </div>
+                                <div id="terminal-output" class="terminal-body">
+                                    <div class="terminal-line prompt">$ python code.py</div>
+                                    <div class="terminal-line output">Waiting for code...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- State Persistence Demo -->
+                <div class="state-persistence">
+                    <h3>Sandbox State Persistence</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        Variables persist between executions within the same sandbox session
+                    </p>
+                    <div class="persistence-demo">
+                        <div class="execution-block" data-exec="1">
+                            <div class="exec-header">Execution 1</div>
+                            <pre><code class="language-python">x = 42
+data = [1, 2, 3]
+print("Variables defined")</code></pre>
+                            <div class="exec-output">Variables defined</div>
+                        </div>
+                        <div class="persistence-arrow">→</div>
+                        <div class="execution-block" data-exec="2">
+                            <div class="exec-header">Execution 2</div>
+                            <pre><code class="language-python"># x and data still exist!
+print(f"x = {x}")
+print(f"sum = {sum(data)}")</code></pre>
+                            <div class="exec-output">x = 42<br>sum = 6</div>
+                        </div>
+                        <div class="persistence-arrow">→</div>
+                        <div class="execution-block" data-exec="3">
+                            <div class="exec-header">Execution 3</div>
+                            <pre><code class="language-python"># Build on previous state
+data.append(x)
+print(f"data = {data}")</code></pre>
+                            <div class="exec-output">data = [1, 2, 3, 42]</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 3: Iteration Loop
+                 ======================================== -->
+            <section id="iteration" class="tab-panel">
+                <div class="panel-header">
+                    <h2>The Code-Execute-Refine Loop</h2>
+                    <p>How agents iterate on errors to reach correct solutions</p>
+                </div>
+
+                <!-- Iteration Walkthrough -->
+                <div class="iteration-walkthrough">
+                    <h3>Error Recovery in Action</h3>
+                    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        Watch the agent fix its mistakes through iteration
+                    </p>
+                    <div class="walkthrough-controls">
+                        <button class="btn btn-primary" id="walkthrough-play">▶ Play Walkthrough</button>
+                        <button class="btn btn-secondary" id="walkthrough-reset">↻ Reset</button>
+                    </div>
+                    <div class="iteration-timeline">
+                        <div class="iteration-step" data-step="1">
+                            <div class="step-marker">
+                                <span class="step-number">1</span>
+                                <span class="step-status">Task</span>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-label">User Request</div>
+                                <div class="step-text">"Find the average of [10, 20, 30, 40, 50]"</div>
+                            </div>
+                        </div>
+                        <div class="iteration-connector"></div>
+                        <div class="iteration-step" data-step="2">
+                            <div class="step-marker">
+                                <span class="step-number">2</span>
+                                <span class="step-status pending">Pending</span>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-label">First Attempt</div>
+                                <pre class="step-code"><code class="language-python">numbers = [10, 20, 30, 40, 50]
+avg = sum(numbers) / length(numbers)  # Bug!
+print(f"Average: {avg}")</code></pre>
+                            </div>
+                        </div>
+                        <div class="iteration-connector"></div>
+                        <div class="iteration-step error-step" data-step="3">
+                            <div class="step-marker">
+                                <span class="step-number">3</span>
+                                <span class="step-status pending">Pending</span>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-label">Execution Error</div>
+                                <pre class="step-error">NameError: name 'length' is not defined
+Did you mean: 'len'?</pre>
+                            </div>
+                        </div>
+                        <div class="iteration-connector"></div>
+                        <div class="iteration-step" data-step="4">
+                            <div class="step-marker">
+                                <span class="step-number">4</span>
+                                <span class="step-status pending">Pending</span>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-label">Fixed Code</div>
+                                <pre class="step-code"><code class="language-python">numbers = [10, 20, 30, 40, 50]
+avg = sum(numbers) / len(numbers)  # Fixed!
+print(f"Average: {avg}")</code></pre>
+                            </div>
+                        </div>
+                        <div class="iteration-connector"></div>
+                        <div class="iteration-step success-step" data-step="5">
+                            <div class="step-marker">
+                                <span class="step-number">5</span>
+                                <span class="step-status pending">Pending</span>
+                            </div>
+                            <div class="step-content">
+                                <div class="step-label">Success!</div>
+                                <div class="step-output">Average: 30.0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Iteration Stats -->
+                <div class="iteration-stats">
+                    <h3>Real-World Iteration Patterns</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">73%</div>
+                            <div class="stat-label">Success on 1st try</div>
+                            <div class="stat-desc">Simple tasks often work immediately</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">92%</div>
+                            <div class="stat-label">Success within 3 tries</div>
+                            <div class="stat-desc">Most errors fixed with feedback</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">5</div>
+                            <div class="stat-label">Max iterations</div>
+                            <div class="stat-desc">Recommended limit to prevent loops</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">~2s</div>
+                            <div class="stat-label">Avg iteration time</div>
+                            <div class="stat-desc">LLM generation + execution</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 4: Security
+                 ======================================== -->
+            <section id="security" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Security & Resource Limits</h2>
+                    <p>Why sandboxed execution is non-negotiable for production</p>
+                </div>
+
+                <!-- Threat Model -->
+                <div class="threat-model">
+                    <h3>Why You Can't Trust LLM Code</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        Click each threat to understand the risks
+                    </p>
+                    <div class="threats-grid">
+                        <div class="threat-card" data-threat="errors">
+                            <div class="threat-icon">🐛</div>
+                            <div class="threat-name">LLM Errors</div>
+                            <div class="threat-example">Accidental rm -rf /</div>
+                        </div>
+                        <div class="threat-card" data-threat="injection">
+                            <div class="threat-icon">💉</div>
+                            <div class="threat-name">Prompt Injection</div>
+                            <div class="threat-example">Malicious instructions in data</div>
+                        </div>
+                        <div class="threat-card" data-threat="supply">
+                            <div class="threat-icon">📦</div>
+                            <div class="threat-name">Supply Chain</div>
+                            <div class="threat-example">Compromised model weights</div>
+                        </div>
+                        <div class="threat-card" data-threat="adversarial">
+                            <div class="threat-icon">👤</div>
+                            <div class="threat-name">Adversarial Users</div>
+                            <div class="threat-example">Deliberately harmful prompts</div>
+                        </div>
+                    </div>
+                    <div id="threat-detail" style="display: none;" class="threat-detail"></div>
+                </div>
+
+                <!-- Resource Limits -->
+                <div class="resource-limits">
+                    <h3>E2B Sandbox Protections</h3>
+                    <div class="limits-grid">
+                        <div class="limit-card">
+                            <div class="limit-header">
+                                <span class="limit-icon">⏱️</span>
+                                <span class="limit-name">Execution Timeout</span>
+                            </div>
+                            <div class="limit-value">30 seconds</div>
+                            <div class="limit-desc">Prevents infinite loops from running forever</div>
+                        </div>
+                        <div class="limit-card">
+                            <div class="limit-header">
+                                <span class="limit-icon">💾</span>
+                                <span class="limit-name">Memory Limit</span>
+                            </div>
+                            <div class="limit-value">512 MB</div>
+                            <div class="limit-desc">Prevents memory exhaustion attacks</div>
+                        </div>
+                        <div class="limit-card">
+                            <div class="limit-header">
+                                <span class="limit-icon">🔌</span>
+                                <span class="limit-name">Network Access</span>
+                            </div>
+                            <div class="limit-value">Disabled</div>
+                            <div class="limit-desc">Prevents data exfiltration</div>
+                        </div>
+                        <div class="limit-card">
+                            <div class="limit-header">
+                                <span class="limit-icon">📁</span>
+                                <span class="limit-name">Filesystem</span>
+                            </div>
+                            <div class="limit-value">Isolated</div>
+                            <div class="limit-desc">Only sandbox files accessible</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Comparison -->
+                <div class="security-comparison">
+                    <h3>Execution Options Compared</h3>
+                    <div class="comparison-table">
+                        <div class="table-header">
+                            <div class="table-cell">Method</div>
+                            <div class="table-cell">Safety</div>
+                            <div class="table-cell">Speed</div>
+                            <div class="table-cell">Cost</div>
+                        </div>
+                        <div class="table-row unsafe">
+                            <div class="table-cell">exec() locally</div>
+                            <div class="table-cell"><span class="rating danger">NONE</span></div>
+                            <div class="table-cell"><span class="rating good">Fast</span></div>
+                            <div class="table-cell"><span class="rating good">Free</span></div>
+                        </div>
+                        <div class="table-row">
+                            <div class="table-cell">LocalPythonExecutor</div>
+                            <div class="table-cell"><span class="rating warning">Basic</span></div>
+                            <div class="table-cell"><span class="rating good">Fast</span></div>
+                            <div class="table-cell"><span class="rating good">Free</span></div>
+                        </div>
+                        <div class="table-row">
+                            <div class="table-cell">Docker container</div>
+                            <div class="table-cell"><span class="rating good">Good</span></div>
+                            <div class="table-cell"><span class="rating warning">1-5s startup</span></div>
+                            <div class="table-cell"><span class="rating good">Free</span></div>
+                        </div>
+                        <div class="table-row recommended">
+                            <div class="table-cell">E2B Sandbox</div>
+                            <div class="table-cell"><span class="rating good">Excellent</span></div>
+                            <div class="table-cell"><span class="rating good">~300ms</span></div>
+                            <div class="table-cell"><span class="rating warning">$0.01+</span></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 5: Code Examples
+                 ======================================== -->
+            <section id="code" class="tab-panel">
+                <div class="panel-header">
+                    <h2>E2B & smolagents Code</h2>
+                    <p>Copy-paste ready Python examples</p>
+                </div>
+
+                <div class="code-examples">
+                    <h3>Progressive Examples</h3>
+                    <div class="example-selector">
+                        <button class="example-tab active" data-example="e2b-basic">E2B Basics</button>
+                        <button class="example-tab" data-example="smolagents">smolagents</button>
+                        <button class="example-tab" data-example="iteration">Iteration Loop</button>
+                        <button class="example-tab" data-example="production">Production Agent</button>
+                    </div>
+
+                    <!-- Example 1: E2B Basics -->
+                    <div class="example-content" id="example-e2b-basic">
+                        <div class="example-header">
+                            <span class="example-title">Example 1: E2B Sandbox Basics</span>
+                            <button class="copy-btn" data-copy="e2b-basic">📋 Copy Code</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-python">from e2b_code_interpreter import Sandbox
+
+# Create an E2B sandbox (isolated Linux VM)
+with Sandbox() as sandbox:
+    # Execute Python code safely
+    execution = sandbox.run_code("""
+import math
+
+# This runs in complete isolation
+primes = [n for n in range(2, 100)
+          if all(n % i != 0 for i in range(2, int(math.sqrt(n)) + 1))]
+print(f"Primes under 100: {primes}")
+print(f"Count: {len(primes)}")
+""")
+
+    # Access results
+    if execution.error:
+        print(f"Error: {execution.error.traceback}")
+    else:
+        for line in execution.logs.stdout:
+            print(line)
+
+# Sandbox automatically cleaned up</code></pre>
+                        </div>
+                        <div class="example-notes">
+                            <h5>Key Concepts:</h5>
+                            <ul>
+                                <li>Sandbox spins up in ~300ms</li>
+                                <li>Context manager ensures cleanup</li>
+                                <li>Error info includes full traceback</li>
+                                <li>State persists between run_code calls</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Example 2: smolagents -->
+                    <div class="example-content" id="example-smolagents" style="display: none;">
+                        <div class="example-header">
+                            <span class="example-title">Example 2: smolagents CodeAgent</span>
+                            <button class="copy-btn" data-copy="smolagents">📋 Copy Code</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-python">from smolagents import CodeAgent, InferenceClientModel, tool
+
+# Define a custom tool
+@tool
+def fetch_stock_price(symbol: str) -> float:
+    """Fetches current stock price for a symbol.
+
+    Args:
+        symbol: Stock ticker symbol (e.g., 'AAPL')
+    Returns:
+        Current price as a float
+    """
+    # Mock implementation
+    prices = {"AAPL": 175.50, "GOOGL": 140.25, "MSFT": 378.90}
+    return prices.get(symbol, 0.0)
+
+# Create CodeAgent with E2B sandboxing
+with CodeAgent(
+    model=InferenceClientModel(),
+    tools=[fetch_stock_price],
+    executor_type="e2b"  # Routes execution to E2B
+) as agent:
+    # Agent writes Python to solve the task
+    result = agent.run("""
+        Get the stock prices for AAPL and GOOGL.
+        Calculate which one has grown more if AAPL started at $150
+        and GOOGL started at $120. Show percentage growth for each.
+    """)
+    print(result)</code></pre>
+                        </div>
+                        <div class="example-notes">
+                            <h5>CodeAgent Benefits:</h5>
+                            <ul>
+                                <li>Writes Python instead of JSON tool calls</li>
+                                <li>Better composability with loops and conditions</li>
+                                <li>One-line E2B integration via executor_type</li>
+                                <li>Custom tools defined with @tool decorator</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Example 3: Iteration Loop -->
+                    <div class="example-content" id="example-iteration" style="display: none;">
+                        <div class="example-header">
+                            <span class="example-title">Example 3: Iteration with Error Recovery</span>
+                            <button class="copy-btn" data-copy="iteration">📋 Copy Code</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-python">from e2b_code_interpreter import Sandbox
+from openai import OpenAI
+
+client = OpenAI()
+
+def run_coding_agent(task: str, max_iterations: int = 3) -> str:
+    """Run a coding agent with error recovery."""
+
+    with Sandbox() as sandbox:
+        messages = [
+            {"role": "system", "content": """You are a Python expert.
+Write code to solve the task. Output ONLY executable code.
+If you see an error, fix it and try again."""},
+            {"role": "user", "content": task}
+        ]
+
+        for i in range(max_iterations):
+            # Generate code
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages
+            )
+            code = response.choices[0].message.content
+
+            # Strip markdown fences if present
+            if "```python" in code:
+                code = code.split("```python")[1].split("```")[0]
+
+            print(f"--- Iteration {i+1} ---")
+            print(f"Code: {code[:100]}...")
+
+            # Execute in sandbox
+            execution = sandbox.run_code(code)
+
+            if execution.error:
+                error_msg = execution.error.traceback
+                print(f"Error: {error_msg[:100]}...")
+
+                # Feed error back for refinement
+                messages.append({"role": "assistant", "content": code})
+                messages.append({"role": "user", "content": f"Error:\n{error_msg}\n\nFix it."})
+            else:
+                # Success!
+                output = "\n".join(str(log) for log in execution.logs.stdout)
+                print(f"Success: {output}")
+                return output
+
+        return "Max iterations reached"
+
+# Usage
+result = run_coding_agent("Calculate factorial of 20 using recursion")</code></pre>
+                        </div>
+                        <div class="example-notes">
+                            <h5>Iteration Pattern:</h5>
+                            <ul>
+                                <li>Errors become observations, not failures</li>
+                                <li>Traceback fed back to LLM for analysis</li>
+                                <li>Set max_iterations to prevent infinite loops</li>
+                                <li>Track token usage across iterations</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Example 4: Production Agent -->
+                    <div class="example-content" id="example-production" style="display: none;">
+                        <div class="example-header">
+                            <span class="example-title">Example 4: Production-Ready Agent</span>
+                            <button class="copy-btn" data-copy="production">📋 Copy Code</button>
+                        </div>
+                        <div class="code-block">
+                            <pre><code class="language-python">from e2b_code_interpreter import Sandbox
+from openai import OpenAI
+from dataclasses import dataclass
+import re
+import logging
+
+logger = logging.getLogger(__name__)
+
+DANGEROUS_PATTERNS = [
+    r"os\.system", r"subprocess", r"__import__",
+    r"eval\(", r"exec\(", r"open\(.*['\"]w"
+]
+
+@dataclass
+class ExecutionResult:
+    success: bool
+    output: str
+    iterations: int
+    error: str | None = None
+
+class ProductionCodingAgent:
+    def __init__(self, max_iterations: int = 5, timeout: int = 30):
+        self.max_iterations = max_iterations
+        self.timeout = timeout
+        self.client = OpenAI()
+
+    def _check_dangerous(self, code: str) -> str | None:
+        """Check for dangerous patterns in generated code."""
+        for pattern in DANGEROUS_PATTERNS:
+            if re.search(pattern, code):
+                return f"Blocked: {pattern}"
+        return None
+
+    def run(self, task: str) -> ExecutionResult:
+        """Execute a task with full safety checks."""
+
+        with Sandbox(timeout=120) as sandbox:
+            messages = [
+                {"role": "system", "content": "Write Python code. Output only code."},
+                {"role": "user", "content": task}
+            ]
+
+            for i in range(self.max_iterations):
+                response = self.client.chat.completions.create(
+                    model="gpt-4o", messages=messages, temperature=0
+                )
+                code = response.choices[0].message.content.strip()
+
+                # Safety check
+                if danger := self._check_dangerous(code):
+                    logger.warning(f"Dangerous code blocked: {danger}")
+                    return ExecutionResult(False, "", i+1, danger)
+
+                # Execute with timeout
+                execution = sandbox.run_code(code, timeout=self.timeout)
+
+                if execution.error:
+                    messages.append({"role": "assistant", "content": code})
+                    messages.append({"role": "user", "content": f"Error:\n{execution.error.traceback}\nFix it."})
+                else:
+                    output = "\n".join(str(log) for log in execution.logs.stdout)
+                    return ExecutionResult(True, output, i+1)
+
+            return ExecutionResult(False, "", self.max_iterations, "Max iterations")
+
+# Usage
+agent = ProductionCodingAgent(max_iterations=3, timeout=30)
+result = agent.run("Calculate the sum of squares from 1 to 100")
+print(f"Success: {result.success}, Output: {result.output}")</code></pre>
+                        </div>
+                        <div class="example-notes">
+                            <h5>Production Features:</h5>
+                            <ul>
+                                <li>Dangerous pattern detection before execution</li>
+                                <li>Structured result with iteration tracking</li>
+                                <li>Configurable timeouts and iteration limits</li>
+                                <li>Logging for debugging and monitoring</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>
