@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 25: Document AI - Agentic Extraction - Interactive Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="demo-container">
+        <header class="demo-header">
+            <div class="header-content">
+                <a href="../../" class="back-link">&larr; Back to Course</a>
+                <h1>Document AI: Agentic Extraction</h1>
+                <p class="subtitle">Interactive Explorer - Day 25</p>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="evolution">
+                <span class="tab-icon">&#128200;</span>
+                <span class="tab-label">OCR Evolution</span>
+            </button>
+            <button class="tab-btn" data-tab="parsing">
+                <span class="tab-icon">&#128196;</span>
+                <span class="tab-label">Document Parsing</span>
+            </button>
+            <button class="tab-btn" data-tab="extraction">
+                <span class="tab-icon">&#128269;</span>
+                <span class="tab-label">Schema Extraction</span>
+            </button>
+            <button class="tab-btn" data-tab="grounding">
+                <span class="tab-icon">&#128205;</span>
+                <span class="tab-label">Visual Grounding</span>
+            </button>
+            <button class="tab-btn" data-tab="code">
+                <span class="tab-icon">&#128187;</span>
+                <span class="tab-label">Code Examples</span>
+            </button>
+        </nav>
+
+        <main class="tab-content">
+            <!-- ========================================
+                 Tab 1: OCR Evolution
+                 ======================================== -->
+            <section id="evolution" class="tab-panel active">
+                <div class="panel-header">
+                    <h2>The Evolution of Document Intelligence</h2>
+                    <p>From pattern matching to agentic understanding</p>
+                </div>
+
+                <!-- Timeline -->
+                <div class="evolution-timeline">
+                    <h3>Four Waves of Document AI</h3>
+                    <p class="timeline-intro">Click each wave to explore its capabilities and limitations</p>
+
+                    <div class="timeline-track">
+                        <div class="timeline-wave selected" data-wave="1">
+                            <div class="wave-marker">1</div>
+                            <div class="wave-title">Traditional OCR</div>
+                            <div class="wave-era">1990s-2010s</div>
+                        </div>
+                        <div class="timeline-connector"></div>
+                        <div class="timeline-wave" data-wave="2">
+                            <div class="wave-marker">2</div>
+                            <div class="wave-title">Rule-Based IDP</div>
+                            <div class="wave-era">2010s</div>
+                        </div>
+                        <div class="timeline-connector"></div>
+                        <div class="timeline-wave" data-wave="3">
+                            <div class="wave-marker">3</div>
+                            <div class="wave-title">LLM-Based</div>
+                            <div class="wave-era">2022-2023</div>
+                        </div>
+                        <div class="timeline-connector"></div>
+                        <div class="timeline-wave" data-wave="4">
+                            <div class="wave-marker">4</div>
+                            <div class="wave-title">Agentic Extraction</div>
+                            <div class="wave-era">2024+</div>
+                        </div>
+                    </div>
+
+                    <div id="wave-detail" class="wave-detail-panel">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Comparison Demo -->
+                <div class="comparison-demo">
+                    <h3>OCR vs Agentic Extraction</h3>
+                    <p class="demo-intro">See how the same document is processed differently</p>
+
+                    <div class="sample-document">
+                        <div class="doc-preview">
+                            <div class="doc-header">INVOICE #2024-0342</div>
+                            <table class="doc-table">
+                                <tr><td class="label">Vendor:</td><td>Acme Corp</td></tr>
+                                <tr><td class="label">Date:</td><td>March 15, 2024</td></tr>
+                                <tr><td class="label">Due:</td><td>April 15, 2024</td></tr>
+                            </table>
+                            <table class="doc-items">
+                                <tr class="header"><th>Item</th><th>Qty</th><th>Price</th></tr>
+                                <tr><td>Widget A</td><td>10</td><td>$50.00</td></tr>
+                                <tr><td>Widget B</td><td>5</td><td>$75.00</td></tr>
+                                <tr><td>Service Fee</td><td>1</td><td>$25.00</td></tr>
+                            </table>
+                            <div class="doc-total">
+                                <span class="label">Subtotal:</span> $900.00<br>
+                                <span class="label">Tax (8%):</span> $72.00<br>
+                                <strong>Total: $972.00</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="output-comparison">
+                        <div class="output-panel ocr-output">
+                            <h4>Traditional OCR Output</h4>
+                            <button class="toggle-btn" data-mode="ocr">Show OCR Result</button>
+                            <pre class="output-text" id="ocr-result"></pre>
+                        </div>
+                        <div class="output-panel ade-output">
+                            <h4>Agentic Extraction Output</h4>
+                            <button class="toggle-btn active" data-mode="ade">Show ADE Result</button>
+                            <pre class="output-text" id="ade-result"></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 2: Document Parsing
+                 ======================================== -->
+            <section id="parsing" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Document Parsing with DPT-2</h2>
+                    <p>Breaking documents into semantic chunks with visual grounding</p>
+                </div>
+
+                <!-- Parsing Simulator -->
+                <div class="parsing-simulator">
+                    <h3>Interactive Document Parser</h3>
+                    <p class="sim-intro">Select a document type to see how it's decomposed into chunks</p>
+
+                    <div class="doc-selector">
+                        <button class="doc-type-btn active" data-doc="invoice">
+                            <span class="doc-icon">&#128203;</span>
+                            <span>Invoice</span>
+                        </button>
+                        <button class="doc-type-btn" data-doc="contract">
+                            <span class="doc-icon">&#128221;</span>
+                            <span>Contract</span>
+                        </button>
+                        <button class="doc-type-btn" data-doc="receipt">
+                            <span class="doc-icon">&#128179;</span>
+                            <span>Receipt</span>
+                        </button>
+                        <button class="doc-type-btn" data-doc="report">
+                            <span class="doc-icon">&#128202;</span>
+                            <span>Financial Report</span>
+                        </button>
+                    </div>
+
+                    <div class="parsing-layout">
+                        <div class="document-viewer">
+                            <div class="viewer-header">
+                                <span>Document Preview</span>
+                                <button class="btn-small" id="toggle-boxes">Show Bounding Boxes</button>
+                            </div>
+                            <div id="doc-canvas" class="doc-canvas">
+                                <!-- Document rendered here -->
+                            </div>
+                        </div>
+
+                        <div class="parsing-output">
+                            <div class="output-tabs">
+                                <button class="output-tab active" data-output="chunks">Chunks</button>
+                                <button class="output-tab" data-output="markdown">Markdown</button>
+                                <button class="output-tab" data-output="json">JSON</button>
+                            </div>
+                            <div id="parsing-result" class="parsing-result">
+                                <!-- Output shown here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chunk-legend">
+                        <h4>Chunk Types</h4>
+                        <div class="legend-items">
+                            <span class="legend-item"><span class="chunk-color text"></span> Text</span>
+                            <span class="legend-item"><span class="chunk-color table"></span> Table</span>
+                            <span class="legend-item"><span class="chunk-color header"></span> Header</span>
+                            <span class="legend-item"><span class="chunk-color figure"></span> Figure</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 3: Schema Extraction
+                 ======================================== -->
+            <section id="extraction" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Schema-Driven Extraction</h2>
+                    <p>Define your output structure with Pydantic and get structured data</p>
+                </div>
+
+                <!-- Schema Builder -->
+                <div class="schema-builder">
+                    <h3>Build Your Extraction Schema</h3>
+                    <p class="builder-intro">Add fields to define what you want to extract from documents</p>
+
+                    <div class="builder-layout">
+                        <div class="schema-editor">
+                            <h4>Schema Definition</h4>
+                            <div class="field-list" id="field-list">
+                                <div class="field-item" data-field="vendor">
+                                    <span class="field-type">str</span>
+                                    <span class="field-name">vendor</span>
+                                    <span class="field-desc">Company name</span>
+                                    <button class="remove-field">&times;</button>
+                                </div>
+                                <div class="field-item" data-field="total">
+                                    <span class="field-type">float</span>
+                                    <span class="field-name">total</span>
+                                    <span class="field-desc">Total amount</span>
+                                    <button class="remove-field">&times;</button>
+                                </div>
+                                <div class="field-item" data-field="date">
+                                    <span class="field-type">str</span>
+                                    <span class="field-name">date</span>
+                                    <span class="field-desc">Invoice date</span>
+                                    <button class="remove-field">&times;</button>
+                                </div>
+                            </div>
+                            <div class="add-field-form">
+                                <select id="new-field-type">
+                                    <option value="str">str</option>
+                                    <option value="float">float</option>
+                                    <option value="int">int</option>
+                                    <option value="bool">bool</option>
+                                    <option value="list[str]">list[str]</option>
+                                </select>
+                                <input type="text" id="new-field-name" placeholder="field_name">
+                                <input type="text" id="new-field-desc" placeholder="Description...">
+                                <button class="btn-add" id="add-field-btn">+ Add</button>
+                            </div>
+                        </div>
+
+                        <div class="schema-preview">
+                            <h4>Generated Pydantic Model</h4>
+                            <pre id="pydantic-code"><code class="language-python"></code></pre>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" id="run-extraction">&#9654; Run Extraction</button>
+
+                    <div class="extraction-result" id="extraction-result" style="display: none;">
+                        <h4>Extraction Result</h4>
+                        <div class="result-grid">
+                            <div class="result-data">
+                                <h5>Extracted Data</h5>
+                                <pre id="extracted-data"></pre>
+                            </div>
+                            <div class="result-confidence">
+                                <h5>Confidence Scores</h5>
+                                <div id="confidence-bars"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 4: Visual Grounding
+                 ======================================== -->
+            <section id="grounding" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Visual Grounding & Traceability</h2>
+                    <p>Every extracted value maps to exact document coordinates</p>
+                </div>
+
+                <!-- Grounding Demo -->
+                <div class="grounding-demo">
+                    <h3>Interactive Source Verification</h3>
+                    <p class="grounding-intro">Click any extracted value to see where it came from in the document</p>
+
+                    <div class="grounding-layout">
+                        <div class="grounding-document">
+                            <div class="doc-page" id="grounding-doc">
+                                <div class="doc-content">
+                                    <div class="doc-line header" data-region="header">
+                                        <strong>PURCHASE ORDER #PO-2024-789</strong>
+                                    </div>
+                                    <div class="doc-line" data-region="vendor">
+                                        <span class="label">Vendor:</span> TechSupply Industries
+                                    </div>
+                                    <div class="doc-line" data-region="date">
+                                        <span class="label">Order Date:</span> March 28, 2024
+                                    </div>
+                                    <div class="doc-line" data-region="delivery">
+                                        <span class="label">Delivery:</span> April 10, 2024
+                                    </div>
+                                    <table class="doc-table grounding-table" data-region="items">
+                                        <tr class="header"><th>Part #</th><th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>
+                                        <tr data-row="1"><td>TS-001</td><td>Server Rack Mount</td><td>2</td><td>$450.00</td><td>$900.00</td></tr>
+                                        <tr data-row="2"><td>TS-044</td><td>Network Switch 48-Port</td><td>3</td><td>$680.00</td><td>$2,040.00</td></tr>
+                                        <tr data-row="3"><td>TS-112</td><td>CAT6 Cable Bundle (100m)</td><td>10</td><td>$45.00</td><td>$450.00</td></tr>
+                                    </table>
+                                    <div class="doc-line total" data-region="total">
+                                        <span class="label">Order Total:</span> <strong>$3,390.00</strong>
+                                    </div>
+                                    <div class="doc-line terms" data-region="terms">
+                                        <span class="label">Payment Terms:</span> Net 30
+                                    </div>
+                                </div>
+                                <div class="highlight-overlay" id="highlight-overlay"></div>
+                            </div>
+                        </div>
+
+                        <div class="extracted-values">
+                            <h4>Extracted Fields</h4>
+                            <div class="value-list">
+                                <div class="value-item" data-target="header">
+                                    <span class="value-label">order_number</span>
+                                    <span class="value-content">"PO-2024-789"</span>
+                                    <span class="confidence high">0.98</span>
+                                </div>
+                                <div class="value-item" data-target="vendor">
+                                    <span class="value-label">vendor</span>
+                                    <span class="value-content">"TechSupply Industries"</span>
+                                    <span class="confidence high">0.96</span>
+                                </div>
+                                <div class="value-item" data-target="date">
+                                    <span class="value-label">order_date</span>
+                                    <span class="value-content">"March 28, 2024"</span>
+                                    <span class="confidence high">0.99</span>
+                                </div>
+                                <div class="value-item" data-target="items">
+                                    <span class="value-label">line_items</span>
+                                    <span class="value-content">[3 items]</span>
+                                    <span class="confidence medium">0.87</span>
+                                </div>
+                                <div class="value-item" data-target="total">
+                                    <span class="value-label">total</span>
+                                    <span class="value-content">3390.00</span>
+                                    <span class="confidence high">0.99</span>
+                                </div>
+                                <div class="value-item" data-target="terms">
+                                    <span class="value-label">payment_terms</span>
+                                    <span class="value-content">"Net 30"</span>
+                                    <span class="confidence high">0.95</span>
+                                </div>
+                            </div>
+
+                            <div class="grounding-info">
+                                <h4>Bounding Box Data</h4>
+                                <pre id="bbox-info">{
+  "field": "vendor",
+  "page": 1,
+  "bbox": {
+    "x1": 0.12,
+    "y1": 0.08,
+    "x2": 0.58,
+    "y2": 0.11
+  },
+  "confidence": 0.96
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="audit-trail">
+                        <h4>Why Visual Grounding Matters</h4>
+                        <div class="benefit-cards">
+                            <div class="benefit-card">
+                                <span class="benefit-icon">&#128269;</span>
+                                <h5>Verification</h5>
+                                <p>Click any extraction to verify it against the source document</p>
+                            </div>
+                            <div class="benefit-card">
+                                <span class="benefit-icon">&#128221;</span>
+                                <h5>Audit Trail</h5>
+                                <p>Every value has a traceable origin for compliance requirements</p>
+                            </div>
+                            <div class="benefit-card">
+                                <span class="benefit-icon">&#128161;</span>
+                                <h5>Error Detection</h5>
+                                <p>Low-confidence regions are visually highlighted for review</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 5: Code Examples
+                 ======================================== -->
+            <section id="code" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Code Examples</h2>
+                    <p>Ready-to-use implementations with LandingAI ADE</p>
+                </div>
+
+                <div class="code-examples">
+                    <div class="example-nav">
+                        <button class="example-btn active" data-example="basic">
+                            <span class="level-badge basic">Basic</span>
+                            Document Parsing
+                        </button>
+                        <button class="example-btn" data-example="schema">
+                            <span class="level-badge intermediate">Intermediate</span>
+                            Schema Extraction
+                        </button>
+                        <button class="example-btn" data-example="grounding">
+                            <span class="level-badge intermediate">Intermediate</span>
+                            Visual Grounding
+                        </button>
+                        <button class="example-btn" data-example="production">
+                            <span class="level-badge advanced">Advanced</span>
+                            Production Pipeline
+                        </button>
+                    </div>
+
+                    <div class="example-content">
+                        <div id="example-basic" class="example-panel active">
+                            <div class="example-header">
+                                <h3>Basic Document Parsing</h3>
+                                <button class="copy-btn" data-target="code-basic">Copy</button>
+                            </div>
+                            <p class="example-desc">Parse a PDF to markdown and semantic chunks with a few lines of code</p>
+                            <pre id="code-basic"><code class="language-python">"""LandingAI ADE: Basic Document Parsing"""
+
+from pathlib import Path
+from landingai_ade import LandingAIADE
+
+# Initialize client (uses VISION_AGENT_API_KEY env var)
+client = LandingAIADE()
+
+# Parse a local PDF
+response = client.parse(
+    document=Path("invoice.pdf"),
+    model="dpt-2-latest"
+)
+
+# Access markdown output (great for RAG)
+print("=== Markdown Output ===")
+print(response.markdown)
+
+# Access structured chunks
+print("\n=== Document Chunks ===")
+for chunk in response.chunks:
+    print(f"Type: {chunk.type}")
+    print(f"Text: {chunk.text[:100]}...")
+    print(f"Page: {chunk.grounding.bounding_box.page}")
+    print("---")</code></pre>
+                        </div>
+
+                        <div id="example-schema" class="example-panel">
+                            <div class="example-header">
+                                <h3>Schema-Based Field Extraction</h3>
+                                <button class="copy-btn" data-target="code-schema">Copy</button>
+                            </div>
+                            <p class="example-desc">Extract specific fields using Pydantic schema with confidence scores</p>
+                            <pre id="code-schema"><code class="language-python">"""Schema-Driven Document Extraction with Pydantic"""
+
+from pathlib import Path
+from landingai_ade import LandingAIADE
+from landingai_ade.lib import pydantic_to_json_schema
+from pydantic import BaseModel, Field
+
+# Define extraction schema
+class Invoice(BaseModel):
+    vendor: str = Field(description="Company that issued the invoice")
+    invoice_number: str = Field(description="Invoice ID or number")
+    invoice_date: str = Field(description="Date invoice was issued")
+    line_items: list[dict] = Field(description="List of items")
+    subtotal: float = Field(description="Subtotal before tax")
+    tax: float = Field(description="Tax amount")
+    total: float = Field(description="Total amount due")
+
+# Initialize client
+client = LandingAIADE()
+
+# Parse document first
+parsed = client.parse(
+    document=Path("invoice.pdf"),
+    model="dpt-2-latest"
+)
+
+# Extract structured fields from parsed content
+extraction = client.extract(
+    schema=pydantic_to_json_schema(Invoice),
+    markdown=parsed.markdown
+)
+
+# Access extracted data
+print(f"Vendor: {extraction.data.vendor}")
+print(f"Invoice #: {extraction.data.invoice_number}")
+print(f"Total: ${extraction.data.total:,.2f}")
+
+# Check extraction confidence per field
+print("\n=== Confidence Scores ===")
+for field, meta in extraction.metadata.items():
+    status = "OK" if meta.confidence > 0.85 else "REVIEW"
+    print(f"  {field}: {meta.confidence:.2f} [{status}]")</code></pre>
+                        </div>
+
+                        <div id="example-grounding" class="example-panel">
+                            <div class="example-header">
+                                <h3>Visual Grounding & Verification</h3>
+                                <button class="copy-btn" data-target="code-grounding">Copy</button>
+                            </div>
+                            <p class="example-desc">Use bounding boxes to create verifiable extractions with citations</p>
+                            <pre id="code-grounding"><code class="language-python">"""Visual Grounding: Traceable Document Extraction"""
+
+from pathlib import Path
+from landingai_ade import LandingAIADE
+import fitz  # PyMuPDF for PDF rendering
+
+client = LandingAIADE()
+
+# Parse with grounding information
+response = client.parse(
+    document=Path("financial_report.pdf"),
+    model="dpt-2-latest"
+)
+
+# Find table chunks
+table_chunks = [c for c in response.chunks if c.type == "table"]
+
+for i, table in enumerate(table_chunks):
+    print(f"Table {i+1}:")
+    print(f"  Text: {table.text[:80]}...")
+
+    # Access bounding box (normalized 0-1 coordinates)
+    bbox = table.grounding.bounding_box
+    print(f"  Page: {bbox.page}")
+    print(f"  Coords: ({bbox.x1:.3f}, {bbox.y1:.3f}) to ({bbox.x2:.3f}, {bbox.y2:.3f})")
+
+
+def highlight_extraction(pdf_path: str, chunk, output_path: str):
+    """Render PDF page with highlighted extraction region."""
+    doc = fitz.open(pdf_path)
+    page = doc[chunk.grounding.bounding_box.page - 1]
+
+    # Convert normalized coords to page coords
+    rect = page.rect
+    bbox = chunk.grounding.bounding_box
+    highlight_rect = fitz.Rect(
+        bbox.x1 * rect.width,
+        bbox.y1 * rect.height,
+        bbox.x2 * rect.width,
+        bbox.y2 * rect.height
+    )
+
+    # Add highlight annotation
+    page.add_highlight_annot(highlight_rect)
+
+    # Save to image
+    pix = page.get_pixmap()
+    pix.save(output_path)
+    print(f"Saved highlighted page to {output_path}")
+
+# Highlight first table for verification
+if table_chunks:
+    highlight_extraction("financial_report.pdf", table_chunks[0], "table_highlight.png")</code></pre>
+                        </div>
+
+                        <div id="example-production" class="example-panel">
+                            <div class="example-header">
+                                <h3>Production Pipeline with Confidence Routing</h3>
+                                <button class="copy-btn" data-target="code-production">Copy</button>
+                            </div>
+                            <p class="example-desc">Full production pipeline with batch processing, error handling, and human-in-the-loop</p>
+                            <pre id="code-production"><code class="language-python">"""Production Agentic Document Pipeline"""
+
+from pathlib import Path
+from dataclasses import dataclass
+from landingai_ade import LandingAIADE
+from landingai_ade.lib import pydantic_to_json_schema
+from pydantic import BaseModel, Field
+import logging
+import json
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Extraction schema
+class InvoiceData(BaseModel):
+    vendor: str = Field(description="Vendor company name")
+    invoice_number: str = Field(description="Invoice ID")
+    total: float = Field(description="Total amount due")
+
+@dataclass
+class ExtractionResult:
+    file: str
+    success: bool
+    data: dict | None
+    confidence: float
+    needs_review: bool
+    error: str | None = None
+
+class InvoiceProcessor:
+    def __init__(self, confidence_threshold: float = 0.85):
+        self.client = LandingAIADE()
+        self.schema = pydantic_to_json_schema(InvoiceData)
+        self.threshold = confidence_threshold
+
+    def process_invoice(self, file_path: Path) -> ExtractionResult:
+        """Process single invoice with error handling."""
+        try:
+            # Step 1: Parse document
+            logger.info(f"Parsing {file_path.name}...")
+            parsed = self.client.parse(document=file_path, model="dpt-2-latest")
+
+            if not parsed.markdown:
+                return ExtractionResult(
+                    file=str(file_path), success=False, data=None,
+                    confidence=0.0, needs_review=True, error="Empty document"
+                )
+
+            # Step 2: Extract structured data
+            extraction = self.client.extract(
+                schema=self.schema, markdown=parsed.markdown
+            )
+
+            # Step 3: Calculate overall confidence
+            confidences = [m.confidence for m in extraction.metadata.values()]
+            avg_conf = sum(confidences) / len(confidences) if confidences else 0
+
+            # Step 4: Route based on confidence
+            needs_review = avg_conf < self.threshold
+            if needs_review:
+                logger.warning(f"{file_path.name}: Low confidence ({avg_conf:.2f})")
+
+            return ExtractionResult(
+                file=str(file_path), success=True,
+                data=extraction.data.model_dump(),
+                confidence=avg_conf, needs_review=needs_review
+            )
+
+        except Exception as e:
+            logger.error(f"Error: {file_path.name}: {e}")
+            return ExtractionResult(
+                file=str(file_path), success=False, data=None,
+                confidence=0.0, needs_review=True, error=str(e)
+            )
+
+    def process_batch(self, directory: Path) -> list[ExtractionResult]:
+        """Process all PDFs in directory."""
+        results = []
+        for pdf in directory.glob("*.pdf"):
+            results.append(self.process_invoice(pdf))
+        return results
+
+# Usage
+processor = InvoiceProcessor(confidence_threshold=0.85)
+results = processor.process_batch(Path("./invoices"))
+
+# Summary
+auto = [r for r in results if r.success and not r.needs_review]
+review = [r for r in results if r.needs_review]
+failed = [r for r in results if not r.success]
+
+print(f"\n=== Summary ===")
+print(f"Auto-processed: {len(auto)}")
+print(f"Needs review: {len(review)}")
+print(f"Failed: {len(failed)}")</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="demo-footer">
+            <div class="footer-content">
+                <p>Day 25 of 30 Days of Agentic AI</p>
+                <div class="footer-links">
+                    <a href="https://docs.landing.ai" target="_blank">LandingAI Docs</a>
+                    <a href="https://github.com/landing-ai/ade-python" target="_blank">ADE Python SDK</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>
