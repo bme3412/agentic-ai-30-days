@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 26: Voice Agents for Real-Time Apps - Interactive Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="demo-container">
+        <header class="demo-header">
+            <div class="header-content">
+                <a href="../../" class="back-link">&larr; Back to Course</a>
+                <h1>Voice Agents for Real-Time Apps</h1>
+                <p class="subtitle">Interactive Explorer - Day 26</p>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="pipeline">
+                <span class="tab-icon">&#127897;</span>
+                <span class="tab-label">Pipeline</span>
+            </button>
+            <button class="tab-btn" data-tab="latency">
+                <span class="tab-icon">&#9201;</span>
+                <span class="tab-label">Latency</span>
+            </button>
+            <button class="tab-btn" data-tab="agents">
+                <span class="tab-icon">&#129302;</span>
+                <span class="tab-label">Agent Types</span>
+            </button>
+            <button class="tab-btn" data-tab="providers">
+                <span class="tab-icon">&#128279;</span>
+                <span class="tab-label">Providers</span>
+            </button>
+            <button class="tab-btn" data-tab="code">
+                <span class="tab-icon">&#128187;</span>
+                <span class="tab-label">Code</span>
+            </button>
+        </nav>
+
+        <main class="tab-content">
+            <!-- ========================================
+                 Tab 1: Pipeline Architecture
+                 ======================================== -->
+            <section id="pipeline" class="tab-panel active">
+                <div class="panel-header">
+                    <h2>Sequential Pipeline Architecture</h2>
+                    <p>How voice flows through VAD, STT, LLM, and TTS stages</p>
+                </div>
+
+                <!-- Interactive Pipeline Visualization -->
+                <div class="pipeline-viz">
+                    <h3>Voice Agent Pipeline</h3>
+                    <p class="viz-intro">Click "Start Conversation" to see how audio flows through the pipeline with streaming</p>
+
+                    <div class="pipeline-controls">
+                        <button id="start-pipeline" class="btn-primary">Start Conversation</button>
+                        <button id="reset-pipeline" class="btn-secondary">Reset</button>
+                    </div>
+
+                    <div class="pipeline-stages">
+                        <div class="pipeline-stage" id="stage-mic">
+                            <div class="stage-icon">&#127908;</div>
+                            <div class="stage-name">Microphone</div>
+                            <div class="stage-desc">Audio Input</div>
+                            <div class="stage-status"></div>
+                        </div>
+                        <div class="pipeline-arrow">&rarr;</div>
+                        <div class="pipeline-stage" id="stage-vad">
+                            <div class="stage-icon">&#128266;</div>
+                            <div class="stage-name">VAD</div>
+                            <div class="stage-time">10-50ms</div>
+                            <div class="stage-desc">Speech Detection</div>
+                            <div class="stage-status"></div>
+                        </div>
+                        <div class="pipeline-arrow">&rarr;</div>
+                        <div class="pipeline-stage" id="stage-stt">
+                            <div class="stage-icon">&#128221;</div>
+                            <div class="stage-name">STT</div>
+                            <div class="stage-time">~200ms</div>
+                            <div class="stage-desc">Transcription</div>
+                            <div class="stage-status"></div>
+                        </div>
+                        <div class="pipeline-arrow">&rarr;</div>
+                        <div class="pipeline-stage" id="stage-llm">
+                            <div class="stage-icon">&#129504;</div>
+                            <div class="stage-name">LLM</div>
+                            <div class="stage-time">300-800ms</div>
+                            <div class="stage-desc">Reasoning</div>
+                            <div class="stage-status"></div>
+                        </div>
+                        <div class="pipeline-arrow">&rarr;</div>
+                        <div class="pipeline-stage" id="stage-tts">
+                            <div class="stage-icon">&#128483;</div>
+                            <div class="stage-name">TTS</div>
+                            <div class="stage-time">100-200ms</div>
+                            <div class="stage-desc">Synthesis</div>
+                            <div class="stage-status"></div>
+                        </div>
+                        <div class="pipeline-arrow">&rarr;</div>
+                        <div class="pipeline-stage" id="stage-speaker">
+                            <div class="stage-icon">&#128266;</div>
+                            <div class="stage-name">Speaker</div>
+                            <div class="stage-desc">Audio Output</div>
+                            <div class="stage-status"></div>
+                        </div>
+                    </div>
+
+                    <div class="pipeline-transcript">
+                        <div class="transcript-section">
+                            <h4>User Input</h4>
+                            <div id="user-transcript" class="transcript-box">Waiting for input...</div>
+                        </div>
+                        <div class="transcript-section">
+                            <h4>Agent Response</h4>
+                            <div id="agent-transcript" class="transcript-box">Waiting for response...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stage Details -->
+                <div class="stage-details">
+                    <h3>Pipeline Stages Explained</h3>
+                    <div class="detail-cards">
+                        <div class="detail-card">
+                            <div class="card-header vad">
+                                <span class="card-icon">&#128266;</span>
+                                <h4>Voice Activity Detection</h4>
+                            </div>
+                            <p>Distinguishes speech from background noise. Determines when the user starts and stops speaking. Modern VAD like Silero achieves 10-50ms latency.</p>
+                            <div class="card-metric">
+                                <span class="metric-label">Latency</span>
+                                <span class="metric-value">10-50ms</span>
+                            </div>
+                        </div>
+                        <div class="detail-card">
+                            <div class="card-header stt">
+                                <span class="card-icon">&#128221;</span>
+                                <h4>Speech-to-Text</h4>
+                            </div>
+                            <p>Converts audio to text in real-time with streaming partial results. Deepgram Nova-3 provides best-in-class accuracy with low latency.</p>
+                            <div class="card-metric">
+                                <span class="metric-label">Latency</span>
+                                <span class="metric-value">~200ms</span>
+                            </div>
+                        </div>
+                        <div class="detail-card">
+                            <div class="card-header llm">
+                                <span class="card-icon">&#129504;</span>
+                                <h4>Language Model</h4>
+                            </div>
+                            <p>Processes transcribed text and generates response tokens. Streaming output enables TTS to start before the full response is ready.</p>
+                            <div class="card-metric">
+                                <span class="metric-label">Latency</span>
+                                <span class="metric-value">300-800ms</span>
+                            </div>
+                        </div>
+                        <div class="detail-card">
+                            <div class="card-header tts">
+                                <span class="card-icon">&#128483;</span>
+                                <h4>Text-to-Speech</h4>
+                            </div>
+                            <p>Synthesizes natural-sounding audio from text. Cartesia Sonic accepts streaming input for minimal time-to-first-audio.</p>
+                            <div class="card-metric">
+                                <span class="metric-label">Latency</span>
+                                <span class="metric-value">100-200ms</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 2: Latency Comparison
+                 ======================================== -->
+            <section id="latency" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Streaming vs Non-Streaming Latency</h2>
+                    <p>Why streaming at every stage is crucial for natural conversation</p>
+                </div>
+
+                <!-- Latency Comparison Visualization -->
+                <div class="latency-comparison">
+                    <div class="latency-controls">
+                        <button id="run-comparison" class="btn-primary">Run Comparison</button>
+                        <button id="reset-comparison" class="btn-secondary">Reset</button>
+                    </div>
+
+                    <div class="latency-tracks">
+                        <div class="latency-track">
+                            <h4>Non-Streaming (Sequential)</h4>
+                            <div class="track-bars" id="non-streaming-track">
+                                <div class="track-bar vad" data-duration="50">
+                                    <span class="bar-label">VAD</span>
+                                    <span class="bar-time">50ms</span>
+                                </div>
+                                <div class="track-bar stt" data-duration="800">
+                                    <span class="bar-label">STT (wait for complete)</span>
+                                    <span class="bar-time">800ms</span>
+                                </div>
+                                <div class="track-bar llm" data-duration="600">
+                                    <span class="bar-label">LLM (wait for complete)</span>
+                                    <span class="bar-time">600ms</span>
+                                </div>
+                                <div class="track-bar tts" data-duration="300">
+                                    <span class="bar-label">TTS (wait for complete)</span>
+                                    <span class="bar-time">300ms</span>
+                                </div>
+                            </div>
+                            <div class="track-total">
+                                <span class="total-label">Total latency:</span>
+                                <span class="total-value" id="non-streaming-total">1750ms</span>
+                            </div>
+                        </div>
+
+                        <div class="latency-track">
+                            <h4>Streaming (Overlapped)</h4>
+                            <div class="track-bars streaming" id="streaming-track">
+                                <div class="track-bar vad" data-duration="50" data-start="0">
+                                    <span class="bar-label">VAD</span>
+                                    <span class="bar-time">50ms</span>
+                                </div>
+                                <div class="track-bar stt" data-duration="200" data-start="50">
+                                    <span class="bar-label">STT (stream)</span>
+                                    <span class="bar-time">200ms</span>
+                                </div>
+                                <div class="track-bar llm" data-duration="400" data-start="100">
+                                    <span class="bar-label">LLM (stream)</span>
+                                    <span class="bar-time">400ms</span>
+                                </div>
+                                <div class="track-bar tts" data-duration="250" data-start="200">
+                                    <span class="bar-label">TTS (stream)</span>
+                                    <span class="bar-time">250ms</span>
+                                </div>
+                                <div class="first-audio-marker" data-time="350">
+                                    <span class="marker-line"></span>
+                                    <span class="marker-label">First Audio: 350ms</span>
+                                </div>
+                            </div>
+                            <div class="track-total highlight">
+                                <span class="total-label">Time to first audio:</span>
+                                <span class="total-value" id="streaming-total">350ms</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="latency-insight">
+                        <div class="insight-icon">&#128161;</div>
+                        <div class="insight-content">
+                            <h4>5x Faster Response</h4>
+                            <p>Streaming reduces perceived latency from 1750ms to 350ms by overlapping pipeline stages. The user hears the first word of the response while the LLM is still generating the rest.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Latency Targets -->
+                <div class="latency-targets">
+                    <h3>Conversation Latency Targets</h3>
+                    <div class="target-scale">
+                        <div class="scale-zones">
+                            <div class="scale-zone instant" style="width: 20%">
+                                <span class="zone-label">Instant</span>
+                                <span class="zone-range">&lt;300ms</span>
+                            </div>
+                            <div class="scale-zone natural" style="width: 25%">
+                                <span class="zone-label">Natural</span>
+                                <span class="zone-range">300-500ms</span>
+                            </div>
+                            <div class="scale-zone acceptable" style="width: 25%">
+                                <span class="zone-label">Acceptable</span>
+                                <span class="zone-range">500-800ms</span>
+                            </div>
+                            <div class="scale-zone slow" style="width: 30%">
+                                <span class="zone-label">Slow</span>
+                                <span class="zone-range">&gt;800ms</span>
+                            </div>
+                        </div>
+                        <div class="scale-markers">
+                            <div class="marker streaming-marker" style="left: 20%">
+                                <span class="marker-dot"></span>
+                                <span class="marker-text">Streaming: ~350ms</span>
+                            </div>
+                            <div class="marker non-streaming-marker" style="left: 100%">
+                                <span class="marker-dot"></span>
+                                <span class="marker-text">Non-streaming: ~1750ms</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 3: Agent Types
+                 ======================================== -->
+            <section id="agents" class="tab-panel">
+                <div class="panel-header">
+                    <h2>VoicePipelineAgent vs MultimodalAgent</h2>
+                    <p>Choose the right architecture for your use case</p>
+                </div>
+
+                <!-- Agent Comparison -->
+                <div class="agent-comparison">
+                    <div class="agent-card pipeline-agent">
+                        <div class="agent-header">
+                            <h3>VoicePipelineAgent</h3>
+                            <span class="agent-badge recommended">Recommended for Production</span>
+                        </div>
+                        <div class="agent-diagram">
+                            <div class="flow-step">Audio In</div>
+                            <div class="flow-arrow">&darr;</div>
+                            <div class="flow-step highlight">STT (Text)</div>
+                            <div class="flow-arrow">&darr;</div>
+                            <div class="flow-step highlight">LLM (Text)</div>
+                            <div class="flow-arrow">&darr;</div>
+                            <div class="flow-step highlight">TTS (Audio)</div>
+                            <div class="flow-arrow">&darr;</div>
+                            <div class="flow-step">Audio Out</div>
+                        </div>
+                        <div class="agent-features">
+                            <h4>Advantages</h4>
+                            <ul>
+                                <li><span class="check">&#10003;</span> Text audit trails for compliance</li>
+                                <li><span class="check">&#10003;</span> Debug each stage independently</li>
+                                <li><span class="check">&#10003;</span> Mix providers (Deepgram + Claude + Cartesia)</li>
+                                <li><span class="check">&#10003;</span> Reliable tool calling</li>
+                                <li><span class="check">&#10003;</span> Modify text before TTS</li>
+                            </ul>
+                            <h4>Best For</h4>
+                            <ul class="use-cases">
+                                <li>Enterprise applications</li>
+                                <li>Compliance-heavy industries</li>
+                                <li>Complex tool use</li>
+                                <li>Multi-provider setups</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="agent-card multimodal-agent">
+                        <div class="agent-header">
+                            <h3>MultimodalAgent</h3>
+                            <span class="agent-badge">OpenAI Realtime Only</span>
+                        </div>
+                        <div class="agent-diagram">
+                            <div class="flow-step">Audio In</div>
+                            <div class="flow-arrow">&darr;</div>
+                            <div class="flow-step highlight wide">OpenAI Realtime API<br><small>Audio &rarr; Audio</small></div>
+                            <div class="flow-arrow">&darr;</div>
+                            <div class="flow-step">Audio Out</div>
+                        </div>
+                        <div class="agent-features">
+                            <h4>Advantages</h4>
+                            <ul>
+                                <li><span class="check">&#10003;</span> Lowest possible latency</li>
+                                <li><span class="check">&#10003;</span> More natural prosody</li>
+                                <li><span class="check">&#10003;</span> Simpler architecture</li>
+                                <li><span class="neutral">&#8722;</span> No text intermediates</li>
+                                <li><span class="neutral">&#8722;</span> OpenAI only</li>
+                            </ul>
+                            <h4>Best For</h4>
+                            <ul class="use-cases">
+                                <li>Simple conversational agents</li>
+                                <li>Consumer applications</li>
+                                <li>When audit trails aren't needed</li>
+                                <li>Minimum latency critical</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Decision Guide -->
+                <div class="decision-guide">
+                    <h3>Which Should You Choose?</h3>
+                    <div class="decision-flow">
+                        <div class="decision-node start">
+                            <span class="node-text">Start</span>
+                        </div>
+                        <div class="decision-arrow">&darr;</div>
+                        <div class="decision-node question">
+                            <span class="node-text">Need text audit trails?</span>
+                        </div>
+                        <div class="decision-branches">
+                            <div class="branch yes">
+                                <span class="branch-label">Yes</span>
+                                <div class="decision-arrow">&rarr;</div>
+                                <div class="decision-node answer pipeline">VoicePipelineAgent</div>
+                            </div>
+                            <div class="branch no">
+                                <span class="branch-label">No</span>
+                                <div class="decision-arrow">&darr;</div>
+                            </div>
+                        </div>
+                        <div class="decision-node question">
+                            <span class="node-text">Need non-OpenAI providers?</span>
+                        </div>
+                        <div class="decision-branches">
+                            <div class="branch yes">
+                                <span class="branch-label">Yes</span>
+                                <div class="decision-arrow">&rarr;</div>
+                                <div class="decision-node answer pipeline">VoicePipelineAgent</div>
+                            </div>
+                            <div class="branch no">
+                                <span class="branch-label">No</span>
+                                <div class="decision-arrow">&darr;</div>
+                            </div>
+                        </div>
+                        <div class="decision-node question">
+                            <span class="node-text">Complex tool calling?</span>
+                        </div>
+                        <div class="decision-branches">
+                            <div class="branch yes">
+                                <span class="branch-label">Yes</span>
+                                <div class="decision-arrow">&rarr;</div>
+                                <div class="decision-node answer pipeline">VoicePipelineAgent</div>
+                            </div>
+                            <div class="branch no">
+                                <span class="branch-label">No</span>
+                                <div class="decision-arrow">&darr;</div>
+                                <div class="decision-node answer multimodal">MultimodalAgent<br><small>(if lowest latency critical)</small></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 4: Provider Ecosystem
+                 ======================================== -->
+            <section id="providers" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Provider Ecosystem</h2>
+                    <p>Mix and match best-in-class providers for each pipeline stage</p>
+                </div>
+
+                <!-- Provider Grid -->
+                <div class="provider-grid">
+                    <div class="provider-category">
+                        <h3>Speech-to-Text (STT)</h3>
+                        <div class="provider-cards">
+                            <div class="provider-card recommended">
+                                <div class="provider-logo">&#127919;</div>
+                                <h4>Deepgram Nova-3</h4>
+                                <p>Best accuracy + low latency for English. Streaming support.</p>
+                                <div class="provider-stats">
+                                    <span class="stat"><strong>Latency:</strong> ~200ms</span>
+                                    <span class="stat"><strong>Accuracy:</strong> 95%+</span>
+                                </div>
+                                <span class="provider-badge">Recommended</span>
+                            </div>
+                            <div class="provider-card">
+                                <div class="provider-logo">&#128209;</div>
+                                <h4>AssemblyAI</h4>
+                                <p>Strong multilingual support. Good for non-English.</p>
+                                <div class="provider-stats">
+                                    <span class="stat"><strong>Latency:</strong> ~250ms</span>
+                                    <span class="stat"><strong>Languages:</strong> 100+</span>
+                                </div>
+                            </div>
+                            <div class="provider-card">
+                                <div class="provider-logo">&#127775;</div>
+                                <h4>OpenAI Whisper</h4>
+                                <p>Good fallback. Reliable but higher latency.</p>
+                                <div class="provider-stats">
+                                    <span class="stat"><strong>Latency:</strong> ~500ms</span>
+                                    <span class="stat"><strong>Type:</strong> Batch only</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="provider-category">
+                        <h3>Language Models (LLM)</h3>
+                        <div class="provider-cards">
+                            <div class="provider-card recommended">
+                                <div class="provider-logo">&#129302;</div>
+                                <h4>GPT-4.1-mini</h4>
+                                <p>Best speed/quality balance. Fast streaming.</p>
+                                <div class="provider-stats">
+                                    <span class="stat"><strong>TTFT:</strong> ~200ms</span>
+                                    <span class="stat"><strong>Speed:</strong> 100+ tok/s</span>
+                                </div>
+                                <span class="provider-badge">Recommended</span>
+                            </div>
+                            <div class="provider-card">
+                                <div class="provider-logo">&#129520;</div>
+                                <h4>Claude 3.5 Sonnet</h4>
+                                <p>Best for complex reasoning. Excellent instruction following.</p>
+                                <div class="provider-stats">
+                                    <span class="stat"><strong>TTFT:</strong> ~300ms</span>
+                                    <span class="stat"><strong>Reasoning:</strong> Excellent</span>
+                                </div>
+                            </div>
+                            <div class="provider-card">
+                                <div class="provider-logo">&#9889;</div>
+                                <h4>Groq (Llama)</h4>
+                                <p>Ultra-fast inference. Good for simple tasks.</p>
+                                <div class="provider-stats">
+                                    <span class="stat"><strong>TTFT:</strong> ~50ms</span>
+                                    <span class="stat"><strong>Speed:</strong> 500+ tok/s</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="provider-category">
+                        <h3>Text-to-Speech (TTS)</h3>
+                        <div class="provider-cards">
+                            <div class="provider-card recommended">
+                                <div class="provider-logo">&#127926;</div>
+                                <h4>Cartesia Sonic</h4>
+                                <p>Most natural voices. Streaming input support.</p>
+                                <div class="provider-stats">
+                                    <span class="stat"><strong>Latency:</strong> ~100ms</span>
+                                    <span class="stat"><strong>Quality:</strong> Excellent</span>
+                                </div>
+                                <span class="provider-badge">Recommended</span>
+                            </div>
+                            <div class="provider-card">
+                                <div class="provider-logo">&#127908;</div>
+                                <h4>ElevenLabs</h4>
+                                <p>Best for voice cloning. Premium voice quality.</p>
+                                <div class="provider-stats">
+                                    <span class="stat"><strong>Latency:</strong> ~150ms</span>
+                                    <span class="stat"><strong>Cloning:</strong> Yes</span>
+                                </div>
+                            </div>
+                            <div class="provider-card">
+                                <div class="provider-logo">&#127775;</div>
+                                <h4>OpenAI TTS</h4>
+                                <p>Good quality, simple setup. Reliable fallback.</p>
+                                <div class="provider-stats">
+                                    <span class="stat"><strong>Latency:</strong> ~200ms</span>
+                                    <span class="stat"><strong>Voices:</strong> 6</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommended Stack -->
+                <div class="recommended-stack">
+                    <h3>Recommended Production Stack</h3>
+                    <div class="stack-flow">
+                        <div class="stack-item">
+                            <span class="stack-label">STT</span>
+                            <span class="stack-provider">Deepgram Nova-3</span>
+                        </div>
+                        <div class="stack-arrow">&rarr;</div>
+                        <div class="stack-item">
+                            <span class="stack-label">LLM</span>
+                            <span class="stack-provider">GPT-4.1-mini</span>
+                        </div>
+                        <div class="stack-arrow">&rarr;</div>
+                        <div class="stack-item">
+                            <span class="stack-label">TTS</span>
+                            <span class="stack-provider">Cartesia Sonic</span>
+                        </div>
+                    </div>
+                    <p class="stack-note">This combination achieves ~400ms time-to-first-audio with excellent quality across all stages.</p>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 5: Code Examples
+                 ======================================== -->
+            <section id="code" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Code Examples</h2>
+                    <p>Production-ready patterns for LiveKit voice agents</p>
+                </div>
+
+                <!-- Code Tabs -->
+                <div class="code-tabs">
+                    <button class="code-tab active" data-code="basic">Basic Agent</button>
+                    <button class="code-tab" data-code="tools">With Tools</button>
+                    <button class="code-tab" data-code="multimodal">MultimodalAgent</button>
+                    <button class="code-tab" data-code="production">Production</button>
+                </div>
+
+                <div class="code-panels">
+                    <!-- Basic Agent -->
+                    <div class="code-panel active" id="code-basic">
+                        <div class="code-header">
+                            <h4>Basic Voice Agent</h4>
+                            <p>Minimal setup with VoicePipelineAgent</p>
+                        </div>
+                        <pre><code class="language-python">"""Basic Voice Agent with LiveKit Agents Framework"""
+
+from livekit.agents import AgentSession, Agent, AgentServer
+from livekit.plugins import deepgram, openai, cartesia, silero
+
+class VoiceAssistant(Agent):
+    def __init__(self):
+        super().__init__(
+            instructions="""You are a helpful voice assistant.
+            Keep responses concise - aim for 1-2 sentences.
+            Be conversational and natural."""
+        )
+
+server = AgentServer()
+
+@server.rtc_session(agent_name="assistant")
+async def entrypoint(ctx):
+    session = AgentSession(
+        stt=deepgram.STT(model="nova-3"),
+        llm=openai.LLM(model="gpt-4.1-mini"),
+        tts=cartesia.TTS(voice="79a125e8-cd45-4c13-8a67-188112f4dd22"),
+        vad=silero.VAD.load(),
+    )
+    await session.start(room=ctx.room, agent=VoiceAssistant())
+
+if __name__ == "__main__":
+    server.run()</code></pre>
+                    </div>
+
+                    <!-- With Tools -->
+                    <div class="code-panel" id="code-tools">
+                        <div class="code-header">
+                            <h4>Voice Agent with Tools</h4>
+                            <p>Add function calling capabilities</p>
+                        </div>
+                        <pre><code class="language-python">"""Voice Agent with Tool Calling"""
+
+from livekit.agents import AgentSession, Agent, AgentServer, function_tool
+from livekit.plugins import deepgram, openai, cartesia, silero
+
+@function_tool
+async def get_weather(location: str) -> str:
+    """Get current weather for a location."""
+    # In production, call a real weather API
+    return f"The weather in {location} is 72F and sunny."
+
+@function_tool
+async def set_reminder(message: str, minutes: int) -> str:
+    """Set a reminder for the user."""
+    return f"Reminder set: '{message}' in {minutes} minutes."
+
+class WeatherAssistant(Agent):
+    def __init__(self):
+        super().__init__(
+            instructions="""You help with weather and reminders.
+            Keep responses brief and conversational.""",
+            tools=[get_weather, set_reminder],
+        )
+
+server = AgentServer()
+
+@server.rtc_session(agent_name="weather-assistant")
+async def entrypoint(ctx):
+    session = AgentSession(
+        stt=deepgram.STT(model="nova-3"),
+        llm=openai.LLM(model="gpt-4.1-mini"),
+        tts=cartesia.TTS(voice="79a125e8-cd45-4c13-8a67-188112f4dd22"),
+        vad=silero.VAD.load(),
+    )
+    await session.start(room=ctx.room, agent=WeatherAssistant())
+
+if __name__ == "__main__":
+    server.run()</code></pre>
+                    </div>
+
+                    <!-- MultimodalAgent -->
+                    <div class="code-panel" id="code-multimodal">
+                        <div class="code-header">
+                            <h4>OpenAI Realtime (MultimodalAgent)</h4>
+                            <p>Audio-to-audio with lowest latency</p>
+                        </div>
+                        <pre><code class="language-python">"""Voice Agent using OpenAI Realtime API"""
+
+from livekit.agents import AgentSession, Agent, AgentServer
+from livekit.agents.multimodal import MultimodalAgent
+from livekit.plugins import openai
+
+class RealtimeAssistant(Agent):
+    def __init__(self):
+        super().__init__(
+            instructions="""You are a friendly conversational assistant.
+            Speak naturally and expressively."""
+        )
+
+server = AgentServer()
+
+@server.rtc_session(agent_name="realtime-assistant")
+async def entrypoint(ctx):
+    model = openai.realtime.RealtimeModel(
+        model="gpt-4o-realtime-preview",
+        voice="alloy",
+        temperature=0.8,
+        turn_detection=openai.realtime.ServerVadOptions(
+            threshold=0.5,
+            prefix_padding_ms=300,
+            silence_duration_ms=500,
+        ),
+    )
+
+    agent = MultimodalAgent(model=model)
+    session = AgentSession()
+
+    await session.start(
+        room=ctx.room,
+        agent=RealtimeAssistant(),
+        multimodal=agent
+    )
+
+if __name__ == "__main__":
+    server.run()</code></pre>
+                    </div>
+
+                    <!-- Production -->
+                    <div class="code-panel" id="code-production">
+                        <div class="code-header">
+                            <h4>Production Configuration</h4>
+                            <p>Error handling, fallbacks, and observability</p>
+                        </div>
+                        <pre><code class="language-python">"""Production Voice Agent with Error Handling"""
+
+import logging
+from livekit.agents import AgentSession, Agent, AgentServer
+from livekit.plugins import deepgram, openai, cartesia, silero
+from contextlib import asynccontextmanager
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("voice-agent")
+
+class ProductionAssistant(Agent):
+    def __init__(self):
+        super().__init__(
+            instructions="""You are a professional customer service agent.
+            Be helpful, concise, and empathetic."""
+        )
+
+server = AgentServer()
+
+@asynccontextmanager
+async def create_session_with_fallback():
+    """Create session with fallback providers."""
+    try:
+        session = AgentSession(
+            stt=deepgram.STT(model="nova-3", interim_results=True),
+            llm=openai.LLM(model="gpt-4.1-mini", temperature=0.7),
+            tts=cartesia.TTS(voice="79a125e8-cd45-4c13-8a67-188112f4dd22"),
+            vad=silero.VAD.load(),
+        )
+        logger.info("Primary configuration loaded")
+        yield session
+    except Exception as e:
+        logger.warning(f"Primary failed: {e}, using fallback")
+        session = AgentSession(
+            stt=openai.STT(model="whisper-1"),
+            llm=openai.LLM(model="gpt-4.1-mini"),
+            tts=openai.TTS(model="tts-1", voice="nova"),
+            vad=silero.VAD.load(),
+        )
+        yield session
+
+@server.rtc_session(agent_name="production-assistant")
+async def entrypoint(ctx):
+    logger.info(f"New session: {ctx.room.name}")
+
+    async with create_session_with_fallback() as session:
+        @session.on("user_speech_committed")
+        def on_user_speech(text: str):
+            logger.info(f"User: {text[:100]}...")
+
+        @session.on("agent_speech_committed")
+        def on_agent_speech(text: str):
+            logger.info(f"Agent: {text[:100]}...")
+
+        await session.start(room=ctx.room, agent=ProductionAssistant())
+
+if __name__ == "__main__":
+    server.run()</code></pre>
+                    </div>
+                </div>
+
+                <!-- Quick Start -->
+                <div class="quick-start">
+                    <h3>Quick Start</h3>
+                    <div class="terminal">
+                        <div class="terminal-header">
+                            <span class="terminal-dot red"></span>
+                            <span class="terminal-dot yellow"></span>
+                            <span class="terminal-dot green"></span>
+                            <span class="terminal-title">Terminal</span>
+                        </div>
+                        <div class="terminal-body">
+                            <div class="terminal-line"><span class="prompt">$</span> pip install "livekit-agents[openai,silero,deepgram,cartesia]~=1.4"</div>
+                            <div class="terminal-line"><span class="prompt">$</span> lk agent init my-agent --template agent-starter-python</div>
+                            <div class="terminal-line"><span class="prompt">$</span> cd my-agent</div>
+                            <div class="terminal-line"><span class="prompt">$</span> python agent.py dev</div>
+                            <div class="terminal-line output">Agent running at https://agents-playground.livekit.io</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="demo-footer">
+            <div class="footer-content">
+                <p>Day 26 of 30 Days of Agentic AI</p>
+                <div class="footer-links">
+                    <a href="https://docs.livekit.io/agents/" target="_blank">LiveKit Docs</a>
+                    <a href="https://github.com/livekit/agents" target="_blank">GitHub</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>
