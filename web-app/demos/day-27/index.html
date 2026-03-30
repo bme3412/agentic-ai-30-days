@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 27: Data Agents & SQL Generation - Interactive Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="demo-container">
+        <header class="demo-header">
+            <div class="header-content">
+                <a href="../../" class="back-link">&larr; Back to Course</a>
+                <h1>Data Agents & SQL Generation</h1>
+                <p class="subtitle">Interactive Explorer - Day 27</p>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="text-to-sql">
+                <span class="tab-icon">&#128172;</span>
+                <span class="tab-label">Text-to-SQL</span>
+            </button>
+            <button class="tab-btn" data-tab="schema">
+                <span class="tab-icon">&#128202;</span>
+                <span class="tab-label">Schema Explorer</span>
+            </button>
+            <button class="tab-btn" data-tab="query-builder">
+                <span class="tab-icon">&#128736;</span>
+                <span class="tab-label">Query Builder</span>
+            </button>
+            <button class="tab-btn" data-tab="validation">
+                <span class="tab-icon">&#128260;</span>
+                <span class="tab-label">Validation Loop</span>
+            </button>
+            <button class="tab-btn" data-tab="code">
+                <span class="tab-icon">&#128187;</span>
+                <span class="tab-label">Code Examples</span>
+            </button>
+        </nav>
+
+        <main class="tab-content">
+            <!-- ========================================
+                 Tab 1: Text-to-SQL Flow
+                 ======================================== -->
+            <section id="text-to-sql" class="tab-panel active">
+                <div class="panel-header">
+                    <h2>Natural Language to SQL</h2>
+                    <p>Transform business questions into database queries</p>
+                </div>
+
+                <!-- Interactive Query Demo -->
+                <div class="query-demo">
+                    <h3>Try a Natural Language Query</h3>
+                    <p class="demo-intro">Select a sample question or type your own to see how it converts to SQL</p>
+
+                    <div class="sample-queries">
+                        <button class="query-chip active" data-query="revenue">
+                            What was our total revenue last quarter?
+                        </button>
+                        <button class="query-chip" data-query="top-products">
+                            Show me the top 5 products by sales volume
+                        </button>
+                        <button class="query-chip" data-query="customer-growth">
+                            How has customer count grown month over month?
+                        </button>
+                        <button class="query-chip" data-query="regional">
+                            Compare revenue across regions for 2024
+                        </button>
+                    </div>
+
+                    <div class="query-input-area">
+                        <input type="text" id="nl-query" class="query-input"
+                               placeholder="Or type your own business question..."
+                               value="What was our total revenue last quarter?">
+                        <button class="btn btn-primary" id="generate-sql">
+                            <span>Generate SQL</span>
+                            <span class="btn-icon">&#9654;</span>
+                        </button>
+                    </div>
+
+                    <div class="conversion-flow">
+                        <div class="flow-step">
+                            <div class="step-header">
+                                <span class="step-number">1</span>
+                                <span class="step-title">Natural Language</span>
+                            </div>
+                            <div class="step-content nl-content" id="nl-display">
+                                What was our total revenue last quarter?
+                            </div>
+                        </div>
+
+                        <div class="flow-arrow">&#8594;</div>
+
+                        <div class="flow-step">
+                            <div class="step-header">
+                                <span class="step-number">2</span>
+                                <span class="step-title">Semantic Understanding</span>
+                            </div>
+                            <div class="step-content semantic-content" id="semantic-display">
+                                <div class="semantic-item">
+                                    <span class="semantic-label">Metric:</span>
+                                    <span class="semantic-value">revenue (sum)</span>
+                                </div>
+                                <div class="semantic-item">
+                                    <span class="semantic-label">Time:</span>
+                                    <span class="semantic-value">last quarter</span>
+                                </div>
+                                <div class="semantic-item">
+                                    <span class="semantic-label">Tables:</span>
+                                    <span class="semantic-value">orders, order_items</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flow-arrow">&#8594;</div>
+
+                        <div class="flow-step wide">
+                            <div class="step-header">
+                                <span class="step-number">3</span>
+                                <span class="step-title">Generated SQL</span>
+                            </div>
+                            <pre class="step-content sql-content" id="sql-display"><code class="language-sql">SELECT
+    SUM(oi.quantity * oi.unit_price) AS total_revenue
+FROM orders o
+JOIN order_items oi ON o.order_id = oi.order_id
+WHERE o.order_date >= DATE_TRUNC('quarter', CURRENT_DATE - INTERVAL '3 months')
+  AND o.order_date < DATE_TRUNC('quarter', CURRENT_DATE);</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="result-preview">
+                        <h4>Query Result Preview</h4>
+                        <div class="result-table-wrapper">
+                            <table class="result-table" id="result-table">
+                                <thead>
+                                    <tr><th>total_revenue</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>$2,847,392.50</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Architecture Overview -->
+                <div class="architecture-section">
+                    <h3>How Text-to-SQL Works</h3>
+                    <div class="architecture-diagram">
+                        <div class="arch-node user">
+                            <div class="arch-icon">&#128100;</div>
+                            <div class="arch-label">User Question</div>
+                        </div>
+                        <div class="arch-arrow">&#8594;</div>
+                        <div class="arch-node agent">
+                            <div class="arch-icon">&#129302;</div>
+                            <div class="arch-label">Data Agent</div>
+                            <div class="arch-sub">LLM + Schema Context</div>
+                        </div>
+                        <div class="arch-arrow">&#8594;</div>
+                        <div class="arch-node sql">
+                            <div class="arch-icon">&#128451;</div>
+                            <div class="arch-label">SQL Query</div>
+                        </div>
+                        <div class="arch-arrow">&#8594;</div>
+                        <div class="arch-node db">
+                            <div class="arch-icon">&#128218;</div>
+                            <div class="arch-label">Database</div>
+                            <div class="arch-sub">Snowflake / BigQuery</div>
+                        </div>
+                        <div class="arch-arrow">&#8594;</div>
+                        <div class="arch-node result">
+                            <div class="arch-icon">&#128200;</div>
+                            <div class="arch-label">Results</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 2: Schema Explorer
+                 ======================================== -->
+            <section id="schema" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Semantic Model Explorer</h2>
+                    <p>How agents understand your database schema</p>
+                </div>
+
+                <div class="schema-explorer">
+                    <div class="schema-sidebar">
+                        <h4>Database Tables</h4>
+                        <div class="table-list">
+                            <div class="table-item active" data-table="customers">
+                                <span class="table-icon">&#128100;</span>
+                                <span class="table-name">customers</span>
+                                <span class="table-count">45,231 rows</span>
+                            </div>
+                            <div class="table-item" data-table="orders">
+                                <span class="table-icon">&#128230;</span>
+                                <span class="table-name">orders</span>
+                                <span class="table-count">182,847 rows</span>
+                            </div>
+                            <div class="table-item" data-table="products">
+                                <span class="table-icon">&#128722;</span>
+                                <span class="table-name">products</span>
+                                <span class="table-count">1,247 rows</span>
+                            </div>
+                            <div class="table-item" data-table="order_items">
+                                <span class="table-icon">&#128203;</span>
+                                <span class="table-name">order_items</span>
+                                <span class="table-count">523,891 rows</span>
+                            </div>
+                            <div class="table-item" data-table="regions">
+                                <span class="table-icon">&#127758;</span>
+                                <span class="table-name">regions</span>
+                                <span class="table-count">8 rows</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="schema-detail">
+                        <div class="detail-header">
+                            <h4 id="selected-table-name">customers</h4>
+                            <span class="detail-badge">Dimension Table</span>
+                        </div>
+
+                        <div class="columns-section">
+                            <h5>Columns</h5>
+                            <div class="columns-list" id="columns-list">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
+                        <div class="relationships-section">
+                            <h5>Relationships</h5>
+                            <div class="relationships-list" id="relationships-list">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
+                        <div class="semantic-layer">
+                            <h5>Semantic Layer Mapping</h5>
+                            <pre id="semantic-yaml"><code class="language-yaml">table: customers
+description: "Customer master data including demographics"
+metrics:
+  - name: customer_count
+    type: count_distinct
+    sql: customer_id
+  - name: avg_customer_age
+    type: average
+    sql: DATEDIFF(year, birth_date, CURRENT_DATE)
+dimensions:
+  - name: region
+    type: categorical
+    sql: region_name
+  - name: customer_segment
+    type: categorical
+    sql: segment</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 3: Query Builder
+                 ======================================== -->
+            <section id="query-builder" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Step-by-Step Query Generation</h2>
+                    <p>Watch how the agent builds complex queries</p>
+                </div>
+
+                <div class="builder-demo">
+                    <div class="builder-question">
+                        <h4>Business Question:</h4>
+                        <p class="question-text">"Show me monthly revenue by product category for the last 6 months, with year-over-year comparison"</p>
+                    </div>
+
+                    <div class="builder-steps">
+                        <div class="build-step completed" data-step="1">
+                            <div class="build-step-header">
+                                <span class="build-step-num">1</span>
+                                <span class="build-step-title">Parse Intent</span>
+                                <span class="build-step-status">&#10003;</span>
+                            </div>
+                            <div class="build-step-content">
+                                <div class="intent-parsed">
+                                    <span class="intent-tag metric">Metric: revenue</span>
+                                    <span class="intent-tag dimension">Dimension: product_category</span>
+                                    <span class="intent-tag dimension">Dimension: month</span>
+                                    <span class="intent-tag filter">Filter: last 6 months</span>
+                                    <span class="intent-tag compare">Compare: YoY</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="build-step completed" data-step="2">
+                            <div class="build-step-header">
+                                <span class="build-step-num">2</span>
+                                <span class="build-step-title">Identify Tables</span>
+                                <span class="build-step-status">&#10003;</span>
+                            </div>
+                            <div class="build-step-content">
+                                <div class="tables-identified">
+                                    <div class="table-badge">orders</div>
+                                    <span class="join-type">JOIN</span>
+                                    <div class="table-badge">order_items</div>
+                                    <span class="join-type">JOIN</span>
+                                    <div class="table-badge">products</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="build-step completed" data-step="3">
+                            <div class="build-step-header">
+                                <span class="build-step-num">3</span>
+                                <span class="build-step-title">Build Base Query</span>
+                                <span class="build-step-status">&#10003;</span>
+                            </div>
+                            <div class="build-step-content">
+                                <pre class="mini-sql"><code class="language-sql">SELECT
+    DATE_TRUNC('month', o.order_date) AS month,
+    p.category,
+    SUM(oi.quantity * oi.unit_price) AS revenue
+FROM orders o
+JOIN order_items oi ON o.order_id = oi.order_id
+JOIN products p ON oi.product_id = p.product_id
+WHERE o.order_date >= DATEADD(month, -6, CURRENT_DATE)
+GROUP BY 1, 2</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="build-step active" data-step="4">
+                            <div class="build-step-header">
+                                <span class="build-step-num">4</span>
+                                <span class="build-step-title">Add YoY Comparison</span>
+                                <span class="build-step-status processing">&#8635;</span>
+                            </div>
+                            <div class="build-step-content">
+                                <pre class="mini-sql"><code class="language-sql">WITH current_period AS (
+    SELECT DATE_TRUNC('month', o.order_date) AS month,
+           p.category,
+           SUM(oi.quantity * oi.unit_price) AS revenue
+    FROM orders o
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN products p ON oi.product_id = p.product_id
+    WHERE o.order_date >= DATEADD(month, -6, CURRENT_DATE)
+    GROUP BY 1, 2
+),
+prior_year AS (
+    SELECT DATE_TRUNC('month', DATEADD(year, 1, o.order_date)) AS month,
+           p.category,
+           SUM(oi.quantity * oi.unit_price) AS revenue_ly
+    FROM orders o
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN products p ON oi.product_id = p.product_id
+    WHERE o.order_date >= DATEADD(month, -18, CURRENT_DATE)
+      AND o.order_date < DATEADD(month, -12, CURRENT_DATE)
+    GROUP BY 1, 2
+)
+SELECT
+    c.month,
+    c.category,
+    c.revenue,
+    p.revenue_ly,
+    ROUND((c.revenue - p.revenue_ly) / p.revenue_ly * 100, 1) AS yoy_growth_pct
+FROM current_period c
+LEFT JOIN prior_year p ON c.month = p.month AND c.category = p.category
+ORDER BY c.month DESC, c.revenue DESC;</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="build-step pending" data-step="5">
+                            <div class="build-step-header">
+                                <span class="build-step-num">5</span>
+                                <span class="build-step-title">Validate & Execute</span>
+                                <span class="build-step-status pending">&#9675;</span>
+                            </div>
+                            <div class="build-step-content">
+                                <p class="pending-text">Waiting for query construction...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" id="run-builder-demo">
+                        <span>Animate Build Process</span>
+                        <span class="btn-icon">&#9654;</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 4: Validation Loop
+                 ======================================== -->
+            <section id="validation" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Self-Correcting Query Validation</h2>
+                    <p>How agents detect and fix SQL errors automatically</p>
+                </div>
+
+                <div class="validation-demo">
+                    <div class="validation-scenario">
+                        <h4>Scenario: Query with Errors</h4>
+                        <p class="scenario-desc">Watch how the agent detects issues and iterates to a working query</p>
+                    </div>
+
+                    <div class="validation-timeline" id="validation-timeline">
+                        <div class="val-step completed" data-vstep="1">
+                            <div class="val-marker">1</div>
+                            <div class="val-content">
+                                <div class="val-header">
+                                    <span class="val-title">Initial Query Generation</span>
+                                    <span class="val-badge attempt">Attempt 1</span>
+                                </div>
+                                <pre class="val-sql"><code class="language-sql">SELECT customer_name, total_spent
+FROM customers
+WHERE signup_date > '2024-01-01'
+ORDER BY total_spent DESC
+LIMIT 10;</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="val-step error" data-vstep="2">
+                            <div class="val-marker error">!</div>
+                            <div class="val-content">
+                                <div class="val-header">
+                                    <span class="val-title">Execution Error</span>
+                                    <span class="val-badge error">Error</span>
+                                </div>
+                                <div class="error-message">
+                                    <code>SQL compilation error: Column 'total_spent' does not exist in table 'customers'</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="val-step analysis" data-vstep="3">
+                            <div class="val-marker">&#128269;</div>
+                            <div class="val-content">
+                                <div class="val-header">
+                                    <span class="val-title">Error Analysis</span>
+                                    <span class="val-badge analysis">Analyzing</span>
+                                </div>
+                                <div class="analysis-content">
+                                    <p><strong>Issue:</strong> 'total_spent' is not a column in customers table</p>
+                                    <p><strong>Solution:</strong> Need to calculate from orders table via JOIN</p>
+                                    <p><strong>Action:</strong> Regenerate with proper table joins</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="val-step completed" data-vstep="4">
+                            <div class="val-marker">2</div>
+                            <div class="val-content">
+                                <div class="val-header">
+                                    <span class="val-title">Corrected Query</span>
+                                    <span class="val-badge attempt">Attempt 2</span>
+                                </div>
+                                <pre class="val-sql"><code class="language-sql">SELECT
+    c.customer_name,
+    SUM(oi.quantity * oi.unit_price) AS total_spent
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+JOIN order_items oi ON o.order_id = oi.order_id
+WHERE c.signup_date > '2024-01-01'
+GROUP BY c.customer_id, c.customer_name
+ORDER BY total_spent DESC
+LIMIT 10;</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="val-step success" data-vstep="5">
+                            <div class="val-marker success">&#10003;</div>
+                            <div class="val-content">
+                                <div class="val-header">
+                                    <span class="val-title">Query Succeeded</span>
+                                    <span class="val-badge success">Success</span>
+                                </div>
+                                <div class="success-result">
+                                    <p>Returned 10 rows in 0.23s</p>
+                                    <table class="mini-result">
+                                        <tr><th>customer_name</th><th>total_spent</th></tr>
+                                        <tr><td>Acme Corp</td><td>$127,450.00</td></tr>
+                                        <tr><td>TechStart Inc</td><td>$98,320.50</td></tr>
+                                        <tr><td>Global Systems</td><td>$87,125.75</td></tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="validation-stats">
+                        <h4>Validation Metrics</h4>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">2</div>
+                                <div class="stat-label">Attempts</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">1</div>
+                                <div class="stat-label">Errors Fixed</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">1.2s</div>
+                                <div class="stat-label">Total Time</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">100%</div>
+                                <div class="stat-label">Success Rate</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" id="replay-validation">
+                        <span>Replay Validation Loop</span>
+                        <span class="btn-icon">&#8635;</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 5: Code Examples
+                 ======================================== -->
+            <section id="code" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Code Examples</h2>
+                    <p>Ready-to-use implementations with Snowflake Cortex Analyst</p>
+                </div>
+
+                <div class="code-examples">
+                    <div class="example-nav">
+                        <button class="example-btn active" data-example="basic">
+                            <span class="level-badge basic">Basic</span>
+                            Simple Query
+                        </button>
+                        <button class="example-btn" data-example="semantic">
+                            <span class="level-badge intermediate">Intermediate</span>
+                            Semantic Model
+                        </button>
+                        <button class="example-btn" data-example="validation">
+                            <span class="level-badge intermediate">Intermediate</span>
+                            With Validation
+                        </button>
+                        <button class="example-btn" data-example="agent">
+                            <span class="level-badge advanced">Advanced</span>
+                            Full Data Agent
+                        </button>
+                    </div>
+
+                    <div class="example-content">
+                        <div id="example-basic" class="example-panel active">
+                            <div class="example-header">
+                                <h3>Basic Cortex Analyst Query</h3>
+                                <button class="copy-btn" data-target="code-basic">Copy</button>
+                            </div>
+                            <p class="example-desc">Simple natural language to SQL using Snowflake Cortex</p>
+                            <pre id="code-basic"><code class="language-python">"""Snowflake Cortex Analyst: Basic Text-to-SQL"""
+
+import snowflake.connector
+from snowflake.cortex import Analyst
+
+# Connect to Snowflake
+conn = snowflake.connector.connect(
+    account="your_account",
+    user="your_user",
+    password="your_password",
+    warehouse="COMPUTE_WH",
+    database="SALES_DB",
+    schema="PUBLIC"
+)
+
+# Initialize Cortex Analyst with semantic model
+analyst = Analyst(
+    connection=conn,
+    semantic_model="sales_semantic_model"
+)
+
+# Ask a natural language question
+question = "What was our total revenue last quarter?"
+
+# Generate and execute SQL
+result = analyst.ask(question)
+
+print(f"Generated SQL:\n{result.sql}")
+print(f"\nResults:\n{result.data}")
+
+# Access metadata
+print(f"\nConfidence: {result.confidence}")
+print(f"Tables used: {result.tables_referenced}")</code></pre>
+                        </div>
+
+                        <div id="example-semantic" class="example-panel">
+                            <div class="example-header">
+                                <h3>Semantic Model Definition</h3>
+                                <button class="copy-btn" data-target="code-semantic">Copy</button>
+                            </div>
+                            <p class="example-desc">Define a semantic model for better query understanding</p>
+                            <pre id="code-semantic"><code class="language-yaml"># semantic_model.yaml - Cortex Analyst Semantic Model
+
+name: sales_semantic_model
+description: "Sales analytics semantic layer for natural language queries"
+
+tables:
+  - name: customers
+    description: "Customer master data"
+    columns:
+      - name: customer_id
+        description: "Unique customer identifier"
+        data_type: INTEGER
+      - name: customer_name
+        description: "Full company or individual name"
+        data_type: VARCHAR
+      - name: region
+        description: "Geographic sales region"
+        data_type: VARCHAR
+        synonyms: ["territory", "area", "location"]
+      - name: segment
+        description: "Customer segment (Enterprise, SMB, Consumer)"
+        data_type: VARCHAR
+        synonyms: ["tier", "type", "category"]
+
+  - name: orders
+    description: "Sales order transactions"
+    columns:
+      - name: order_id
+        description: "Unique order identifier"
+        data_type: INTEGER
+      - name: order_date
+        description: "Date the order was placed"
+        data_type: DATE
+        synonyms: ["date", "when", "transaction date"]
+      - name: customer_id
+        description: "Foreign key to customers"
+        data_type: INTEGER
+
+metrics:
+  - name: total_revenue
+    description: "Sum of all order line item values"
+    sql: "SUM(order_items.quantity * order_items.unit_price)"
+    synonyms: ["revenue", "sales", "income", "total sales"]
+
+  - name: order_count
+    description: "Number of orders"
+    sql: "COUNT(DISTINCT orders.order_id)"
+    synonyms: ["orders", "transactions", "number of orders"]
+
+  - name: average_order_value
+    description: "Average revenue per order"
+    sql: "SUM(order_items.quantity * order_items.unit_price) / COUNT(DISTINCT orders.order_id)"
+    synonyms: ["AOV", "avg order", "average order"]
+
+relationships:
+  - from: orders.customer_id
+    to: customers.customer_id
+    type: many_to_one
+
+  - from: order_items.order_id
+    to: orders.order_id
+    type: many_to_one
+
+time_dimensions:
+  - column: orders.order_date
+    granularities: [day, week, month, quarter, year]
+    default_granularity: month</code></pre>
+                        </div>
+
+                        <div id="example-validation" class="example-panel">
+                            <div class="example-header">
+                                <h3>Query with Validation Loop</h3>
+                                <button class="copy-btn" data-target="code-validation">Copy</button>
+                            </div>
+                            <p class="example-desc">Self-correcting SQL generation with error handling</p>
+                            <pre id="code-validation"><code class="language-python">"""Text-to-SQL with Validation and Self-Correction"""
+
+from dataclasses import dataclass
+from snowflake.cortex import Analyst
+import snowflake.connector
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+@dataclass
+class QueryResult:
+    success: bool
+    sql: str
+    data: list | None
+    attempts: int
+    error: str | None = None
+
+class ValidatingDataAgent:
+    def __init__(self, connection, semantic_model: str, max_attempts: int = 3):
+        self.conn = connection
+        self.analyst = Analyst(connection=connection, semantic_model=semantic_model)
+        self.max_attempts = max_attempts
+
+    def ask(self, question: str) -> QueryResult:
+        """Generate and validate SQL with automatic error correction."""
+        attempts = 0
+        last_error = None
+
+        while attempts < self.max_attempts:
+            attempts += 1
+            logger.info(f"Attempt {attempts}: Generating SQL for '{question}'")
+
+            try:
+                # Generate SQL (include error context for retries)
+                if last_error:
+                    enhanced_question = f"{question}\n\nPrevious error: {last_error}"
+                    result = self.analyst.ask(enhanced_question)
+                else:
+                    result = self.analyst.ask(question)
+
+                # Validate by executing
+                logger.info(f"Executing SQL:\n{result.sql}")
+                cursor = self.conn.cursor()
+                cursor.execute(result.sql)
+                data = cursor.fetchall()
+
+                # Check for reasonable results
+                if self._validate_results(data, question):
+                    logger.info(f"Success after {attempts} attempt(s)")
+                    return QueryResult(
+                        success=True,
+                        sql=result.sql,
+                        data=data,
+                        attempts=attempts
+                    )
+                else:
+                    last_error = "Query returned unexpected results (empty or malformed)"
+
+            except Exception as e:
+                last_error = str(e)
+                logger.warning(f"Attempt {attempts} failed: {last_error}")
+
+        # Max attempts reached
+        return QueryResult(
+            success=False,
+            sql=result.sql if result else "",
+            data=None,
+            attempts=attempts,
+            error=last_error
+        )
+
+    def _validate_results(self, data: list, question: str) -> bool:
+        """Basic result validation."""
+        # Check not empty (unless question implies it could be)
+        if not data and "if any" not in question.lower():
+            return False
+        return True
+
+# Usage
+conn = snowflake.connector.connect(...)
+agent = ValidatingDataAgent(conn, "sales_semantic_model", max_attempts=3)
+
+result = agent.ask("Show top 10 customers by revenue this year")
+
+if result.success:
+    print(f"Query succeeded in {result.attempts} attempt(s)")
+    print(f"SQL: {result.sql}")
+    for row in result.data:
+        print(row)
+else:
+    print(f"Query failed after {result.attempts} attempts: {result.error}")</code></pre>
+                        </div>
+
+                        <div id="example-agent" class="example-panel">
+                            <div class="example-header">
+                                <h3>Full Agentic Data Pipeline</h3>
+                                <button class="copy-btn" data-target="code-agent">Copy</button>
+                            </div>
+                            <p class="example-desc">Production-grade data agent with multi-step reasoning</p>
+                            <pre id="code-agent"><code class="language-python">"""Agentic Data Pipeline with Multi-Step Reasoning"""
+
+from anthropic import Anthropic
+import snowflake.connector
+from dataclasses import dataclass
+from typing import Literal
+import json
+
+@dataclass
+class AnalysisStep:
+    step_type: Literal["clarify", "query", "analyze", "visualize"]
+    description: str
+    result: dict | None = None
+
+class AgenticDataAnalyst:
+    """Multi-step data analysis agent with planning and execution."""
+
+    SYSTEM_PROMPT = """You are a data analyst agent. Given a business question:
+1. Break it into logical analysis steps
+2. Generate SQL for each data need
+3. Interpret results in business context
+4. Suggest follow-up analyses
+
+Available tables: customers, orders, order_items, products, regions
+Always validate assumptions and explain your reasoning."""
+
+    def __init__(self, anthropic_client: Anthropic, snowflake_conn):
+        self.client = anthropic_client
+        self.conn = snowflake_conn
+        self.conversation = []
+
+    def analyze(self, question: str) -> dict:
+        """Run full analysis pipeline for a business question."""
+
+        # Step 1: Plan the analysis
+        plan = self._plan_analysis(question)
+
+        # Step 2: Execute each step
+        results = []
+        for step in plan:
+            if step.step_type == "query":
+                step.result = self._execute_query_step(step)
+            elif step.step_type == "analyze":
+                step.result = self._interpret_results(step, results)
+            results.append(step)
+
+        # Step 3: Generate final summary
+        summary = self._generate_summary(question, results)
+
+        return {
+            "question": question,
+            "steps": results,
+            "summary": summary,
+            "follow_up_questions": self._suggest_follow_ups(question, results)
+        }
+
+    def _plan_analysis(self, question: str) -> list[AnalysisStep]:
+        """Use LLM to plan analysis steps."""
+        response = self.client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            system=self.SYSTEM_PROMPT,
+            messages=[{
+                "role": "user",
+                "content": f"Plan analysis steps for: {question}\nReturn JSON array of steps."
+            }]
+        )
+
+        steps_json = json.loads(response.content[0].text)
+        return [AnalysisStep(**s) for s in steps_json]
+
+    def _execute_query_step(self, step: AnalysisStep) -> dict:
+        """Generate and execute SQL for a query step."""
+        # Generate SQL using LLM
+        response = self.client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            system=self.SYSTEM_PROMPT,
+            messages=[{
+                "role": "user",
+                "content": f"Generate SQL for: {step.description}\nReturn only SQL."
+            }]
+        )
+
+        sql = response.content[0].text.strip()
+
+        # Execute with retry on error
+        for attempt in range(3):
+            try:
+                cursor = self.conn.cursor()
+                cursor.execute(sql)
+                data = cursor.fetchall()
+                columns = [desc[0] for desc in cursor.description]
+                return {"sql": sql, "columns": columns, "data": data}
+            except Exception as e:
+                if attempt == 2:
+                    return {"sql": sql, "error": str(e)}
+                # Get corrected SQL
+                sql = self._fix_sql(sql, str(e))
+
+    def _fix_sql(self, sql: str, error: str) -> str:
+        """Use LLM to fix SQL errors."""
+        response = self.client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            messages=[{
+                "role": "user",
+                "content": f"Fix this SQL:\n{sql}\n\nError: {error}\n\nReturn only corrected SQL."
+            }]
+        )
+        return response.content[0].text.strip()
+
+    def _interpret_results(self, step: AnalysisStep, prior_results: list) -> dict:
+        """Generate business interpretation of results."""
+        context = json.dumps([s.result for s in prior_results if s.result])
+
+        response = self.client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            messages=[{
+                "role": "user",
+                "content": f"Interpret these results:\n{context}\n\nFor: {step.description}"
+            }]
+        )
+        return {"interpretation": response.content[0].text}
+
+    def _generate_summary(self, question: str, results: list) -> str:
+        """Generate executive summary of analysis."""
+        response = self.client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            messages=[{
+                "role": "user",
+                "content": f"Summarize analysis for '{question}':\n{json.dumps([s.result for s in results])}"
+            }]
+        )
+        return response.content[0].text
+
+    def _suggest_follow_ups(self, question: str, results: list) -> list[str]:
+        """Suggest follow-up analyses."""
+        response = self.client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=512,
+            messages=[{
+                "role": "user",
+                "content": f"Suggest 3 follow-up questions after analyzing '{question}'"
+            }]
+        )
+        return response.content[0].text.split("\n")
+
+# Usage
+client = Anthropic()
+conn = snowflake.connector.connect(...)
+
+analyst = AgenticDataAnalyst(client, conn)
+analysis = analyst.analyze("Why did revenue drop 15% in Q3?")
+
+print(f"Summary: {analysis['summary']}")
+print(f"\nFollow-up questions:")
+for q in analysis['follow_up_questions']:
+    print(f"  - {q}")</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="demo-footer">
+            <div class="footer-content">
+                <p>Day 27 of 30 Days of Agentic AI</p>
+                <div class="footer-links">
+                    <a href="https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst" target="_blank">Cortex Analyst Docs</a>
+                    <a href="https://quickstarts.snowflake.com/" target="_blank">Snowflake Quickstarts</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>
