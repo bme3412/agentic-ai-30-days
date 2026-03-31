@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 28: Agent Observability - Interactive Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="demo-container">
+        <header class="demo-header">
+            <div class="header-content">
+                <a href="../../" class="back-link">&larr; Back to Course</a>
+                <h1>Agent Observability</h1>
+                <p class="subtitle">LangSmith & Phoenix - Day 28</p>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="trace-viewer">
+                <span class="tab-icon">&#128269;</span>
+                <span class="tab-label">Trace Viewer</span>
+            </button>
+            <button class="tab-btn" data-tab="timeline">
+                <span class="tab-icon">&#9202;</span>
+                <span class="tab-label">Span Timeline</span>
+            </button>
+            <button class="tab-btn" data-tab="cost">
+                <span class="tab-icon">&#128176;</span>
+                <span class="tab-label">Cost Analysis</span>
+            </button>
+            <button class="tab-btn" data-tab="debugging">
+                <span class="tab-icon">&#128027;</span>
+                <span class="tab-label">Error Debugging</span>
+            </button>
+            <button class="tab-btn" data-tab="code">
+                <span class="tab-icon">&#128187;</span>
+                <span class="tab-label">Code Examples</span>
+            </button>
+        </nav>
+
+        <main class="tab-content">
+            <!-- ========================================
+                 Tab 1: Trace Viewer
+                 ======================================== -->
+            <section id="trace-viewer" class="tab-panel active">
+                <div class="panel-header">
+                    <h2>Trace Visualization</h2>
+                    <p>Explore the hierarchical structure of agent execution</p>
+                </div>
+
+                <div class="trace-selector">
+                    <label>Select a trace to explore:</label>
+                    <div class="trace-cards">
+                        <button class="trace-card active" data-trace="support">
+                            <div class="trace-status success"></div>
+                            <div class="trace-info">
+                                <span class="trace-name">Customer Support Query</span>
+                                <span class="trace-meta">3.2s | 1,847 tokens | $0.028</span>
+                            </div>
+                        </button>
+                        <button class="trace-card" data-trace="research">
+                            <div class="trace-status success"></div>
+                            <div class="trace-info">
+                                <span class="trace-name">Research Assistant</span>
+                                <span class="trace-meta">5.8s | 3,421 tokens | $0.051</span>
+                            </div>
+                        </button>
+                        <button class="trace-card" data-trace="error">
+                            <div class="trace-status error"></div>
+                            <div class="trace-info">
+                                <span class="trace-name">Failed Tool Call</span>
+                                <span class="trace-meta">2.1s | 892 tokens | $0.013</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="trace-detail">
+                    <div class="trace-header-bar">
+                        <div class="trace-title">
+                            <span class="trace-id">trace_abc123</span>
+                            <span class="trace-timestamp">2025-03-15 14:32:18 UTC</span>
+                        </div>
+                        <div class="trace-summary">
+                            <span class="summary-item"><strong>Duration:</strong> <span id="trace-duration">3.2s</span></span>
+                            <span class="summary-item"><strong>Tokens:</strong> <span id="trace-tokens">1,847</span></span>
+                            <span class="summary-item"><strong>Cost:</strong> <span id="trace-cost">$0.028</span></span>
+                            <span class="summary-item"><strong>Status:</strong> <span id="trace-status" class="status-badge success">Success</span></span>
+                        </div>
+                    </div>
+
+                    <div class="span-tree" id="span-tree">
+                        <!-- Populated by JavaScript -->
+                    </div>
+
+                    <div class="span-detail-panel" id="span-detail">
+                        <h4>Span Details</h4>
+                        <p class="hint">Click on a span to view details</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 2: Span Timeline
+                 ======================================== -->
+            <section id="timeline" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Span Timeline</h2>
+                    <p>Waterfall view of span execution timing</p>
+                </div>
+
+                <div class="timeline-controls">
+                    <div class="timeline-legend">
+                        <span class="legend-item"><span class="legend-color llm"></span> LLM Calls</span>
+                        <span class="legend-item"><span class="legend-color tool"></span> Tool Calls</span>
+                        <span class="legend-item"><span class="legend-color error"></span> Errors</span>
+                    </div>
+                    <div class="timeline-total">
+                        Total Duration: <strong id="timeline-total">3,200ms</strong>
+                    </div>
+                </div>
+
+                <div class="timeline-container">
+                    <div class="timeline-header">
+                        <div class="timeline-axis">
+                            <span>0ms</span>
+                            <span>800ms</span>
+                            <span>1600ms</span>
+                            <span>2400ms</span>
+                            <span>3200ms</span>
+                        </div>
+                    </div>
+                    <div class="timeline-body" id="timeline-body">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="timeline-insights">
+                    <h4>Timing Insights</h4>
+                    <div class="insights-grid" id="timing-insights">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 3: Cost Analysis
+                 ======================================== -->
+            <section id="cost" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Cost & Token Analysis</h2>
+                    <p>Track token usage and compute costs per trace</p>
+                </div>
+
+                <div class="cost-overview">
+                    <div class="cost-card total">
+                        <div class="cost-label">Total Cost</div>
+                        <div class="cost-value" id="total-cost">$0.028</div>
+                        <div class="cost-sub">This trace</div>
+                    </div>
+                    <div class="cost-card tokens">
+                        <div class="cost-label">Total Tokens</div>
+                        <div class="cost-value" id="total-tokens">1,847</div>
+                        <div class="cost-sub">Input + Output</div>
+                    </div>
+                    <div class="cost-card calls">
+                        <div class="cost-label">LLM Calls</div>
+                        <div class="cost-value" id="llm-calls">3</div>
+                        <div class="cost-sub">In this trace</div>
+                    </div>
+                    <div class="cost-card avg">
+                        <div class="cost-label">Avg per Call</div>
+                        <div class="cost-value" id="avg-cost">$0.009</div>
+                        <div class="cost-sub">Cost per LLM call</div>
+                    </div>
+                </div>
+
+                <div class="cost-breakdown">
+                    <h3>Cost Breakdown by Span</h3>
+                    <div class="breakdown-chart" id="cost-chart">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="token-breakdown">
+                    <h3>Token Distribution</h3>
+                    <div class="token-chart" id="token-chart">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="pricing-calculator">
+                    <h3>Cost Projection Calculator</h3>
+                    <div class="calc-inputs">
+                        <div class="calc-field">
+                            <label>Traces per day:</label>
+                            <input type="number" id="traces-per-day" value="1000" min="1">
+                        </div>
+                        <div class="calc-field">
+                            <label>Avg tokens per trace:</label>
+                            <input type="number" id="avg-tokens" value="1847" min="1">
+                        </div>
+                        <div class="calc-field">
+                            <label>Model:</label>
+                            <select id="model-select">
+                                <option value="claude-sonnet">Claude Sonnet ($3/$15 per 1M)</option>
+                                <option value="claude-haiku">Claude Haiku ($0.80/$4 per 1M)</option>
+                                <option value="gpt-4o">GPT-4o ($2.50/$10 per 1M)</option>
+                                <option value="gpt-4o-mini">GPT-4o Mini ($0.15/$0.60 per 1M)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="calc-results">
+                        <div class="calc-result">
+                            <span class="result-label">Daily Cost:</span>
+                            <span class="result-value" id="daily-cost">$28.00</span>
+                        </div>
+                        <div class="calc-result">
+                            <span class="result-label">Monthly Cost:</span>
+                            <span class="result-value" id="monthly-cost">$840.00</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 4: Error Debugging
+                 ======================================== -->
+            <section id="debugging" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Error Debugging Walkthrough</h2>
+                    <p>Step through debugging a failed agent trace</p>
+                </div>
+
+                <div class="debug-scenario">
+                    <div class="scenario-header">
+                        <h3>Scenario: Tool Timeout Error</h3>
+                        <p>An agent failed because a tool call timed out. Let's debug it.</p>
+                    </div>
+
+                    <div class="debug-steps">
+                        <div class="debug-step active" data-step="1">
+                            <div class="step-marker">1</div>
+                            <div class="step-content">
+                                <h4>Identify the Failed Span</h4>
+                                <p>Start by finding the span with the error status.</p>
+                            </div>
+                        </div>
+                        <div class="debug-step" data-step="2">
+                            <div class="step-marker">2</div>
+                            <div class="step-content">
+                                <h4>Examine Error Details</h4>
+                                <p>Look at the error message and stack trace.</p>
+                            </div>
+                        </div>
+                        <div class="debug-step" data-step="3">
+                            <div class="step-marker">3</div>
+                            <div class="step-content">
+                                <h4>Review Context</h4>
+                                <p>Check what inputs led to the failure.</p>
+                            </div>
+                        </div>
+                        <div class="debug-step" data-step="4">
+                            <div class="step-marker">4</div>
+                            <div class="step-content">
+                                <h4>Compare with Success</h4>
+                                <p>Look at similar successful traces.</p>
+                            </div>
+                        </div>
+                        <div class="debug-step" data-step="5">
+                            <div class="step-marker">5</div>
+                            <div class="step-content">
+                                <h4>Identify Fix</h4>
+                                <p>Determine the root cause and solution.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="debug-navigator">
+                        <button class="btn btn-secondary" id="prev-step" disabled>&larr; Previous</button>
+                        <span class="step-indicator">Step <span id="current-step">1</span> of 5</span>
+                        <button class="btn btn-primary" id="next-step">Next &rarr;</button>
+                    </div>
+
+                    <div class="debug-visualization" id="debug-viz">
+                        <!-- Populated by JavaScript based on step -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 5: Code Examples
+                 ======================================== -->
+            <section id="code" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Code Examples</h2>
+                    <p>Copy-ready observability implementations</p>
+                </div>
+
+                <div class="code-tabs">
+                    <button class="code-tab active" data-code="langsmith">LangSmith Setup</button>
+                    <button class="code-tab" data-code="phoenix">Phoenix Setup</button>
+                    <button class="code-tab" data-code="custom">Custom Callbacks</button>
+                    <button class="code-tab" data-code="alerting">Alerting</button>
+                </div>
+
+                <div class="code-panels">
+                    <div class="code-panel active" id="code-langsmith">
+                        <div class="code-header">
+                            <span class="code-title">LangSmith: Zero-Config Tracing</span>
+                            <button class="copy-btn" data-target="langsmith-code">Copy</button>
+                        </div>
+                        <pre id="langsmith-code"><code class="language-python">import os
+from langchain_anthropic import ChatAnthropic
+from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.tools import tool
+
+# Enable LangSmith tracing with environment variables
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_API_KEY"] = "ls_..."
+os.environ["LANGCHAIN_PROJECT"] = "my-agent"
+
+@tool
+def search_docs(query: str) -> str:
+    """Search documentation."""
+    return f"Found results for: {query}"
+
+# Create agent - automatically traced
+llm = ChatAnthropic(model="claude-sonnet-4-20250514")
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful assistant."),
+    ("human", "{input}"),
+    ("placeholder", "{agent_scratchpad}")
+])
+
+agent = create_tool_calling_agent(llm, [search_docs], prompt)
+executor = AgentExecutor(agent=agent, tools=[search_docs])
+
+# Every run is traced to LangSmith
+result = executor.invoke({"input": "Find docs about authentication"})
+
+# View at: https://smith.langchain.com</code></pre>
+                    </div>
+
+                    <div class="code-panel" id="code-phoenix">
+                        <div class="code-header">
+                            <span class="code-title">Phoenix: OpenTelemetry Tracing</span>
+                            <button class="copy-btn" data-target="phoenix-code">Copy</button>
+                        </div>
+                        <pre id="phoenix-code"><code class="language-python">import phoenix as px
+from phoenix.otel import register
+from openinference.instrumentation.langchain import LangChainInstrumentor
+from openinference.instrumentation.openai import OpenAIInstrumentor
+
+# Start local Phoenix server
+px.launch_app()
+
+# Register tracer
+tracer_provider = register(
+    project_name="my-agent",
+    endpoint="http://localhost:6006/v1/traces"
+)
+
+# Instrument frameworks
+LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
+OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
+
+# Now any LangChain or OpenAI calls are traced
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
+
+llm = ChatOpenAI(model="gpt-4o")
+response = llm.invoke([HumanMessage(content="Hello!")])
+
+# View traces at: http://localhost:6006</code></pre>
+                    </div>
+
+                    <div class="code-panel" id="code-custom">
+                        <div class="code-header">
+                            <span class="code-title">Custom Cost Tracking Callback</span>
+                            <button class="copy-btn" data-target="custom-code">Copy</button>
+                        </div>
+                        <pre id="custom-code"><code class="language-python">import time
+from dataclasses import dataclass, field
+from langchain.callbacks.base import BaseCallbackHandler
+
+MODEL_PRICING = {
+    "claude-sonnet-4-20250514": {"input": 3.00, "output": 15.00},
+    "gpt-4o": {"input": 2.50, "output": 10.00},
+}
+
+@dataclass
+class TraceMetrics:
+    total_cost: float = 0.0
+    total_tokens: int = 0
+    spans: list = field(default_factory=list)
+
+class CostTracker(BaseCallbackHandler):
+    def __init__(self):
+        self.metrics = TraceMetrics()
+        self._starts = {}
+
+    def on_llm_start(self, serialized, prompts, **kwargs):
+        self._starts[str(kwargs.get("run_id"))] = time.time()
+
+    def on_llm_end(self, response, **kwargs):
+        run_id = str(kwargs.get("run_id"))
+        latency = (time.time() - self._starts.pop(run_id, 0)) * 1000
+
+        usage = response.llm_output.get("usage", {})
+        tokens_in = usage.get("input_tokens", 0)
+        tokens_out = usage.get("output_tokens", 0)
+
+        model = response.llm_output.get("model_name", "unknown")
+        pricing = MODEL_PRICING.get(model, {"input": 0, "output": 0})
+        cost = (tokens_in * pricing["input"] +
+                tokens_out * pricing["output"]) / 1_000_000
+
+        self.metrics.total_cost += cost
+        self.metrics.total_tokens += tokens_in + tokens_out
+        self.metrics.spans.append({
+            "model": model,
+            "tokens": tokens_in + tokens_out,
+            "cost": cost,
+            "latency_ms": latency
+        })</code></pre>
+                    </div>
+
+                    <div class="code-panel" id="code-alerting">
+                        <div class="code-header">
+                            <span class="code-title">Production Alerting</span>
+                            <button class="copy-btn" data-target="alerting-code">Copy</button>
+                        </div>
+                        <pre id="alerting-code"><code class="language-python">from datetime import datetime, timedelta
+from langsmith import Client
+
+class ProductionMonitor:
+    def __init__(self, project_name: str):
+        self.client = Client()
+        self.project = project_name
+        self.thresholds = {
+            "max_cost": 0.50,      # Per trace
+            "max_latency_p95": 5000,  # ms
+            "max_error_rate": 5.0     # percent
+        }
+
+    def check_alerts(self) -> list[dict]:
+        runs = list(self.client.list_runs(
+            project_name=self.project,
+            start_time=datetime.utcnow() - timedelta(hours=1),
+            is_root=True
+        ))
+
+        alerts = []
+        errors = sum(1 for r in runs if r.error)
+        error_rate = (errors / len(runs)) * 100 if runs else 0
+
+        if error_rate > self.thresholds["max_error_rate"]:
+            alerts.append({
+                "severity": "critical",
+                "type": "error_rate",
+                "message": f"Error rate: {error_rate:.1f}%"
+            })
+
+        return alerts
+
+# Usage
+monitor = ProductionMonitor("production-agent")
+alerts = monitor.check_alerts()
+for alert in alerts:
+    print(f"[{alert['severity']}] {alert['message']}")</code></pre>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>
