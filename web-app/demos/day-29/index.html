@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day 29: Evaluating & Testing Agents - Interactive Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="demo-container">
+        <header class="demo-header">
+            <div class="header-content">
+                <a href="../../" class="back-link">&larr; Back to Course</a>
+                <h1>Evaluating & Testing Agents</h1>
+                <p class="subtitle">DeepEval & Ragas - Day 29</p>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="metric-explorer">
+                <span class="tab-icon">&#128200;</span>
+                <span class="tab-label">Metric Explorer</span>
+            </button>
+            <button class="tab-btn" data-tab="test-builder">
+                <span class="tab-icon">&#128221;</span>
+                <span class="tab-label">Test Case Builder</span>
+            </button>
+            <button class="tab-btn" data-tab="regression">
+                <span class="tab-icon">&#128202;</span>
+                <span class="tab-label">Regression Dashboard</span>
+            </button>
+            <button class="tab-btn" data-tab="judge">
+                <span class="tab-icon">&#9878;</span>
+                <span class="tab-label">LLM-as-Judge</span>
+            </button>
+            <button class="tab-btn" data-tab="code">
+                <span class="tab-icon">&#128187;</span>
+                <span class="tab-label">Code Examples</span>
+            </button>
+        </nav>
+
+        <main class="tab-content">
+            <!-- ========================================
+                 Tab 1: Metric Explorer
+                 ======================================== -->
+            <section id="metric-explorer" class="tab-panel active">
+                <div class="panel-header">
+                    <h2>Evaluation Metrics Explorer</h2>
+                    <p>Understand how different metrics assess agent outputs</p>
+                </div>
+
+                <div class="metric-selector">
+                    <label>Select a metric to explore:</label>
+                    <div class="metric-cards">
+                        <button class="metric-card active" data-metric="faithfulness">
+                            <div class="metric-icon">&#128218;</div>
+                            <div class="metric-info">
+                                <span class="metric-name">Faithfulness</span>
+                                <span class="metric-desc">Is the output grounded in context?</span>
+                            </div>
+                        </button>
+                        <button class="metric-card" data-metric="relevancy">
+                            <div class="metric-icon">&#127919;</div>
+                            <div class="metric-info">
+                                <span class="metric-name">Answer Relevancy</span>
+                                <span class="metric-desc">Does it address the question?</span>
+                            </div>
+                        </button>
+                        <button class="metric-card" data-metric="hallucination">
+                            <div class="metric-icon">&#128123;</div>
+                            <div class="metric-info">
+                                <span class="metric-name">Hallucination</span>
+                                <span class="metric-desc">Are there unsupported claims?</span>
+                            </div>
+                        </button>
+                        <button class="metric-card" data-metric="tool-accuracy">
+                            <div class="metric-icon">&#128295;</div>
+                            <div class="metric-info">
+                                <span class="metric-name">Tool Accuracy</span>
+                                <span class="metric-desc">Was the right tool called correctly?</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="metric-demo-area">
+                    <div class="metric-examples">
+                        <h3>Example Outputs</h3>
+                        <div class="example-cards" id="example-cards">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="metric-explanation">
+                        <h3 id="metric-title">Faithfulness</h3>
+                        <div class="explanation-content" id="metric-explanation">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 2: Test Case Builder
+                 ======================================== -->
+            <section id="test-builder" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Test Case Builder</h2>
+                    <p>Create evaluation test cases for your agent</p>
+                </div>
+
+                <div class="builder-layout">
+                    <div class="builder-form">
+                        <h3>New Test Case</h3>
+                        <form id="test-case-form">
+                            <div class="form-group">
+                                <label for="test-input">Input / Question</label>
+                                <textarea id="test-input" rows="2" placeholder="What is the refund policy for digital products?"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="test-context">Context (for RAG)</label>
+                                <textarea id="test-context" rows="3" placeholder="Digital products can be refunded within 14 days if unused. Downloaded software cannot be refunded after activation."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="test-expected">Expected Output</label>
+                                <textarea id="test-expected" rows="2" placeholder="Digital products are refundable within 14 days if not used. Downloaded software is non-refundable after activation."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="test-actual">Actual Agent Output</label>
+                                <textarea id="test-actual" rows="2" placeholder="Enter the actual output from your agent to evaluate..."></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" id="load-example-btn">Load Example</button>
+                                <button type="submit" class="btn btn-primary">Evaluate</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="builder-results">
+                        <h3>Evaluation Results</h3>
+                        <div id="evaluation-results" class="results-placeholder">
+                            <p>Fill in the form and click "Evaluate" to see metrics</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="test-suite-section">
+                    <h3>Test Suite</h3>
+                    <div class="test-suite-list" id="test-suite-list">
+                        <div class="empty-suite">No test cases yet. Create one above or load examples.</div>
+                    </div>
+                    <div class="suite-actions">
+                        <button class="btn btn-secondary" id="load-sample-suite">Load Sample Suite</button>
+                        <button class="btn btn-secondary" id="export-suite">Export JSON</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 3: Regression Dashboard
+                 ======================================== -->
+            <section id="regression" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Regression Dashboard</h2>
+                    <p>Track evaluation metrics across versions</p>
+                </div>
+
+                <div class="regression-overview">
+                    <div class="stat-card status-good">
+                        <div class="stat-label">Overall Status</div>
+                        <div class="stat-value" id="regression-status">PASSING</div>
+                        <div class="stat-sub">v2.1.0 vs baseline</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Tests Run</div>
+                        <div class="stat-value" id="tests-run">48</div>
+                        <div class="stat-sub">in test suite</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Pass Rate</div>
+                        <div class="stat-value" id="pass-rate">94%</div>
+                        <div class="stat-sub">above threshold</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Regressions</div>
+                        <div class="stat-value regression-count" id="regressions">3</div>
+                        <div class="stat-sub">detected</div>
+                    </div>
+                </div>
+
+                <div class="regression-charts">
+                    <div class="chart-section">
+                        <h3>Metric Trends Over Versions</h3>
+                        <div class="chart-container" id="trend-chart">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="regression-comparison">
+                    <h3>Baseline vs Current Comparison</h3>
+                    <div class="comparison-table" id="comparison-table">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="failing-tests">
+                    <h3>Failing Test Cases</h3>
+                    <div class="failing-list" id="failing-list">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 4: LLM-as-Judge Simulator
+                 ======================================== -->
+            <section id="judge" class="tab-panel">
+                <div class="panel-header">
+                    <h2>LLM-as-Judge Simulator</h2>
+                    <p>See how LLMs evaluate other LLM outputs</p>
+                </div>
+
+                <div class="judge-layout">
+                    <div class="judge-input-section">
+                        <h3>Output to Evaluate</h3>
+                        <div class="form-group">
+                            <label for="judge-question">Original Question</label>
+                            <textarea id="judge-question" rows="2">What are the benefits of using TypeScript over JavaScript?</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="judge-output">Agent Output</label>
+                            <textarea id="judge-output" rows="4">TypeScript offers static typing which catches errors at compile time, better IDE support with autocomplete, and improved code maintainability. It also supports modern JavaScript features and compiles down to JavaScript for browser compatibility.</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="judge-criteria">Evaluation Criteria</label>
+                            <select id="judge-criteria">
+                                <option value="helpfulness">Helpfulness</option>
+                                <option value="accuracy">Accuracy</option>
+                                <option value="completeness">Completeness</option>
+                                <option value="clarity">Clarity</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" id="run-judge">Run Evaluation</button>
+                    </div>
+
+                    <div class="judge-output-section">
+                        <h3>Judge Evaluation</h3>
+                        <div class="judge-prompt-section">
+                            <h4>Constructed Judge Prompt</h4>
+                            <div class="judge-prompt" id="judge-prompt">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                        <div class="judge-result-section">
+                            <h4>Judge Response</h4>
+                            <div class="judge-result" id="judge-result">
+                                <p class="hint">Click "Run Evaluation" to see the judge's assessment</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="judge-comparison">
+                    <h3>Judge Model Comparison</h3>
+                    <p class="comparison-note">Different judge models may produce different scores. Compare evaluations across models:</p>
+                    <div class="judge-comparison-grid" id="judge-comparison">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================
+                 Tab 5: Code Examples
+                 ======================================== -->
+            <section id="code" class="tab-panel">
+                <div class="panel-header">
+                    <h2>Code Examples</h2>
+                    <p>Copy-ready evaluation implementations</p>
+                </div>
+
+                <div class="code-tabs">
+                    <button class="code-tab active" data-code="deepeval">DeepEval Basics</button>
+                    <button class="code-tab" data-code="ragas">Ragas RAG Eval</button>
+                    <button class="code-tab" data-code="custom">Custom Metrics</button>
+                    <button class="code-tab" data-code="regression">CI/CD Pipeline</button>
+                </div>
+
+                <div class="code-panels">
+                    <div class="code-panel active" id="code-deepeval">
+                        <div class="code-header">
+                            <span class="code-title">DeepEval: LLM Testing Framework</span>
+                            <button class="copy-btn" data-target="deepeval-code">Copy</button>
+                        </div>
+                        <pre id="deepeval-code"><code class="language-python">"""DeepEval: LLM Testing Framework
+
+Run with: deepeval test run test_agent.py
+"""
+
+from deepeval import assert_test
+from deepeval.test_case import LLMTestCase
+from deepeval.metrics import (
+    AnswerRelevancyMetric,
+    FaithfulnessMetric,
+    HallucinationMetric,
+    ContextualPrecisionMetric
+)
+
+# ══════════════════════════════════════════════════════════════
+# Define test cases
+# ══════════════════════════════════════════════════════════════
+
+test_case = LLMTestCase(
+    input="What is the refund policy for digital products?",
+    actual_output="Digital products can be refunded within 14 days if not used.",
+    expected_output="Refunds available within 14 days for unused digital products.",
+    context=[
+        "Digital products are refundable within 14 days of purchase.",
+        "Products that have been downloaded or activated cannot be refunded.",
+        "Physical products have a 30-day return window."
+    ]
+)
+
+# ══════════════════════════════════════════════════════════════
+# Configure metrics with thresholds
+# ══════════════════════════════════════════════════════════════
+
+faithfulness = FaithfulnessMetric(
+    threshold=0.7,
+    model="gpt-4o",  # Judge model
+    include_reason=True
+)
+
+relevancy = AnswerRelevancyMetric(
+    threshold=0.7,
+    model="gpt-4o"
+)
+
+hallucination = HallucinationMetric(
+    threshold=0.5,  # Lower is better for hallucination
+    model="gpt-4o"
+)
+
+# ══════════════════════════════════════════════════════════════
+# Run evaluation
+# ══════════════════════════════════════════════════════════════
+
+def test_refund_policy():
+    """Test that agent correctly answers refund questions."""
+    assert_test(
+        test_case,
+        metrics=[faithfulness, relevancy, hallucination]
+    )
+
+# Run all tests
+if __name__ == "__main__":
+    # Evaluate single test case
+    faithfulness.measure(test_case)
+    print(f"Faithfulness Score: {faithfulness.score}")
+    print(f"Reason: {faithfulness.reason}")
+
+    relevancy.measure(test_case)
+    print(f"Relevancy Score: {relevancy.score}")
+
+    hallucination.measure(test_case)
+    print(f"Hallucination Score: {hallucination.score}")</code></pre>
+                    </div>
+
+                    <div class="code-panel" id="code-ragas">
+                        <div class="code-header">
+                            <span class="code-title">Ragas: RAG Pipeline Evaluation</span>
+                            <button class="copy-btn" data-target="ragas-code">Copy</button>
+                        </div>
+                        <pre id="ragas-code"><code class="language-python">"""Ragas: RAG Pipeline Evaluation
+
+Evaluate both retrieval and generation quality in RAG systems.
+"""
+
+from ragas import evaluate
+from ragas.metrics import (
+    context_precision,
+    context_recall,
+    faithfulness,
+    answer_relevancy
+)
+from datasets import Dataset
+
+# ══════════════════════════════════════════════════════════════
+# Prepare evaluation dataset
+# ══════════════════════════════════════════════════════════════
+
+eval_data = {
+    "question": [
+        "What is the capital of France?",
+        "How does photosynthesis work?",
+        "What are the symptoms of diabetes?"
+    ],
+    "answer": [
+        "The capital of France is Paris.",
+        "Photosynthesis converts sunlight into chemical energy in plants.",
+        "Common symptoms include increased thirst, frequent urination, and fatigue."
+    ],
+    "contexts": [
+        ["Paris is the capital and largest city of France."],
+        ["Photosynthesis is the process by which plants convert light energy into chemical energy."],
+        ["Diabetes symptoms include excessive thirst, frequent urination, unexplained weight loss, and fatigue."]
+    ],
+    "ground_truth": [
+        "Paris is the capital of France.",
+        "Photosynthesis is how plants convert sunlight to energy.",
+        "Diabetes symptoms: thirst, urination, weight loss, fatigue."
+    ]
+}
+
+dataset = Dataset.from_dict(eval_data)
+
+# ══════════════════════════════════════════════════════════════
+# Run Ragas evaluation
+# ══════════════════════════════════════════════════════════════
+
+results = evaluate(
+    dataset,
+    metrics=[
+        context_precision,   # Are retrieved docs relevant?
+        context_recall,      # Were all relevant docs retrieved?
+        faithfulness,        # Is answer grounded in context?
+        answer_relevancy     # Does answer address the question?
+    ]
+)
+
+# ══════════════════════════════════════════════════════════════
+# Analyze results
+# ══════════════════════════════════════════════════════════════
+
+print("Overall Scores:")
+print(f"  Context Precision: {results['context_precision']:.3f}")
+print(f"  Context Recall:    {results['context_recall']:.3f}")
+print(f"  Faithfulness:      {results['faithfulness']:.3f}")
+print(f"  Answer Relevancy:  {results['answer_relevancy']:.3f}")
+
+# Get per-question breakdown
+df = results.to_pandas()
+print("\nPer-Question Results:")
+print(df[['question', 'faithfulness', 'answer_relevancy']].to_string())
+
+# Identify weak spots
+low_faith = df[df['faithfulness'] < 0.7]
+if len(low_faith) > 0:
+    print(f"\nWarning: {len(low_faith)} questions have low faithfulness")
+    print("Consider improving retrieval or adjusting generation prompts.")</code></pre>
+                    </div>
+
+                    <div class="code-panel" id="code-custom">
+                        <div class="code-header">
+                            <span class="code-title">Custom Agent Metrics</span>
+                            <button class="copy-btn" data-target="custom-code">Copy</button>
+                        </div>
+                        <pre id="custom-code"><code class="language-python">"""Custom Evaluation Metrics for Agents
+
+Build domain-specific metrics for tool usage, task completion, and efficiency.
+"""
+
+from deepeval.metrics import BaseMetric
+from deepeval.test_case import LLMTestCase
+from dataclasses import dataclass
+from typing import Optional
+import json
+
+# ══════════════════════════════════════════════════════════════
+# Tool Usage Accuracy Metric
+# ══════════════════════════════════════════════════════════════
+
+@dataclass
+class ToolCall:
+    name: str
+    arguments: dict
+
+class ToolAccuracyMetric(BaseMetric):
+    """Evaluate if the agent called the right tool with correct arguments."""
+
+    def __init__(
+        self,
+        expected_tools: list[ToolCall],
+        threshold: float = 0.8
+    ):
+        self.expected_tools = expected_tools
+        self.threshold = threshold
+        self.score: Optional[float] = None
+        self.reason: Optional[str] = None
+
+    def measure(self, test_case: LLMTestCase) -> float:
+        # Parse actual tool calls from output
+        actual_calls = self._extract_tool_calls(test_case.actual_output)
+
+        if not self.expected_tools:
+            self.score = 1.0 if not actual_calls else 0.0
+            return self.score
+
+        # Calculate accuracy
+        correct = 0
+        total = len(self.expected_tools)
+
+        for expected in self.expected_tools:
+            for actual in actual_calls:
+                if self._tools_match(expected, actual):
+                    correct += 1
+                    break
+
+        self.score = correct / total
+        self.reason = f"Matched {correct}/{total} expected tool calls"
+        return self.score
+
+    def _extract_tool_calls(self, output: str) -> list[ToolCall]:
+        """Extract tool calls from agent output."""
+        # Implementation depends on your agent's output format
+        calls = []
+        try:
+            data = json.loads(output)
+            if "tool_calls" in data:
+                for tc in data["tool_calls"]:
+                    calls.append(ToolCall(tc["name"], tc["arguments"]))
+        except:
+            pass
+        return calls
+
+    def _tools_match(self, expected: ToolCall, actual: ToolCall) -> bool:
+        if expected.name != actual.name:
+            return False
+        # Check key arguments match
+        for key, value in expected.arguments.items():
+            if actual.arguments.get(key) != value:
+                return False
+        return True
+
+    def is_successful(self) -> bool:
+        return self.score >= self.threshold
+
+
+# ══════════════════════════════════════════════════════════════
+# Task Completion Metric
+# ══════════════════════════════════════════════════════════════
+
+class TaskCompletionMetric(BaseMetric):
+    """Evaluate if the agent completed the assigned task."""
+
+    def __init__(self, completion_criteria: list[str], threshold: float = 0.8):
+        self.criteria = completion_criteria
+        self.threshold = threshold
+        self.score: Optional[float] = None
+
+    def measure(self, test_case: LLMTestCase) -> float:
+        output = test_case.actual_output.lower()
+        met = sum(1 for c in self.criteria if c.lower() in output)
+        self.score = met / len(self.criteria)
+        return self.score
+
+    def is_successful(self) -> bool:
+        return self.score >= self.threshold
+
+
+# ══════════════════════════════════════════════════════════════
+# Efficiency Metric (tokens + steps)
+# ══════════════════════════════════════════════════════════════
+
+class EfficiencyMetric(BaseMetric):
+    """Evaluate agent efficiency based on tokens used and steps taken."""
+
+    def __init__(
+        self,
+        max_tokens: int = 2000,
+        max_steps: int = 5,
+        threshold: float = 0.7
+    ):
+        self.max_tokens = max_tokens
+        self.max_steps = max_steps
+        self.threshold = threshold
+        self.score: Optional[float] = None
+
+    def measure(self, test_case: LLMTestCase, tokens_used: int, steps: int) -> float:
+        token_score = max(0, 1 - (tokens_used / self.max_tokens))
+        step_score = max(0, 1 - (steps / self.max_steps))
+        self.score = (token_score + step_score) / 2
+        return self.score
+
+    def is_successful(self) -> bool:
+        return self.score >= self.threshold
+
+
+# ══════════════════════════════════════════════════════════════
+# Usage
+# ══════════════════════════════════════════════════════════════
+
+# Define expected behavior
+expected_tools = [
+    ToolCall("search_products", {"query": "laptop"}),
+    ToolCall("check_inventory", {"product_id": "LAPTOP-001"})
+]
+
+tool_metric = ToolAccuracyMetric(expected_tools, threshold=0.8)
+task_metric = TaskCompletionMetric(
+    ["found product", "checked inventory", "provided recommendation"],
+    threshold=0.7
+)</code></pre>
+                    </div>
+
+                    <div class="code-panel" id="code-regression">
+                        <div class="code-header">
+                            <span class="code-title">CI/CD Regression Testing</span>
+                            <button class="copy-btn" data-target="regression-code">Copy</button>
+                        </div>
+                        <pre id="regression-code"><code class="language-python">"""CI/CD Regression Testing for Agents
+
+Automated testing pipeline with baseline comparison and statistical analysis.
+"""
+
+import json
+import statistics
+from dataclasses import dataclass
+from pathlib import Path
+from datetime import datetime
+from deepeval import evaluate
+from deepeval.test_case import LLMTestCase
+from deepeval.metrics import FaithfulnessMetric, AnswerRelevancyMetric
+
+# ══════════════════════════════════════════════════════════════
+# Configuration
+# ══════════════════════════════════════════════════════════════
+
+@dataclass
+class RegressionConfig:
+    baseline_path: Path = Path("baselines/latest.json")
+    test_suite_path: Path = Path("tests/eval_suite.json")
+    output_path: Path = Path("results/")
+    significance_threshold: float = 0.05  # 5% degradation allowed
+    min_pass_rate: float = 0.90  # 90% of tests must pass
+
+config = RegressionConfig()
+
+# ══════════════════════════════════════════════════════════════
+# Load test suite and baseline
+# ══════════════════════════════════════════════════════════════
+
+def load_test_suite(path: Path) -> list[LLMTestCase]:
+    """Load test cases from JSON file."""
+    with open(path) as f:
+        data = json.load(f)
+
+    return [
+        LLMTestCase(
+            input=tc["input"],
+            actual_output=tc["actual_output"],
+            expected_output=tc.get("expected_output"),
+            context=tc.get("context", [])
+        )
+        for tc in data["test_cases"]
+    ]
+
+def load_baseline(path: Path) -> dict:
+    """Load baseline metrics from previous run."""
+    if not path.exists():
+        return {"metrics": {}, "timestamp": None}
+    with open(path) as f:
+        return json.load(f)
+
+# ══════════════════════════════════════════════════════════════
+# Run evaluation
+# ══════════════════════════════════════════════════════════════
+
+def run_regression_tests(test_cases: list[LLMTestCase]) -> dict:
+    """Run all test cases and collect metrics."""
+    metrics = [
+        FaithfulnessMetric(threshold=0.7),
+        AnswerRelevancyMetric(threshold=0.7)
+    ]
+
+    results = {
+        "faithfulness": [],
+        "relevancy": [],
+        "passed": 0,
+        "failed": 0,
+        "failures": []
+    }
+
+    for i, tc in enumerate(test_cases):
+        try:
+            eval_result = evaluate([tc], metrics)
+            f_score = eval_result[0].metrics[0].score
+            r_score = eval_result[0].metrics[1].score
+
+            results["faithfulness"].append(f_score)
+            results["relevancy"].append(r_score)
+
+            if f_score >= 0.7 and r_score >= 0.7:
+                results["passed"] += 1
+            else:
+                results["failed"] += 1
+                results["failures"].append({
+                    "index": i,
+                    "input": tc.input[:100],
+                    "faithfulness": f_score,
+                    "relevancy": r_score
+                })
+        except Exception as e:
+            results["failed"] += 1
+            results["failures"].append({"index": i, "error": str(e)})
+
+    return results
+
+# ══════════════════════════════════════════════════════════════
+# Compare with baseline
+# ══════════════════════════════════════════════════════════════
+
+def compare_with_baseline(current: dict, baseline: dict) -> dict:
+    """Statistical comparison with baseline."""
+    comparison = {"regressions": [], "improvements": [], "status": "PASS"}
+
+    for metric in ["faithfulness", "relevancy"]:
+        if metric not in baseline.get("metrics", {}):
+            continue
+
+        curr_mean = statistics.mean(current[metric])
+        base_mean = baseline["metrics"][metric]["mean"]
+        diff = (curr_mean - base_mean) / base_mean
+
+        if diff < -config.significance_threshold:
+            comparison["regressions"].append({
+                "metric": metric,
+                "baseline": base_mean,
+                "current": curr_mean,
+                "change": f"{diff*100:.1f}%"
+            })
+            comparison["status"] = "FAIL"
+        elif diff > config.significance_threshold:
+            comparison["improvements"].append({
+                "metric": metric,
+                "change": f"+{diff*100:.1f}%"
+            })
+
+    # Check pass rate
+    total = current["passed"] + current["failed"]
+    pass_rate = current["passed"] / total if total > 0 else 0
+    if pass_rate < config.min_pass_rate:
+        comparison["status"] = "FAIL"
+        comparison["regressions"].append({
+            "metric": "pass_rate",
+            "baseline": config.min_pass_rate,
+            "current": pass_rate
+        })
+
+    return comparison
+
+# ══════════════════════════════════════════════════════════════
+# Main pipeline
+# ══════════════════════════════════════════════════════════════
+
+def main():
+    print("Loading test suite...")
+    test_cases = load_test_suite(config.test_suite_path)
+    baseline = load_baseline(config.baseline_path)
+
+    print(f"Running {len(test_cases)} test cases...")
+    results = run_regression_tests(test_cases)
+
+    print("Comparing with baseline...")
+    comparison = compare_with_baseline(results, baseline)
+
+    # Output results
+    print(f"\n{'='*50}")
+    print(f"REGRESSION TEST: {comparison['status']}")
+    print(f"{'='*50}")
+    print(f"Passed: {results['passed']}/{results['passed']+results['failed']}")
+
+    if comparison["regressions"]:
+        print("\nRegressions detected:")
+        for r in comparison["regressions"]:
+            print(f"  - {r['metric']}: {r.get('change', 'below threshold')}")
+
+    # Exit with appropriate code for CI/CD
+    exit(0 if comparison["status"] == "PASS" else 1)
+
+if __name__ == "__main__":
+    main()
+
+
+# ══════════════════════════════════════════════════════════════
+# GitHub Actions workflow (save as .github/workflows/eval.yml)
+# ══════════════════════════════════════════════════════════════
+"""
+name: Agent Evaluation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install deepeval ragas
+
+      - name: Run regression tests
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python scripts/regression_test.py
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: results/
+"""</code></pre>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>
